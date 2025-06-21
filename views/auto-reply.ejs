@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('partials/head', { title: 'WhatsApp Bot Settings' }) %>
+    <!-- Styles moved to dashboard.css -->
+</head>
+<body>
+    <div class="dashboard-layout">
+        <%- include('partials/sidebar') %>
+        <div class="main-content">
+            <%- include('partials/navbar', { title: 'WhatsApp Bot Settings' }) %>
+            <main class="content-wrapper">
+                <!-- Global Bot Toggle -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">Bot Status</h3>
+                            <p class="card-description">Enable or disable the entire auto-reply bot.</p>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <form action="/auto-reply/settings" method="POST" id="settingsForm" class="d-flex justify-content-between align-items-center">
+                            <label for="auto_reply_enabled" style="font-weight: 500; font-size: 1rem;">Enable Bot</label>
+                            <label class="switch">
+                                <input type="checkbox" name="auto_reply_enabled" id="auto_reply_enabled" <%= settings.auto_reply_enabled === 'true' ? 'checked' : '' %> onchange="document.getElementById('settingsForm').submit()">
+                                <span class="slider"></span>
+                            </label>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Add New Rule -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">Add New Auto-Reply Rule</h3>
+                            <p class="card-description">Create a new keyword and its corresponding reply.</p>
+                        </div>
+                        <i class="ri-add-line"></i>
+                    </div>
+                    <div class="card-content">
+                        <form action="/auto-reply/add" method="POST">
+                            <div class="grid-2">
+                                <div>
+                                    <label for="keyword">Keyword</label>
+                                    <input type="text" name="keyword" required class="form-control" placeholder="e.g., info">
+                                </div>
+                                <div>
+                                    <label for="reply">Reply Message</label>
+                                    <input type="text" name="reply" required class="form-control" placeholder="The message to send back">
+                                </div>
+                            </div>
+                            <div class="actions" style="margin-top: 1.5rem;">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="ri-save-line"></i>
+                                    <span>Save Rule</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Rules List -->
+                <div class="card">
+                    <div class="card-header">
+                         <div>
+                            <h3 class="card-title">Auto-Reply Rules</h3>
+                            <p class="card-description">Manage your existing keyword replies.</p>
+                        </div>
+                        <i class="ri-list-settings-line"></i>
+                    </div>
+                    <div class="card-content">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Status</th>
+                                        <th>Keyword</th>
+                                        <th>Reply</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (replies.length > 0) { %>
+                                        <% replies.forEach(rule => { %>
+                                            <tr>
+                                                <td>
+                                                    <a href="/auto-reply/toggle/<%= rule.id %>" class="btn <%= rule.enabled ? 'btn-primary' : 'btn-secondary' %>" style="padding: 0.25rem 0.5rem;">
+                                                        <%= rule.enabled ? 'On' : 'Off' %>
+                                                    </a>
+                                                </td>
+                                                <td><%= rule.keyword %></td>
+                                                <td><%= rule.reply %></td>
+                                                <td>
+                                                    <form action="/auto-reply/delete/<%= rule.id %>" method="POST" onsubmit="return confirm('Delete this rule?');" style="display: inline;">
+                                                        <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem;">
+                                                            <i class="ri-delete-bin-line"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <% }); %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="4" style="text-align: center; color: var(--muted-foreground);">No rules configured yet.</td>
+                                        </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html> 

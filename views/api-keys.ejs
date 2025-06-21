@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('partials/head', { title: 'API Keys' }) %>
+</head>
+<body>
+<div class="dashboard-layout">
+    <%- include('partials/sidebar') %>
+    <div class="main-content">
+        <%- include('partials/navbar', { title: 'API Keys' }) %>
+        <main class="content-wrapper">
+            <div class="card mb-4">
+                <div class="card-header justify-content-between align-items-center d-flex">
+                    <div>
+                        <h3 class="card-title">My API Keys</h3>
+                        <p class="card-description">Use these keys to access the REST endpoints without session cookie.</p>
+                    </div>
+                    <form action="/api-keys/generate" method="POST">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ri-key-line"></i>
+                            Generate New
+                        </button>
+                    </form>
+                </div>
+                <div class="card-content">
+                    <% if (error) { %>
+                        <p style="color: var(--destructive);"><%= error %></p>
+                    <% } %>
+                    <% if (success) { %>
+                        <p style="color: var(--primary);"><%= success %></p>
+                    <% } %>
+
+                    <div class="table-container mt-4">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Key</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (keys && keys.length > 0) { %>
+                                    <% keys.forEach((k, index) => { %>
+                                        <tr>
+                                            <td><%= index + 1 %></td>
+                                            <td>
+                                                <% if (k.raw) { %>
+                                                    <code><%= k.raw %></code>
+                                                <% } else { %>
+                                                    <em>Hidden</em>
+                                                <% } %>
+                                            </td>
+                                            <td><%= new Date(k.created_at).toLocaleString() %></td>
+                                            <td>
+                                                <% if (k.id) { %>
+                                                    <form action="/api-keys/delete/<%= k.id %>" method="POST" onsubmit="return confirm('Revoke this key?');" style="display:inline;">
+                                                        <button class="btn btn-danger" style="padding:0.25rem 0.5rem;">
+                                                            <i class="ri-delete-bin-line"></i>
+                                                        </button>
+                                                    </form>
+                                                <% } %>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="4" style="text-align:center;">No keys yet.</td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p class="mt-4"><strong>Usage:</strong> add a header <code>X-API-KEY: &lt;your_key&gt;</code> or query parameter <code>?api_key=&lt;your_key&gt;</code>.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html> 

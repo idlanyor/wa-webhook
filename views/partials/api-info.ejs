@@ -1,0 +1,51 @@
+<div class="card">
+    <div class="card-header">
+        <div>
+            <h3 class="card-title">API Endpoints</h3>
+            <p class="card-description">Endpoints available for integration.</p>
+        </div>
+        <i class="ri-code-s-slash-line"></i>
+    </div>
+    <div class="card-content">
+        <div class="api-endpoint">
+            <span class="method post">POST</span>
+            <span class="path">/send-message</span>
+            <span class="description">- Kirim pesan</span>
+        </div>
+        <div class="api-endpoint">
+            <span class="method get">GET</span>
+            <span class="path">/status</span>
+            <span class="description">- Status koneksi</span>
+        </div>
+        <div class="api-endpoint">
+            <span class="method post">POST</span>
+            <span class="path">/logout</span>
+            <span class="description">- Logout WhatsApp</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .api-endpoint {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        font-family: 'Fira Code', monospace;
+        font-size: 0.875rem;
+    }
+    .api-endpoint:not(:last-child) {
+        border-bottom: 1px solid var(--border);
+    }
+    .api-endpoint .method {
+        font-weight: 700;
+        padding: 0.1rem 0.4rem;
+        border-radius: 0.25rem;
+        color: white;
+    }
+    .api-endpoint .method.post { background-color: #49cc90; }
+    .api-endpoint .method.get { background-color: #61affe; }
+    .api-endpoint .path { color: var(--foreground); }
+    .api-endpoint .description { color: var(--muted-foreground); }
+</style> 

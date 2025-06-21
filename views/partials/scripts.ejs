@@ -1,0 +1,193 @@
+<script>
+    // Socket.IO connections
+    const socket = io();
+
+    let currentStatus = 'disconnected';
+    let messages = [];
+
+    // DOM elements
+    const statusElement = document.getElementById('connectionStatus');
+    const statusMessageElement = document.getElementById('statusMessage');
+    const qrCard = document.getElementById('qrCard');
+    const qrElement = document.getElementById('qrcode');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const testBtn = document.getElementById('testBtn');
+    const waLogoutBtn = document.getElementById('waLogoutBtn');
+    const messagesCard = document.getElementById('messagesCard');
+    const messagesList = document.getElementById('messagesList');
+
+    // Socket event listeners for WhatsApp service
+    socket.on('connect', () => {
+        console.log('Connected to server');
+        refreshStatus();
+    });
+
+    socket.on('qr', (qr) => {
+        console.log('QR code received');
+        displayQR(qr);
+    });
+
+    socket.on('connection_status', (data) => {
+        console.log('Connection status:', data);
+        updateStatus(data.status);
+    });
+
+    socket.on('new_message', (message) => {
+        console.log('New message:', message);
+        addMessage(message);
+    });
+
+    // Functions
+    function updateStatus(status) {
+        currentStatus = status;
+        statusElement.className = `status ${status}`;
+
+        switch (status) {
+            case 'connected':
+                statusElement.textContent = 'Connected';
+                statusMessageElement.textContent = 'WhatsApp is connected and ready to use.';
+                qrCard.style.display = 'none';
+                testBtn.disabled = false;
+                waLogoutBtn.disabled = false;
+                break;
+            case 'qr_ready':
+                statusElement.textContent = 'Waiting for QR Scan';
+                statusMessageElement.textContent = 'Scan the QR code with your WhatsApp app.';
+                testBtn.disabled = true;
+                waLogoutBtn.disabled = true;
+                break;
+            case 'disconnected':
+            default:
+                statusElement.textContent = 'Disconnected';
+                statusMessageElement.textContent = 'WhatsApp is not connected.';
+                qrCard.style.display = 'none';
+                testBtn.disabled = true;
+                waLogoutBtn.disabled = true;
+                break;
+        }
+    }
+
+    function displayQR(qrData) {
+        qrElement.innerHTML = '';
+        
+        if (!qrData) {
+            qrCard.style.display = 'none';
+            return;
+        }
+
+        qrCard.style.display = 'block';
+
+        new QRCode(qrElement, {
+            text: qrData,
+            width: 256,
+            height: 256,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    }
+
+    function addMessage(message) {
+        messages.unshift(message);
+        messagesCard.style.display = 'block';
+
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message-item';
+        messageElement.innerHTML = `
+            <div class="message-from">
+                ${message.groupName ? `[${message.groupName}] ` : ''}
+                ${message.sender || 'Unknown'}
+            </div>
+            <div class="message-text">${message.message || message.text || 'No message'}</div>
+            <div class="message-time">${new Date(message.timestamp * 1000 || Date.now()).toLocaleString()}</div>
+        `;
+
+        messagesList.insertBefore(messageElement, messagesList.firstChild);
+
+        if (messagesList.children.length > 10) {
+            messagesList.removeChild(messagesList.lastChild);
+        }
+    }
+
+    async function refreshStatus() {
+        const refreshText = document.getElementById('refreshText');
+        refreshText.innerHTML = '<span class="loading"></span>';
+        refreshBtn.disabled = true;
+
+        try {
+            const response = await fetch('/status');
+            const data = await response.json();
+
+            updateStatus(data.status);
+
+            if (data.qr) {
+                displayQR(data.qr);
+            } else {
+                displayQR(null);
+            }
+        } catch (error) {
+            console.error('Error refreshing status:', error);
+            statusMessageElement.textContent = 'Error: Could not connect to the service.';
+        } finally {
+            refreshText.textContent = 'Refresh';
+            refreshBtn.disabled = false;
+        }
+    }
+
+    async function testMessage() {
+        const phoneNumber = prompt('Enter WhatsApp number (e.g., 6281234567890):');
+        if (!phoneNumber) return;
+        const finalPhone = phoneNumber.startsWith('08') ? phoneNumber.replace(/^08/, '628') : phoneNumber;
+        const message = prompt('Enter test message:', 'Hello from WhatsApp API!');
+        if (!message) return;
+
+        try {
+            const response = await fetch('/send-message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    to: finalPhone,
+                    message: message
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('Message sent successfully!');
+            } else {
+                alert('Error: ' + (result.error || 'Failed to send message'));
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    async function waLogout() {
+        if (!confirm('Are you sure you want to log out from WhatsApp? This will clear the session and you will need to scan the QR code again.')) return;
+
+        try {
+            const response = await fetch('/logout', {
+                method: 'POST'
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('Logged out from WhatsApp successfully.');
+                updateStatus('disconnected');
+            } else {
+                alert('Error: ' + (result.error || 'Failed to log out from WhatsApp.'));
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        refreshStatus();
+    });
+</script> 

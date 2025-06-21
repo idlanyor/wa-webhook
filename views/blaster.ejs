@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('partials/head', { title: 'WhatsApp Blaster' }) %>
+    <style>
+        .log-box {
+            background-color: #2c2c2c;
+            color: #f1f1f1;
+            font-family: 'Fira Code', monospace;
+            padding: 1rem;
+            border-radius: var(--radius);
+            height: 300px;
+            overflow-y: auto;
+            font-size: 0.875rem;
+            margin-top: 1.5rem;
+        }
+        .log-item {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #444;
+        }
+        .log-item.success { color: #28a745; }
+        .log-item.error { color: #dc3545; }
+        .log-item.info { color: #17a2b8; }
+        .log-item:before {
+            content: '> ';
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: var(--radius);
+        }
+        .modal-header {
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h4 {
+            font-size: 1.25rem;
+        }
+        .close-btn {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .contact-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        .contact-item:hover {
+            background-color: var(--muted);
+        }
+        .contact-item input {
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <%- include('partials/sidebar') %>
+        <div class="main-content">
+            <%- include('partials/navbar', { title: 'WhatsApp Blaster' }) %>
+            <main class="content-wrapper">
+                <div class="grid-container">
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">Bulk Message Sender</h3>
+                                <p class="card-description">Send a message to multiple numbers at once.</p>
+                            </div>
+                            <i class="ri-rocket-2-line"></i>
+                        </div>
+                        <div class="card-content">
+                            <div class="actions" style="margin-bottom: 1rem; justify-content: flex-start;">
+                                <button class="btn btn-secondary" id="selectContactsBtn">
+                                    <i class="ri-contacts-book-line"></i>
+                                    <span>Select from Contacts</span>
+                                </button>
+                            </div>
+                            <div class="grid-container" style="gap: 1.5rem;">
+                                <div>
+                                    <label for="numbers" style="font-weight: 500; display: block; margin-bottom: 0.5rem;">Phone Numbers</label>
+                                    <textarea id="numbers" rows="10" placeholder="Enter numbers, one per line..." style="width: 100%; padding: 0.5rem; border-radius: var(--radius); border: 1px solid var(--border); font-family: 'Inter', sans-serif;"></textarea>
+                                </div>
+                                <div>
+                                    <label for="message" style="font-weight: 500; display: block; margin-bottom: 0.5rem;">Message</label>
+                                    <textarea id="message" rows="10" placeholder="Type your message here..." style="width: 100%; padding: 0.5rem; border-radius: var(--radius); border: 1px solid var(--border); font-family: 'Inter', sans-serif;"></textarea>
+                                </div>
+                            </div>
+                            <div class="actions" style="margin-top: 1.5rem;">
+                                <button class="btn btn-primary" id="sendBtn">
+                                    <i class="ri-send-plane-fill"></i>
+                                    <span>Send Messages</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">Sending Log</h3>
+                                <p class="card-description">Real-time status of the bulk sending process.</p>
+                            </div>
+                             <i class="ri-file-text-line"></i>
+                        </div>
+                        <div class="card-content">
+                            <div id="logs" class="log-box"></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>Select Contacts</h4>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div id="modalContactList" class="contact-list">
+                <!-- Contacts will be loaded here -->
+            </div>
+            <div class="actions" style="margin-top: 1.5rem;">
+                <button class="btn btn-primary" id="addSelectedContactsBtn">Add Selected to Blaster</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script>
+        const sendBtn = document.getElementById('sendBtn');
+        const numbersEl = document.getElementById('numbers');
+        const messageEl = document.getElementById('message');
+        const logsEl = document.getElementById('logs');
+        const socket = io();
+
+        // Modal elements
+        const contactModal = document.getElementById('contactModal');
+        const selectContactsBtn = document.getElementById('selectContactsBtn');
+        const closeBtn = document.querySelector('.close-btn');
+        const modalContactList = document.getElementById('modalContactList');
+        const addSelectedContactsBtn = document.getElementById('addSelectedContactsBtn');
+
+        function addLog(log) {
+            const logItem = document.createElement('div');
+            logItem.className = `log-item ${log.status}`;
+            logItem.textContent = `[${new Date().toLocaleTimeString()}] ${log.message}`;
+            logsEl.appendChild(logItem);
+            logsEl.scrollTop = logsEl.scrollHeight;
+        }
+        
+        sendBtn.addEventListener('click', async () => {
+            const numbers = numbersEl.value;
+            const message = messageEl.value;
+
+            if (!numbers || !message) {
+                alert('Please provide both numbers and a message.');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to start the bulk sending process?')) {
+                return;
+            }
+
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="loading"></span> Sending...';
+            logsEl.innerHTML = ''; // Clear previous logs
+
+            addLog({ status: 'info', message: 'Starting bulk sending process...' });
+
+            try {
+                const response = await fetch('/send-bulk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ numbers, message })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+                
+                addLog({ status: 'info', message: result.message });
+
+            } catch (error) {
+                addLog({ status: 'error', message: `Error starting process: ${error.message}` });
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="ri-send-plane-fill"></i><span>Send Messages</span>';
+            }
+        });
+
+        socket.on('bulk-log', (log) => {
+            addLog(log);
+            if (log.status === 'done') {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="ri-send-plane-fill"></i><span>Send Messages</span>';
+            }
+        });
+
+        // Modal logic
+        async function openContactModal() {
+            modalContactList.innerHTML = '<div class="loading"></div>';
+            contactModal.style.display = 'block';
+
+            try {
+                const response = await fetch('/api/contacts');
+                const contacts = await response.json();
+
+                modalContactList.innerHTML = '';
+
+                if (contacts.length > 0) {
+                    contacts.forEach(contact => {
+                        const item = document.createElement('div');
+                        item.className = 'contact-item';
+                        item.innerHTML = `
+                            <input type="checkbox" value="${contact.phone}" id="contact-${contact.id}">
+                            <label for="contact-${contact.id}">${contact.name} (${contact.phone})</label>
+                        `;
+                        modalContactList.appendChild(item);
+                    });
+                } else {
+                    modalContactList.innerHTML = '<p>No contacts found.</p>';
+                }
+            } catch (error) {
+                modalContactList.innerHTML = '<p style="color: red;">Failed to load contacts.</p>';
+            }
+        }
+
+        function closeContactModal() {
+            contactModal.style.display = 'none';
+        }
+
+        function addSelectedContacts() {
+            const selectedContacts = modalContactList.querySelectorAll('input[type="checkbox"]:checked');
+            const existingNumbers = new Set(numbersEl.value.split('\n').filter(n => n.trim() !== ''));
+            
+            selectedContacts.forEach(checkbox => {
+                existingNumbers.add(checkbox.value);
+            });
+
+            numbersEl.value = Array.from(existingNumbers).join('\n');
+            closeContactModal();
+        }
+
+        selectContactsBtn.addEventListener('click', openContactModal);
+        closeBtn.addEventListener('click', closeContactModal);
+        addSelectedContactsBtn.addEventListener('click', addSelectedContacts);
+        window.addEventListener('click', (event) => {
+            if (event.target == contactModal) {
+                closeContactModal();
+            }
+        });
+
+    </script>
+</body>
+</html> 

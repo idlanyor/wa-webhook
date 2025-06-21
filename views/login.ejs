@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login • WhatsApp Webhook</title>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-0a6luv0RgZNpmjQe7YQDdyCjTiMQuuLHfoalGexiBoNvKcJsteVEh9UpAJZciV06Pq4jG3Ejj6LikUeJ8V+5w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        :root {
+            --primary:#25D366;
+            --primary-dark:#128C7E;
+            --bg-gradient:linear-gradient(135deg,#43107A 0%, #FF004D 100%);
+            --card-bg:rgba(20,20,30,.55);
+            --card-border:rgba(255,255,255,.08);
+            --text-primary:#fafafa;
+            --text-secondary:#c9c9c9;
+        }
+
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            font-family:'Poppins',sans-serif;
+            background:var(--bg-gradient);
+            min-height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:1.5rem;
+        }
+
+        /* Glass card */
+        .login-container{
+            backdrop-filter:blur(22px) saturate(180%);
+            -webkit-backdrop-filter:blur(22px) saturate(180%);
+            background:var(--card-bg);
+            border:1px solid var(--card-border);
+            border-radius:20px;
+            padding:3rem 2.5rem;
+            width:100%;
+            max-width:420px;
+            text-align:center;
+            animation:fadein .6s ease-out;
+        }
+
+        @keyframes fadein{from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none}}
+
+        .logo{
+            width:88px;
+            height:88px;
+            background:var(--primary);
+            border-radius:50%;
+            display:flex;align-items:center;justify-content:center;
+            color:#fff;font-size:42px;margin:0 auto 1.5rem;
+            box-shadow:0 8px 20px rgba(37,211,102,.4);
+        }
+
+        h1{font-size:1.9rem;color:var(--text-primary);font-weight:600;margin-bottom:.25rem}
+        .subtitle{color:var(--text-secondary);font-size:.95rem;margin-bottom:2.2rem}
+
+        .input-group{text-align:left;margin-bottom:1.4rem;position:relative}
+        label{display:block;color:var(--text-secondary);margin-bottom:.5rem;font-size:.9rem;font-weight:500}
+
+        .input-group input{
+            width:100%;padding:13px 48px 13px 16px;border-radius:10px;border:none;
+            font-size:.95rem;background:rgba(255,255,255,.08);color:var(--text-primary);
+        }
+        .input-group input:focus{outline:none;box-shadow:0 0 0 3px rgba(37,211,102,.35)}
+
+        .toggle-pass{
+            position:absolute;right:14px;top:50%;transform:translateY(-50%);
+            background:transparent;border:none;color:#bbb;font-size:1rem;cursor:pointer;
+        }
+
+        .btn{
+            width:100%;padding:13px 0;border:none;border-radius:10px;
+            background:var(--primary);color:#fff;font-size:1.05rem;font-weight:600;
+            cursor:pointer;transition:.25s ease;
+        }
+        .btn:hover{background:var(--primary-dark);transform:translateY(-2px)}
+
+        .error-message{
+            background:rgba(255,80,80,.15);border-left:4px solid #ff4d4d;color:#ffb3b3;
+            padding:.9rem 1rem;border-radius:8px;font-size:.85rem;margin-bottom:1.5rem;
+        }
+
+        @media(max-width:480px){
+            .login-container{padding:2.5rem 1.5rem}
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">🔑</div>
+        <h1>Welcome Back</h1>
+        <p class="subtitle">Please log in to continue</p>
+
+        <% if (error) { %>
+            <div class="error-message"><%= error %></div>
+        <% } %>
+
+        <form action="/login" method="POST">
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                <button type="button" class="toggle-pass" onclick="togglePass()"><i class="fa fa-eye"></i></button>
+            </div>
+            <button type="submit" class="btn">Login</button>
+        </form>
+    </div>
+    <script>
+        function togglePass(){
+            const input=document.getElementById('password');
+            const icon=event.currentTarget.querySelector('i');
+            if(input.type==='password'){
+                input.type='text';
+                icon.classList.replace('fa-eye','fa-eye-slash');
+            }else{
+                input.type='password';
+                icon.classList.replace('fa-eye-slash','fa-eye');
+            }
+        }
+    </script>
+</body>
+</html> 

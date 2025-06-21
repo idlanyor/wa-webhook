@@ -1,0 +1,47 @@
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <i class="ri-whatsapp-line sidebar-logo"></i>
+        <h1 class="sidebar-title">WA Webhook</h1>
+    </div>
+    <nav>
+        <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a href="/dashboard" class="<%= (typeof page !== 'undefined' && page === 'dashboard') ? 'active' : '' %>">
+                    <i class="ri-dashboard-line"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/blaster" class="<%= (typeof page !== 'undefined' && page === 'blaster') ? 'active' : '' %>">
+                    <i class="ri-rocket-line"></i>
+                    <span>Blaster</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/contacts" class="<%= (typeof page !== 'undefined' && page === 'contacts') ? 'active' : '' %>">
+                    <i class="ri-contacts-book-line"></i>
+                    <span>Contacts</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/auto-reply" class="<%= (typeof page !== 'undefined' && page === 'auto-reply') ? 'active' : '' %>">
+                    <i class="ri-reply-all-line"></i>
+                    <span>Auto Reply</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/api-keys" class="<%= (typeof page !== 'undefined' && page === 'api-keys') ? 'active' : '' %>">
+                    <i class="ri-key-line"></i>
+                    <span>API Keys</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/documentation" class="<%= (typeof page !== 'undefined' && page === 'documentation') ? 'active' : '' %>">
+                    <i class="ri-file-text-line"></i>
+                    <span>Documentation</span>
+                </a>
+            </li>
+            <!-- Add more navigation items here if needed -->
+        </ul>
+    </nav>
+</aside> 

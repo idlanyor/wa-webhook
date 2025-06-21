@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('partials/head', { title: 'API Documentation' }) %>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <%- include('partials/sidebar') %>
+        <div class="main-content">
+            <%- include('partials/navbar', { title: 'API Documentation' }) %>
+            <main class="content-wrapper">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">Introduction</h3>
+                    </div>
+                    <div class="card-content">
+                        <p>This page describes how to interact programmatically with the WhatsApp Webhook service and gives an overview of the features available in the dashboard.</p>
+                        <p>All API endpoints are protected. There are <strong>two</strong> ways to authenticate:</p>
+                        <ol>
+                            <li><strong>Session Cookie</strong> – Login via the web dashboard, then copy the <code>supabase-auth-token</code> cookie from your browser and attach it to each request.</li>
+                            <li><strong>API Key</strong> – Generate a key in the <em>API Keys</em> page. Send it using an <code>X-API-KEY</code> header or <code>?api_key=</code> query parameter.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">REST API Endpoints</h3>
+                    </div>
+                    <div class="card-content">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Endpoint</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>GET</code></td>
+                                    <td><code>/status</code></td>
+                                    <td>Returns WhatsApp connection status and QR code (if required). <em>(Auth: cookie or API key)</em></td>
+                                </tr>
+                                <tr>
+                                    <td><code>POST</code></td>
+                                    <td><code>/send-message</code></td>
+                                    <td>Sends a single WhatsApp message.<br/>
+                                        <strong>Body parameters</strong>:<br/>
+                                        <code>to</code> (string, phone number or JID)<br/>
+                                        <code>message</code> (string, text content)<br/>
+                                        <em>Auth: cookie or API key</em>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><code>POST</code></td>
+                                    <td><code>/send-bulk</code></td>
+                                    <td>Sends a message to multiple recipients with randomized delay.<br/>
+                                        <strong>Body parameters</strong>:<br/>
+                                        <code>numbers</code> (string, one phone number per line)<br/>
+                                        <code>message</code> (string)<br/>
+                                        <em>Auth: cookie or API key</em>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><code>GET</code></td>
+                                    <td><code>/api/contacts</code></td>
+                                    <td>Returns the saved contacts list.<br/>
+                                        <em>Auth: cookie or API key</em>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="mt-4"><strong>Example with API Key:</strong></p>
+<pre>
+$ curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "X-API-KEY: YOUR_API_KEY" \
+  -d '{"to":"6281234567890","message":"Hello via API key!"}' \
+  http://localhost:3000/send-message
+</pre>
+                        <p class="mt-2"><strong>Example with Cookie:</strong></p>
+<pre>
+$ curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "Cookie: supabase-auth-token=YOUR_COOKIE_HERE" \
+  -d '{"to":"6281234567890","message":"Hello via cookie!"}' \
+  http://localhost:3000/send-message
+</pre>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">Dashboard Features</h3>
+                    </div>
+                    <div class="card-content">
+                        <ul>
+                            <li><strong>Dashboard</strong> – Real-time connection status, QR code generation, and recent messages.</li>
+                            <li><strong>Blaster</strong> – Send bulk messages with progress logs and randomized delays.</li>
+                            <li><strong>Contacts</strong> – CRUD interface to manage phonebook entries used by the blaster.</li>
+                            <li><strong>Auto Reply</strong> – Keyword-based bot with per-rule enable/disable and global master switch.</li>
+                            <li><strong>API Keys</strong> – Generate/revoke keys for programmatic access without session cookies.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Changelog & Resources</h3>
+                    </div>
+                    <div class="card-content">
+                        <p>For a deeper dive, refer to the Markdown documents shipped with the project:</p>
+                        <ul>
+                            <li><code>Quick Start Guide - WhatsApp Webhook API.md</code></li>
+                            <li><code>WhatsApp Webhook API Documentation.md</code></li>
+                        </ul>
+                        <p>The project is continuously evolving—check these files and this page for updates.</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html> 

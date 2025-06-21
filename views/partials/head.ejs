@@ -1,0 +1,267 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WhatsApp Webhook API - Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+    integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
+<link rel="stylesheet" href="/css/dashboard.css">
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #25D366, #128C7E);
+    }
+
+    .header {
+        margin-bottom: 30px;
+    }
+
+    .logo {
+        width: 80px;
+        height: 80px;
+        background: #25D366;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 40px;
+        color: white;
+    }
+
+    h1 {
+        color: #333;
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+
+    .subtitle {
+        color: #666;
+        font-size: 16px;
+    }
+
+    .status-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px 0;
+        border-left: 4px solid #25D366;
+    }
+
+    .status {
+        font-weight: 600;
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+
+    .status.connected {
+        color: #25D366;
+    }
+
+    .status.disconnected {
+        color: #e74c3c;
+    }
+
+    .status.qr_ready {
+        color: #f39c12;
+    }
+
+    .qr-container {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: none;
+    }
+
+    .qr-container.show {
+        display: block;
+    }
+
+    #qrcode {
+        margin: 0 auto;
+    }
+
+    .qr-instructions {
+        margin-top: 15px;
+        color: #666;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 120px;
+    }
+
+    .btn-primary {
+        background: #25D366;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #128C7E;
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+
+    .btn-danger {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .messages {
+        margin-top: 30px;
+        text-align: left;
+    }
+
+    .message-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-left: 4px solid #007bff;
+    }
+
+    .message-from {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .message-text {
+        color: #666;
+    }
+
+    .message-time {
+        font-size: 12px;
+        color: #999;
+        margin-top: 5px;
+    }
+
+    .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #25D366;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .api-info {
+        background: #e3f2fd;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 30px;
+        text-align: left;
+    }
+
+    .api-info h3 {
+        color: #1976d2;
+        margin-bottom: 15px;
+    }
+
+    .api-endpoint {
+        background: #f5f5f5;
+        padding: 10px;
+        border-radius: 4px;
+        font-family: monospace;
+        margin: 5px 0;
+        font-size: 14px;
+    }
+
+    @media (max-width: 600px) {
+        /* .container {
+            padding: 20px;
+            margin: 10px;
+        } */
+
+        .actions {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    }
+</style> 

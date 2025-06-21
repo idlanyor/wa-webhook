@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('partials/head') %>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <%- include('partials/sidebar') %>
+        <div class="main-content">
+            <%- include('partials/navbar') %>
+            <main class="content-wrapper">
+                <div class="grid-container">
+                    <div style="grid-column: 1 / -1;">
+                        <%- include('partials/status-card') %>
+                    </div>
+                    <%- include('partials/qr-container') %>
+                    <%- include('partials/actions') %>
+                    <div style="grid-column: 1 / -1;">
+                        <%- include('partials/messages') %>
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <%- include('partials/api-info') %>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <%- include('partials/scripts') %>
+</body>
+</html> 

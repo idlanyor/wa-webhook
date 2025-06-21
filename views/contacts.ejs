@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('partials/head', { title: 'Contact Management' }) %>
+    <style>
+        .table-container {
+            overflow-x: auto;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+        .table th, .table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .table th {
+            background-color: var(--muted);
+            font-weight: 600;
+        }
+        .alert {
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        .alert-success { background-color: #d4edda; color: #155724; }
+        .alert-danger { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <%- include('partials/sidebar') %>
+        <div class="main-content">
+            <%- include('partials/navbar', { title: 'Contact Management' }) %>
+            <main class="content-wrapper">
+                <div class="grid-container">
+                    <!-- Add Contact Form -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">Add New Contact</h3>
+                                <p class="card-description">Save a new contact to your list.</p>
+                            </div>
+                            <i class="ri-user-add-line"></i>
+                        </div>
+                        <div class="card-content">
+                            <form action="/contacts/add" method="POST">
+                                <div class="grid-container" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <div>
+                                        <label for="name" style="font-weight: 500; display: block; margin-bottom: 0.5rem;">Name</label>
+                                        <input type="text" id="name" name="name" required placeholder="Enter name" style="width: 100%; padding: 0.5rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                                    </div>
+                                    <div>
+                                        <label for="phone" style="font-weight: 500; display: block; margin-bottom: 0.5rem;">Phone Number</label>
+                                        <input type="text" id="phone" name="phone" required placeholder="e.g., 6281234567890" style="width: 100%; padding: 0.5rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                                    </div>
+                                </div>
+                                <div class="actions" style="margin-top: 1.5rem;">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="ri-save-line"></i>
+                                        <span>Save Contact</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Contact List -->
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">Contact List</h3>
+                                <p class="card-description">All your saved contacts.</p>
+                            </div>
+                            <i class="ri-contacts-book-2-line"></i>
+                        </div>
+                        <div class="card-content">
+                            <% if (locals.error) { %>
+                                <div class="alert alert-danger"><%= error %></div>
+                            <% } %>
+                            <% if (locals.success) { %>
+                                <div class="alert alert-success"><%= success %></div>
+                            <% } %>
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Phone Number</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% if (contacts.length > 0) { %>
+                                            <% contacts.forEach(contact => { %>
+                                                <tr>
+                                                    <td><%= contact.name %></td>
+                                                    <td><%= contact.phone %></td>
+                                                    <td>
+                                                        <form action="/contacts/delete/<%= contact.id %>" method="POST" onsubmit="return confirm('Are you sure you want to delete this contact?');" style="display: inline;">
+                                                            <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem;">
+                                                                <i class="ri-delete-bin-line"></i>
+                                                            </button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        <% } else { %>
+                                            <tr>
+                                                <td colspan="3" style="text-align: center; color: var(--muted-foreground);">No contacts found.</td>
+                                            </tr>
+                                        <% } %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html> 
