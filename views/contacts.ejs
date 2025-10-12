@@ -1,190 +1,230 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <%- include('partials/head', { title: 'Contact Management' }) %>
+    <%- include('partials/head', { title: 'Manajemen Kontak' }) %>
 </head>
-<body>
-    <div class="dashboard-layout">
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+    <div class="flex min-h-screen">
         <%- include('partials/sidebar') %>
-        <div class="main-content">
-            <%- include('partials/navbar', { title: 'Contact Management' }) %>
-            <main class="content-wrapper">
-                <div class="grid-container">
-                    <!-- Add Contact Form -->
-                    <div class="card">
-                        <div class="card-header">
-                            <div>
-                                <h3 class="card-title">Add New Contact</h3>
-                                <p class="card-description">Save a new contact to your list.</p>
-                            </div>
-                            <i class="ri-user-add-line card-icon"></i>
-                        </div>
-                        <div class="card-content">
-                            <form action="/contacts/add" method="POST">
-                                <div class="grid-2-cols">
-                                    <div class="form-group">
-                                        <label for="name" class="form-label">Name</label>
-                                        <input type="text" id="name" name="name" required placeholder="Enter name" class="form-control">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="phone" class="form-label">Phone Number</label>
-                                        <input type="text" id="phone" name="phone" required placeholder="e.g., 6281234567890" class="form-control">
-                                    </div>
-                                </div>
-                                <div class="actions">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="ri-save-line"></i>
-                                        <span>Save Contact</span>
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+        <div class="flex-1 flex flex-col lg:ml-0">
+            <%- include('partials/navbar', { title: 'Manajemen Kontak' }) %>
+            <main class="flex-1 p-4 sm:p-6 lg:p-8">
+                <div class="max-w-7xl mx-auto">
+                    <!-- Welcome Section -->
+                    <div class="mb-8 fade-in">
+                        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Manajemen Kontak</h1>
+                        <p class="text-lg text-gray-600">Kelola kontak WhatsApp Anda secara efisien</p>
                     </div>
 
-                    <!-- Import Contacts Form -->
-                    <div class="card">
-                        <div class="card-header">
-                            <div>
-                                <h3 class="card-title">Import Contacts from VCF</h3>
-                                <p class="card-description">Upload a .vcf file to add multiple contacts at once.</p>
+                    <!-- Action Cards Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                        <!-- Add Contact Form -->
+                        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 card-hover transition-all duration-300 fade-in">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800">Tambah Kontak Baru</h3>
+                                    <p class="text-sm text-gray-600 mt-1">Simpan kontak baru ke daftar Anda</p>
+                                </div>
+                                <div class="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center shadow-inner">
+                                    <i class="ri-user-add-line text-blue-600 text-2xl"></i>
+                                </div>
                             </div>
-                            <i class="ri-upload-2-line card-icon"></i>
-                        </div>
-                        <div class="card-content">
-                            <form action="/contacts/import" method="POST" enctype="multipart/form-data">
-                                <div class="form-group">
-                                    <label for="vcfFile" class="form-label">VCF File</label>
-                                    <input type="file" id="vcfFile" name="vcfFile" accept=".vcf, .vcf/*" required class="form-control">
+                            <form action="/contacts/add" method="POST" class="space-y-4">
+                                <div class="space-y-2">
+                                    <label for="name" class="block text-sm font-medium text-gray-700">Nama</label>
+                                    <input type="text" id="name" name="name" required placeholder="Masukkan nama" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                                 </div>
-                                <div class="actions">
-                                    <button type="submit" class="btn btn-secondary">
-                                        <i class="ri-upload-2-line"></i>
-                                        <span>Import Contacts</span>
-                                    </button>
+                                <div class="space-y-2">
+                                    <label for="phone" class="block text-sm font-medium text-gray-700">Nomor Telepon</label>
+                                    <input type="text" id="phone" name="phone" required placeholder="contoh: 6281234567890" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                                 </div>
+                                <div class="space-y-2">
+                                    <label for="tags" class="block text-sm font-medium text-gray-700">Tag (pisahkan dengan koma)</label>
+                                    <input type="text" id="tags" name="tags" placeholder="contoh: vip, pelanggan" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                </div>
+                                <button type="submit" class="w-full group flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1">
+                                    <i class="ri-save-line group-hover:scale-110 transition-transform"></i>
+                                    <span>Simpan Kontak</span>
+                                </button>
                             </form>
                         </div>
-                    </div>
 
-                    <!-- Import CSV Form -->
-                    <div class="card">
-                        <div class="card-header">
-                            <div>
-                                <h3 class="card-title">Import Contacts from CSV</h3>
-                                <p class="card-description">Upload a .csv file. Columns: <strong>Name, Phone</strong></p>
+                        <!-- Import VCF Form -->
+                        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 card-hover transition-all duration-300 fade-in">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800">Impor dari VCF</h3>
+                                    <p class="text-sm text-gray-600 mt-1">Unggah berkas .vcf untuk diimpor</p>
+                                </div>
+                                <div class="w-14 h-14 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center shadow-inner">
+                                    <i class="ri-upload-2-line text-green-600 text-2xl"></i>
+                                </div>
                             </div>
-                            <i class="ri-file-excel-2-line card-icon"></i>
+                            <form action="/contacts/import" method="POST" enctype="multipart/form-data" class="space-y-4">
+                                <div class="space-y-2">
+                                    <label for="vcfFile" class="block text-sm font-medium text-gray-700">Berkas VCF</label>
+                                    <input type="file" id="vcfFile" name="vcfFile" accept=".vcf, .vcf/*" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors">
+                                </div>
+                                <button type="submit" class="w-full group flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1">
+                                    <i class="ri-upload-2-line group-hover:scale-110 transition-transform"></i>
+                                    <span>Impor VCF</span>
+                                </button>
+                            </form>
                         </div>
-                        <div class="card-content">
-                            <form action="/contacts/import/csv" method="POST" enctype="multipart/form-data">
-                                <div class="form-group">
-                                    <label for="csvFile" class="form-label">CSV File</label>
-                                    <input type="file" id="csvFile" name="csvFile" accept=".csv" required class="form-control">
+
+                        <!-- Import CSV Form -->
+                        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 card-hover transition-all duration-300 fade-in lg:col-span-2 xl:col-span-1">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800">Impor dari CSV</h3>
+                                    <p class="text-sm text-gray-600 mt-1">Kolom: Nama, Nomor</p>
                                 </div>
-                                <div class="actions">
-                                    <button type="submit" class="btn btn-secondary">
-                                        <i class="ri-upload-2-line"></i>
-                                        <span>Import from CSV</span>
-                                    </button>
+                                <div class="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center shadow-inner">
+                                    <i class="ri-file-excel-2-line text-purple-600 text-2xl"></i>
                                 </div>
+                            </div>
+                            <form action="/contacts/import/csv" method="POST" enctype="multipart/form-data" class="space-y-4">
+                                <div class="space-y-2">
+                                    <label for="csvFile" class="block text-sm font-medium text-gray-700">Berkas CSV</label>
+                                    <input type="file" id="csvFile" name="csvFile" accept=".csv" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors">
+                                </div>
+                                <button type="submit" class="w-full group flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1">
+                                    <i class="ri-upload-2-line group-hover:scale-110 transition-transform"></i>
+                                    <span>Impor CSV</span>
+                                </button>
                             </form>
                         </div>
                     </div>
 
                     <!-- Contact List -->
-                    <div class="card" style="grid-column: 1 / -1;">
-                        <div class="card-header">
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 fade-in">
+                        <div class="flex items-center justify-between mb-6">
                             <div>
-                                <h3 class="card-title">Contact List</h3>
-                                <p class="card-description">All your saved contacts.</p>
+                                <h3 class="text-xl font-semibold text-gray-800">Daftar Kontak</h3>
+                                <p class="text-sm text-gray-600 mt-1">Semua kontak yang tersimpan</p>
                             </div>
-                            <i class="ri-contacts-book-2-line card-icon"></i>
+                            <div class="w-14 h-14 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-2xl flex items-center justify-center shadow-inner">
+                                <i class="ri-contacts-book-2-line text-indigo-600 text-2xl"></i>
+                            </div>
                         </div>
-                        <div class="card-content">
-                            <% if (locals.error) { %>
-                                <div class="alert alert-danger"><%= error %></div>
-                            <% } %>
-                            <% if (locals.success) { %>
-                                <div class="alert alert-success"><%= success %></div>
-                            <% } %>
-                            <div class="table-container">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Phone Number</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <% if (contacts.length > 0) { %>
-                                            <% contacts.forEach(contact => { %>
-                                                <tr>
-                                                    <td><%= contact.name %></td>
-                                                    <td><%= contact.phone %></td>
-                                                    <td>
-                                                        <form action="/contacts/delete/<%= contact.id %>" method="POST" onsubmit="return confirm('Are you sure you want to delete this contact?');" style="display: inline;">
-                                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                                <i class="ri-delete-bin-line"></i>
-                                                            </button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
-                                            <% }); %>
-                                        <% } else { %>
-                                            <tr>
-                                                <td colspan="3" class="text-center text-muted">No contacts found.</td>
-                                            </tr>
-                                        <% } %>
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <% if (totalPages > 1) { %>
-                                <div class="pagination">
-                                    <% if (currentPage > 1) { %>
-                                        <a href="/contacts?page=<%= currentPage - 1 %>" class="btn btn-secondary">&laquo; Prev</a>
-                                    <% } %>
 
-                                    <%
-                                        const pageWindow = 1;
-                                        const allPages = [];
-
-                                        allPages.push(1);
-                                        for (let i = Math.max(2, currentPage - pageWindow); i <= Math.min(totalPages - 1, currentPage + pageWindow); i++) {
-                                            allPages.push(i);
-                                        }
-                                        if (totalPages > 1) {
-                                            allPages.push(totalPages);
-                                        }
-
-                                        const uniquePages = [...new Set(allPages)];
-                                        let lastPage = 0;
-                                    %>
-
-                                    <% uniquePages.forEach(p => { %>
-                                        <% if (lastPage > 0 && p - lastPage > 1) { %>
-                                            <span class="pagination-ellipsis">&hellip;</span>
-                                        <% } %>
-
-                                        <% if (p === currentPage) { %>
-                                            <span class="btn btn-primary"><%= p %></span>
-                                        <% } else { %>
-                                            <a href="/contacts?page=<%= p %>" class="btn btn-secondary"><%= p %></a>
-                                        <% } %>
-                                        <% lastPage = p; %>
-                                    <% }); %>
-
-                                    <% if (currentPage < totalPages) { %>
-                                        <a href="/contacts?page=<%= currentPage + 1 %>" class="btn btn-secondary">Next &raquo;</a>
-                                    <% } %>
+                        <!-- Alerts -->
+                        <% if (locals.error) { %>
+                            <div class="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl">
+                                <div class="flex items-center space-x-2">
+                                    <i class="ri-error-warning-line"></i>
+                                    <span><%= error %></span>
                                 </div>
-                            <% } %>
+                            </div>
+                        <% } %>
+                        <% if (locals.success) { %>
+                            <div class="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl">
+                                <div class="flex items-center space-x-2">
+                                    <i class="ri-checkbox-circle-line"></i>
+                                    <span><%= success %></span>
+                                </div>
+                            </div>
+                        <% } %>
+
+                        <!-- Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-800">Nama</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-800">Nomor Telepon</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-800">Tag</th>
+                                        <th class="text-center py-3 px-4 font-semibold text-gray-800">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (contacts.length > 0) { %>
+                                        <% contacts.forEach(contact => { %>
+                                            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                                <td class="py-3 px-4 text-gray-800"><%= contact.name %></td>
+                                                <td class="py-3 px-4 text-gray-600"><%= contact.phone %></td>
+                                                <td class="py-3 px-4 text-gray-600 text-sm"><%= contact.tags || '-' %></td>
+                                                <td class="py-3 px-4 text-center">
+                                                    <form action="/contacts/delete/<%= contact.id %>" method="POST" data-confirm="Apakah Anda yakin ingin menghapus kontak ini?" style="display: inline;">
+                                                        <button type="submit" class="inline-flex items-center px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200 text-sm">
+                                                            <i class="ri-delete-bin-line"></i>
+                                                        </button>
+                                                    </form>
+                                                    <form action="/contacts/tags/<%= contact.id %>" method="POST" style="display:inline-block;margin-left:.5rem">
+                                                        <input type="text" name="tags" value="<%= contact.tags || '' %>" class="px-2 py-1 border border-gray-300 rounded text-sm" placeholder="tag">
+                                                        <button class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm">Simpan</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <% }); %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="3" class="py-8 text-center text-gray-500">
+                                                <div class="flex flex-col items-center space-y-3">
+                                                    <i class="ri-contacts-book-line text-4xl text-gray-300"></i>
+                                                    <p>Belum ada kontak. Tambahkan kontak untuk memulai!</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
                         </div>
+
+                        <!-- Pagination -->
+                        <% if (totalPages > 1) { %>
+                            <div class="flex items-center justify-center space-x-2 mt-6 pt-6 border-t border-gray-200">
+                                <% if (currentPage > 1) { %>
+                                    <a href="/contacts?page=<%= currentPage - 1 %>" class="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
+                                        <i class="ri-arrow-left-line mr-1"></i> Sebelumnya
+                                    </a>
+                                <% } %>
+
+                                <%
+                                    const pageWindow = 1;
+                                    const allPages = [];
+
+                                    allPages.push(1);
+                                    for (let i = Math.max(2, currentPage - pageWindow); i <= Math.min(totalPages - 1, currentPage + pageWindow); i++) {
+                                        allPages.push(i);
+                                    }
+                                    if (totalPages > 1) {
+                                        allPages.push(totalPages);
+                                    }
+
+                                    const uniquePages = [...new Set(allPages)];
+                                    let lastPage = 0;
+                                %>
+
+                                <% uniquePages.forEach(p => { %>
+                                    <% if (lastPage > 0 && p - lastPage > 1) { %>
+                                        <span class="px-2 text-gray-400">&hellip;</span>
+                                    <% } %>
+
+                                    <% if (p === currentPage) { %>
+                                        <span class="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg font-medium"><%= p %></span>
+                                    <% } else { %>
+                                        <a href="/contacts?page=<%= p %>" class="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"><%= p %></a>
+                                    <% } %>
+                                    <% lastPage = p; %>
+                                <% }); %>
+
+                                <% if (currentPage < totalPages) { %>
+                                    <a href="/contacts?page=<%= currentPage + 1 %>" class="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
+                                        Berikutnya <i class="ri-arrow-right-line ml-1"></i>
+                                    </a>
+                                <% } %>
+                            </div>
+                        <% } %>
                     </div>
                 </div>
             </main>
         </div>
     </div>
+
+    <!-- Mobile menu overlay -->
+    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+
+    <%- include('partials/simple-scripts') %>
 </body>
 </html> 

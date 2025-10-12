@@ -24,18 +24,18 @@ const io = socketIo(server, {
     }
 });
 
-// Setup view engine
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Middleware
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Multer setup for file uploads
+
 const upload = multer({
     storage: multer.memoryStorage(),
     fileFilter: (req, file, cb) => {
@@ -48,7 +48,7 @@ const upload = multer({
     }
 });
 
-// Authentication Middleware
+
 async function isAuthenticated(req, res, next) {
     const token = req.cookies['supabase-auth-token'];
     if (!token) {
@@ -58,7 +58,7 @@ async function isAuthenticated(req, res, next) {
     const { data: { user }, error } = await supabase.auth.getUser(JSON.parse(token).access_token);
 
     if (error || !user) {
-        // Clear the invalid cookie
+        
         res.clearCookie('supabase-auth-token');
         return res.redirect('/login');
     }
@@ -67,7 +67,7 @@ async function isAuthenticated(req, res, next) {
     next();
 }
 
-// --- API KEY SYSTEM ---
+
 async function verifyApiKey(key) {
     try {
         const keyHash = crypto.createHash('sha256').update(key).digest('hex');
@@ -96,13 +96,13 @@ async function isAuthenticatedOrApiKey(req, res, next) {
     return isAuthenticated(req, res, next);
 }
 
-// WhatsApp Service Globals (multi-tenant)
-const sessions = new Map(); // userId => { sock, isConnected, state, qr, keepAliveTimer }
+
+const sessions = new Map(); 
 
 let appSettings = {};
 let autoReplies = [];
 
-// Load settings and auto-replies from Supabase
+
 async function loadSettings() {
     try {
         const { data: settingsData, error: settingsError } = await supabase.from('settings').select('*');
@@ -131,7 +131,7 @@ function getEffectiveUserId(req) {
 /**
  * Ensure WhatsApp session exists for given user ID. Returns session object.
  */
-async function ensureSession(userId) {
+async function ensureSession(userId, phoneNumber = null) {
     if (sessions.has(userId)) return sessions.get(userId);
 
     const authDir = path.join(__dirname, 'auth_info_baileys', userId);
@@ -142,6 +142,8 @@ async function ensureSession(userId) {
         isConnected: false,
         state: 'disconnected',
         qr: null,
+        pairingCode: null,
+        phoneNumber: phoneNumber,
         keepAliveTimer: null
     };
 
@@ -165,7 +167,7 @@ async function ensureSession(userId) {
     sock.ev.on('creds.update', saveCreds);
 
     // -------- connection handling --------
-    sock.ev.on('connection.update', (update) => {
+    sock.ev.on('connection.update', async (update) => {
         const { connection, qr, lastDisconnect } = update;
 
         if (qr) {
@@ -174,10 +176,28 @@ async function ensureSession(userId) {
             io.to(userId).emit('qr', qr);
         }
 
+        // Handle pairing code logic
+        if (connection === 'connecting' && phoneNumber && !sock.authState.creds.registered) {
+            try {
+                console.log(`🔐 Requesting pairing code for ${phoneNumber}...`);
+                const code = await sock.requestPairingCode(phoneNumber);
+                session.pairingCode = code;
+                session.state = 'pairing_code_ready';
+                console.log(`📱 Pairing code: ${code}`);
+                io.to(userId).emit('pairing_code', { code, phoneNumber });
+            } catch (error) {
+                console.error('Failed to request pairing code:', error);
+                session.state = 'pairing_failed';
+                io.to(userId).emit('pairing_error', { error: error.message });
+            }
+        }
+
         if (connection === 'open') {
             session.isConnected = true;
             session.state = 'connected';
             session.qr = null;
+            session.pairingCode = null;
+            console.log(`✅ WhatsApp connected for user ${userId}`);
             io.to(userId).emit('connection_status', { status: 'connected' });
         }
 
@@ -192,10 +212,11 @@ async function ensureSession(userId) {
             const code = (lastDisconnect?.error)?.output?.statusCode;
             const loggedOut = code === DisconnectReason.loggedOut;
             if (loggedOut) {
+                console.log(`🗑️ Session logged out, cleaning auth for user ${userId}`);
                 try { if (fs.existsSync(authDir)) fs.rmSync(authDir, { recursive:true, force:true }); } catch {}
             }
 
-            setTimeout(() => ensureSession(userId), 1_000);
+            setTimeout(() => ensureSession(userId, phoneNumber), 1_000);
         }
     });
 
@@ -407,7 +428,13 @@ app.get('/status', isAuthenticatedOrApiKey, async (req, res) => {
     try {
         const uid = getEffectiveUserId(req);
         const s = await ensureSession(uid);
-        return res.json({ status: s.state, connected: s.isConnected, qr: s.qr });
+        return res.json({ 
+            status: s.state, 
+            connected: s.isConnected, 
+            qr: s.qr,
+            pairingCode: s.pairingCode || null,
+            phoneNumber: s.phoneNumber || null
+        });
     } catch (error) {
         console.error('Status route error:', error);
         return res.status(500).json({ error: 'internal_error', message: error.message });
@@ -465,6 +492,54 @@ app.post('/send-message', isAuthenticatedOrApiKey, async (req, res) => {
     } catch (err) {
         console.error('Error sending message:', err);
         res.status(500).json({ error: 'Failed', details: err.message });
+    }
+});
+
+// Add new endpoint for pairing code authentication
+app.post('/connect-pairing', isAuthenticated, async (req, res) => {
+    try {
+        const { phoneNumber } = req.body;
+        
+        if (!phoneNumber) {
+            return res.status(400).json({ error: 'Phone number is required' });
+        }
+
+        // Clean phone number (remove spaces, dashes, etc.)
+        const cleanedNumber = phoneNumber.replace(/[^\d+]/g, '');
+        
+        // Validate phone number format
+        if (!cleanedNumber.match(/^\+?[1-9]\d{1,14}$/)) {
+            return res.status(400).json({ error: 'Invalid phone number format' });
+        }
+
+        const userId = getEffectiveUserId(req);
+        
+        // Clean existing session if any
+        if (sessions.has(userId)) {
+            const existingSession = sessions.get(userId);
+            if (existingSession.keepAliveTimer) {
+                clearInterval(existingSession.keepAliveTimer);
+            }
+            if (existingSession.sock) {
+                existingSession.sock.ev.removeAllListeners();
+                if (existingSession.sock.ws) {
+                    existingSession.sock.ws.close();
+                }
+            }
+            sessions.delete(userId);
+        }
+
+        // Start new session with pairing code
+        const session = await ensureSession(userId, cleanedNumber);
+        
+        res.json({ 
+            success: true, 
+            message: 'Pairing code request initiated',
+            phoneNumber: cleanedNumber
+        });
+    } catch (error) {
+        console.error('Pairing connection error:', error);
+        res.status(500).json({ error: 'Failed to initiate pairing connection' });
     }
 });
 
@@ -842,21 +917,34 @@ loadSettings();
 // Preload WhatsApp sessions for all users that have auth files so they stay online even without an active WebSocket client
 (async function preloadWhatsAppSessions(){
     try {
-        const authRoot = path.join(__dirname, 'auth_info_baileys');
-        if (!fs.existsSync(authRoot)) return;
-        const userDirs = fs.readdirSync(authRoot, { withFileTypes: true })
-                            .filter(dirent => dirent.isDirectory())
-                            .map(dirent => dirent.name);
-        for (const uid of userDirs) {
-            try {
-                await ensureSession(uid);
-                console.log('Preloaded WhatsApp session for user', uid);
-            } catch (err) {
-                console.error('Failed to preload session for', uid, err);
+        console.log('Preloading WhatsApp sessions for existing users...');
+        const { data: users, error } = await supabase.auth.admin.listUsers();
+        
+        if (error) {
+            console.error('Failed to fetch users for session preload:', error);
+            return;
+        }
+
+        if (users && users.users) {
+            for (const user of users.users) {
+                try {
+                    // Check if user has stored phone number preference
+                    const { data: settings } = await supabase
+                        .from('settings')
+                        .select('phone_number')
+                        .eq('user_id', user.id)
+                        .single();
+                    
+                    const phoneNumber = settings?.phone_number || null;
+                    await ensureSession(user.id, phoneNumber);
+                    console.log(`Session initialized for user: ${user.id}${phoneNumber ? ` (${phoneNumber})` : ''}`);
+                } catch (err) {
+                    console.error(`Failed to initialize session for user ${user.id}:`, err);
+                }
             }
         }
-    } catch (err) {
-        console.error('Error during WhatsApp session preload:', err);
+    } catch (error) {
+        console.error('Error during session preload:', error);
     }
 })();
 

@@ -11,6 +11,11 @@ class WhatsAppService {
         this.sessions = new Map(); // userId => session object
         this.appSettings = {};
         this.autoReplies = [];
+        this.webhookService = null;
+    }
+
+    setWebhookService(service) {
+        this.webhookService = service;
     }
 
     /**
@@ -49,18 +54,18 @@ class WhatsAppService {
     /**
      * Get session for user, create if doesn't exist
      */
-    async ensureSession(userId) {
+    async ensureSession(userId, phoneNumber = null) {
         if (this.sessions.has(userId)) {
             return this.sessions.get(userId);
         }
 
-        return await this.createSession(userId);
+        return await this.createSession(userId, phoneNumber);
     }
 
     /**
      * Create a new WhatsApp session for a user
      */
-    async createSession(userId) {
+    async createSession(userId, phoneNumber = null) {
         const authDir = path.join(__dirname, '../../auth_info_baileys', userId);
         const { state, saveCreds } = await useMultiFileAuthState(authDir);
 
@@ -128,6 +133,9 @@ class WhatsAppService {
             session.qr = qr;
             session.state = 'qr_ready';
             this.io.to(userId).emit('qr', qr);
+            if (this.webhookService) {
+                this.webhookService.send('connection_status', { userId, status: 'qr_ready' });
+            }
         }
 
         if (connection === 'open') {
@@ -136,12 +144,18 @@ class WhatsAppService {
             session.qr = null;
             this.io.to(userId).emit('connection_status', { status: 'connected' });
             console.log(`WhatsApp connected for user: ${userId}`);
+            if (this.webhookService) {
+                this.webhookService.send('connection_status', { userId, status: 'connected' });
+            }
         }
 
         if (connection === 'close') {
             session.isConnected = false;
             session.state = 'disconnected';
             this.io.to(userId).emit('connection_status', { status: 'disconnected' });
+            if (this.webhookService) {
+                this.webhookService.send('connection_status', { userId, status: 'disconnected' });
+            }
 
             if (session.keepAliveTimer) {
                 clearInterval(session.keepAliveTimer);
@@ -161,8 +175,12 @@ class WhatsAppService {
                 }
             }
 
-            // Reconnect after delay
-            setTimeout(() => this.createSession(userId), 1000);
+            // Reconnect after delay unless user intentionally logged out
+            if (!loggedOut) {
+                setTimeout(() => this.createSession(userId), 1000);
+            } else {
+                console.log('Intentional logout detected; skipping auto-reconnect.');
+            }
         }
     }
 
@@ -218,6 +236,16 @@ class WhatsAppService {
 
             if (recordedMessage) {
                 this.io.to(userId).emit('new_message', recordedMessage);
+                if (this.webhookService) {
+                    this.webhookService.send('message.in', {
+                        userId,
+                        id: recordedMessage.id,
+                        chatJid: recordedMessage.chat_jid,
+                        sender: recordedMessage.sender,
+                        text: recordedMessage.text,
+                        timestamp: recordedMessage.timestamp
+                    });
+                }
             }
 
             // Handle auto-reply
@@ -328,6 +356,16 @@ class WhatsAppService {
 
         if (recordedOutgoing) {
             this.io.to(userId).emit('new_message', recordedOutgoing);
+            if (this.webhookService) {
+                this.webhookService.send('message.out', {
+                    userId,
+                    id: recordedOutgoing.id,
+                    chatJid: recordedOutgoing.chat_jid,
+                    sender: recordedOutgoing.sender,
+                    text: recordedOutgoing.text,
+                    timestamp: recordedOutgoing.timestamp
+                });
+            }
         }
 
         return result;

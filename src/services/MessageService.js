@@ -7,29 +7,56 @@ class MessageService {
     static async recordMessage(params) {
         const {
             userId, chatJid, sender, text, direction, timestamp,
-            stanzaId, rawMessage, replyToId, quotedText, quotedSender, senderJid
+            stanzaId, rawMessage, replyToId, quotedText, quotedSender, senderJid,
+            accessToken
         } = params;
         
         try {
             const supabase = getDatabase();
-            const { data, error } = await supabase
-                .from('messages')
-                .insert({
-                    user_id: userId,
-                    chat_jid: chatJid,
-                    sender: sender,
-                    message: text,
-                    direction: direction,
-                    timestamp: new Date(timestamp).toISOString(),
-                    stanza_id: stanzaId,
-                    raw_message: rawMessage,
-                    reply_to_id: replyToId,
-                    quoted_text: quotedText,
-                    quoted_sender: quotedSender,
-                    sender_jid: senderJid
-                })
-                .select()
-                .single();
+            let data = null; let error = null;
+            ({ data, error } = await supabase
+                .rpc('insert_message_secure', {
+                    p_user: userId,
+                    p_chat_jid: chatJid,
+                    p_sender: sender,
+                    p_text: text,
+                    p_direction: direction,
+                    p_timestamp: new Date(timestamp).toISOString(),
+                    p_stanza_id: stanzaId,
+                    p_raw: rawMessage,
+                    p_reply_to: replyToId,
+                    p_quoted_text: quotedText,
+                    p_quoted_sender: quotedSender,
+                    p_sender_jid: senderJid
+                }));
+            // Fallback if RPC function not found
+            if (error && error.code === 'PGRST202') {
+                // Try scoped client insert to satisfy RLS
+                try {
+                    const { createScopedClient } = require('../config/database');
+                    const scoped = accessToken ? createScopedClient(accessToken) : supabase;
+                    ({ data, error } = await scoped
+                        .from('messages')
+                        .insert({
+                            user_id: userId,
+                            chat_jid: chatJid,
+                            sender: sender,
+                            message: text,
+                            direction: direction,
+                            timestamp: new Date(timestamp).toISOString(),
+                            stanza_id: stanzaId,
+                            raw_message: rawMessage,
+                            reply_to_id: replyToId,
+                            quoted_text: quotedText,
+                            quoted_sender: quotedSender,
+                            sender_jid: senderJid
+                        })
+                        .select()
+                        .single());
+                } catch (e) {
+                    error = e;
+                }
+            }
                 
             if (error) throw error;
             return data;

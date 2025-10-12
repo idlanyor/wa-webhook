@@ -18,6 +18,8 @@ const runtime = {
 
 // Import services
 const WhatsAppService = require('./src/services/WhatsAppService');
+const WebhookService = require('./src/services/WebhookService');
+const SettingsService = require('./src/services/SettingsService');
 
 // Import routes
 const authRoutes = require('./src/routes/auth');
@@ -27,6 +29,9 @@ const contactRoutes = require('./src/routes/contacts');
 const autoReplyRoutes = require('./src/routes/autoReply');
 const apiKeyRoutes = require('./src/routes/apiKeys');
 const chatRoutes = require('./src/routes/chat');
+const templateRoutes = require('./src/routes/templates');
+const campaignRoutes = require('./src/routes/campaigns');
+const settingsRoutes = require('./src/routes/settings');
 
 // Import utilities
 const logger = require('./src/utils/logger');
@@ -85,7 +90,19 @@ class Application {
         // Middleware
         this.app.use(express.static(path.join(__dirname, 'public')));
         this.app.use(cors());
-        this.app.use(express.json());
+        
+        // Custom JSON parser with better error handling
+        this.app.use(express.json({
+            verify: (req, res, buf, encoding) => {
+                try {
+                    // Store raw body for potential fixing
+                    req.rawBody = buf.toString(encoding);
+                } catch (err) {
+                    // Continue with default behavior
+                }
+            }
+        }));
+        
         this.app.use(express.urlencoded({ extended: true }));
         this.app.use(cookieParser());
 
@@ -144,7 +161,32 @@ class Application {
         // Make whatsapp service available to routes
         this.app.set('whatsappService', this.whatsappService);
 
+        // Setup Webhook service with dynamic settings
+        const getWebhookSettings = async () => {
+            const map = await SettingsService.getMany(['webhook_url', 'webhook_secret']);
+            return { url: map.get('webhook_url') || null, secret: map.get('webhook_secret') || null };
+        };
+        this.webhookService = new WebhookService(getWebhookSettings);
+        this.app.set('webhookService', this.webhookService);
+        // Attach webhooks to WhatsAppService
+        this.whatsappService.setWebhookService(this.webhookService);
+
         logger.info('WhatsApp service configured');
+
+        // Simple scheduler for campaigns
+        const CampaignService = require('./src/services/CampaignService');
+        setInterval(async () => {
+            try {
+                const due = await CampaignService.dueCampaigns(new Date());
+                for (const c of due) {
+                    // Avoid double run: set running immediately
+                    await CampaignService.updateStatus(c.id, 'running');
+                    CampaignService.processCampaign(this.app, c).catch(()=>{});
+                }
+            } catch (e) {
+                logger.error('Scheduler error', e);
+            }
+        }, 15000);
     }
 
     /**
@@ -172,6 +214,15 @@ class Application {
         // Chat API routes
         this.app.use('/api/chats', chatRoutes);
 
+        // Message templates routes
+        this.app.use('/templates', templateRoutes);
+
+        // Campaigns routes
+        this.app.use('/campaigns', campaignRoutes);
+
+        // Settings routes
+        this.app.use('/settings', settingsRoutes);
+
         logger.info('Routes configured');
     }
 
@@ -192,10 +243,46 @@ class Application {
         this.app.use((err, req, res, next) => {
             logger.error('Unhandled error', err);
             
+            // Handle JSON parsing errors specifically
+            if (err.type === 'entity.parse.failed' && err.body && req.rawBody) {
+                logger.warn('JSON parse error detected, attempting to fix backticks in message');
+                
+                try {
+                    // Fix backticks in the raw body
+                    const fixedBody = req.rawBody.replace(/`([^`]*)`/g, '"$1"');
+                    const parsedBody = JSON.parse(fixedBody);
+                    
+                    // Store the fixed body for the route to use
+                    req.body = parsedBody;
+                    
+                    // Log the fix
+                    logger.info('Successfully fixed JSON with backticks', {
+                        original: req.rawBody.substring(0, 200) + '...',
+                        fixed: fixedBody.substring(0, 200) + '...'
+                    });
+                    
+                    // Continue to the route handler
+                    return next();
+                } catch (fixError) {
+                    logger.error('Failed to fix JSON parsing error', fixError);
+                }
+            }
+            
             const statusCode = err.statusCode || 500;
             const message = config.node_env === 'production' 
                 ? 'Something went wrong' 
                 : err.message;
+
+            // Return JSON error for API endpoints
+            if (req.path.startsWith('/api/') || req.path.includes('/send-message') || req.path.includes('/send-bulk')) {
+                return res.status(statusCode).json({
+                    error: 'request_error',
+                    message: err.type === 'entity.parse.failed' 
+                        ? 'Invalid JSON format. Please check for unescaped backticks or quotes in your message.'
+                        : message,
+                    details: config.node_env !== 'production' ? err.stack : undefined
+                });
+            }
 
             res.status(statusCode).render('error', {
                 error: 'Internal Server Error',

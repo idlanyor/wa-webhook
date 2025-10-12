@@ -1,5 +1,5 @@
 const express = require('express');
-const { isAuthenticatedOrApiKey, getEffectiveUserId } = require('../middleware/auth');
+const { isAuthenticatedOrApiKey, getEffectiveUserId, isAuthenticated } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -55,7 +55,7 @@ router.post('/send-message', isAuthenticatedOrApiKey, async (req, res) => {
 
 // Send bulk messages
 router.post('/send-bulk', isAuthenticatedOrApiKey, async (req, res) => {
-    const { numbers, message } = req.body;
+    const { numbers, message, templateId } = req.body;
     
     if (!numbers || !message) {
         return res.status(400).json({ 
@@ -87,30 +87,55 @@ router.post('/send-bulk', isAuthenticatedOrApiKey, async (req, res) => {
 
         // Start bulk sending in background
         const io = req.app.get('io');
+        const TemplateService = require('../services/TemplateService');
+        const ContactService = require('../services/ContactService');
         (async () => {
+            let template = null;
+            if (templateId) {
+                try { template = await TemplateService.getTemplateById(userId, templateId); } catch {}
+            }
+            // Load contacts once for name lookup
+            let contacts = [];
+            try { contacts = await ContactService.getAllContacts(userId); } catch {}
             for (const number of numberList) {
                 const jid = number.includes('@') ? number : `${number}@s.whatsapp.net`;
                 try {
-                    await session.sock.sendMessage(jid, { text: message });
+                    // Try find contact name
+                    let name = '';
+                    try {
+                        const cleanedNum = String(number).replace(/\D/g, '').replace(/^\+/, '');
+                        const found = contacts.find(c => String(c.phone || '').replace(/\D/g, '').endsWith(cleanedNum));
+                        if (found) name = found.name || '';
+                    } catch {}
+
+                    // Choose base text: template content if provided, else message body
+                    let baseText = template ? (template.content || '') : (message || '');
+                    // Always apply placeholder substitution
+                    const finalMessage = baseText
+                        .replace(/\{phone\}/g, number)
+                        .replace(/\{name\}/g, name);
+                    await session.sock.sendMessage(jid, { text: finalMessage });
                     io.to(userId).emit('bulk-log', { 
                         status: 'success', 
-                        message: `Sent to ${number}` 
+                        message: `Dikirim ke ${number}` 
                     });
                     
                     // Record message
                     const MessageService = require('../services/MessageService');
+                    const accessToken = req.userAccessToken || (req.cookies && req.cookies['supabase-auth-token'] ? JSON.parse(req.cookies['supabase-auth-token']).access_token : null);
                     await MessageService.recordMessage({ 
                         userId, 
                         chatJid: jid, 
                         sender: 'me', 
-                        text: message, 
+                        text: finalMessage, 
                         direction: 'out', 
-                        timestamp: Date.now() 
+                        timestamp: Date.now(),
+                        accessToken
                     });
                 } catch (err) {
                     io.to(userId).emit('bulk-log', { 
                         status: 'error', 
-                        message: `Failed to send to ${number}: ${err.message}` 
+                        message: `Gagal kirim ke ${number}: ${err.message}` 
                     });
                 }
                 
@@ -122,7 +147,7 @@ router.post('/send-bulk', isAuthenticatedOrApiKey, async (req, res) => {
             
             io.to(userId).emit('bulk-log', { 
                 status: 'done', 
-                message: 'Bulk sending finished.' 
+                message: 'Pengiriman massal selesai.' 
             });
         })();
 
@@ -155,6 +180,22 @@ router.post('/logout', isAuthenticatedOrApiKey, async (req, res) => {
             error: 'Failed to logout', 
             details: error.message 
         });
+    }
+});
+
+// Pairing code removed: we only support QR login now
+
+// Reset session: logout then create a fresh session (QR-only)
+router.post('/reset-session', isAuthenticated, async (req, res) => {
+    try {
+        const userId = getEffectiveUserId(req);
+        const whatsappService = req.app.get('whatsappService');
+        await whatsappService.logout(userId);
+        await whatsappService.ensureSession(userId);
+        res.json({ success: true, message: 'Sesi telah direset' });
+    } catch (error) {
+        console.error('Reset session error:', error);
+        res.status(500).json({ success: false, error: 'Gagal mereset sesi', details: error.message });
     }
 });
 

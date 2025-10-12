@@ -8,9 +8,9 @@ class ContactService {
     /**
      * Get paginated contacts for a user
      */
-    static async getContacts(userId, page = 1) {
+    static async getContacts(userId, page = 1, supabaseClient = null) {
         try {
-            const supabase = getDatabase();
+            const supabase = supabaseClient || getDatabase();
             const pageSize = config.pagination.defaultPageSize;
             const offset = (page - 1) * pageSize;
 
@@ -47,14 +47,11 @@ class ContactService {
     /**
      * Add a single contact
      */
-    static async addContact(userId, name, phone) {
+    static async addContact(userId, name, phone, tags = '') {
         try {
             const supabase = getDatabase();
             const { data, error } = await supabase
-                .from('contacts')
-                .insert({ user_id: userId, name, phone })
-                .select()
-                .single();
+                .rpc('insert_contact_secure', { p_user: userId, p_name: name, p_phone: phone, p_tags: tags || '' });
 
             if (error) throw error;
             return data;
@@ -81,6 +78,14 @@ class ContactService {
             console.error('Error deleting contact:', error);
             throw error;
         }
+    }
+
+    static async updateTags(userId, contactId, tags) {
+            const supabase = getDatabase();
+            const { error } = await supabase
+                .rpc('update_contact_tags_secure', { p_user: userId, p_id: contactId, p_tags: tags || '' });
+        if (error) throw error;
+        return true;
     }
 
     /**
@@ -214,9 +219,9 @@ class ContactService {
     /**
      * Get all contacts for API response
      */
-    static async getAllContacts(userId) {
+    static async getAllContacts(userId, supabaseClient = null) {
         try {
-            const supabase = getDatabase();
+            const supabase = supabaseClient || getDatabase();
             const { data, error } = await supabase
                 .from('contacts')
                 .select('*')

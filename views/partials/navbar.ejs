@@ -1,11 +1,31 @@
-<header class="navbar">
-    <h2 class="navbar-title"><%= typeof title !== 'undefined' ? title : 'Dashboard' %></h2>
-    <div class="user-menu">
-        <form id="logoutForm" action="/logout-user" method="POST">
-            <button type="submit" class="btn-logout">
-                <i class="ri-logout-box-line"></i>
-                <span>Logout</span>
+<header class="bg-white shadow-sm border-b border-gray-200 px-4 sm:px-6 py-4">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <!-- Mobile menu button -->
+            <button class="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="toggleMobileMenu()">
+                <i class="ri-menu-line text-gray-600 text-xl"></i>
             </button>
-        </form>
+            <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800"><%= typeof title !== 'undefined' ? title : 'Dasbor' %></h2>
+                <p class="text-sm text-gray-500 hidden sm:block mt-1">Kelola layanan WhatsApp Webhook Anda</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <!-- User info (if available) -->
+            <% if (typeof user !== 'undefined' && user) { %>
+                <div class="hidden sm:flex items-center space-x-2 text-sm text-gray-600">
+                    <i class="ri-user-3-line"></i>
+                    <span><%= user.username || user.email %></span>
+                </div>
+            <% } %>
+
+            <!-- Logout button -->
+            <form id="logoutForm" action="/logout-user" method="POST" data-confirm="Apakah Anda yakin ingin logout?">
+                <button type="submit" class="group flex items-center space-x-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md">
+                    <i class="ri-logout-box-line text-lg group-hover:scale-110 transition-transform"></i>
+                    <span class="font-medium hidden sm:inline">Keluar</span>
+                </button>
+            </form>
+        </div>
     </div>
-</header> 
+</header>

@@ -1,19 +1,37 @@
-<div class="card" id="qrCard" style="display: none;">
-    <div class="card-header">
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6" id="connectionCard" style="display: none;">
+    <div class="flex items-center justify-between mb-6">
         <div>
-            <h3 class="card-title">Scan QR Code</h3>
-            <p class="card-description">Scan this with your phone to connect.</p>
+            <h3 class="text-lg font-semibold text-gray-800" id="connectionTitle">Hubungkan WhatsApp</h3>
+            <p class="text-sm text-gray-600 mt-1" id="connectionDescription">Pilih metode koneksi yang Anda inginkan.</p>
         </div>
-        <i class="ri-qr-code-line"></i>
-    </div>
-    <div class="card-content">
-        <div id="qrcode"></div>
-        <div class="qr-instructions" style="margin-top: 1rem; font-size: 0.875rem; color: var(--muted-foreground);">
-            <strong>How to scan:</strong><br>
-            1. Open WhatsApp on your phone<br>
-            2. Tap Menu (⋮) > Linked Devices<br>
-            3. Tap "Link a Device"<br>
-            4. Scan the QR code above
+        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+            <i class="ri-smartphone-line text-green-600 text-xl"></i>
         </div>
     </div>
-</div> 
+    
+    <div class="space-y-6">
+        <!-- Connection Method Selection -->
+        <div id="connectionMethods" class="border-b border-gray-200">
+            <div class="flex space-x-1 mb-4">
+                <button class="flex items-center space-x-2 px-4 py-2 bg-blue-50 text-blue-700 border-b-2 border-blue-500 rounded-t-lg font-medium transition-colors" data-method="qr" id="qrTab">
+                    <i class="ri-qr-code-line"></i>
+                    <span>Kode QR</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Pairing Code Method removed -->
+
+        <!-- QR Code Method -->
+        <div id="qrMethod" class="text-center space-y-4">
+            <div id="qrcode" class="flex justify-center"></div>
+            <div class="text-sm text-gray-600 text-left space-y-1 bg-gray-50 rounded-lg p-4">
+                <p class="font-medium text-gray-800 mb-2">Cara memindai:</p>
+                <p>1. Buka WhatsApp di ponsel Anda</p>
+                <p>2. Ketuk Menu (⋮) > Perangkat Tertaut</p>
+                <p>3. Ketuk "Tautkan Perangkat"</p>
+                <p>4. Pindai kode QR di atas</p>
+            </div>
+        </div>
+    </div>
+</div>

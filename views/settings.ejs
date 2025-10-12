@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('partials/head', { title: 'Pengaturan' }) %>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+    <div class="flex min-h-screen">
+        <%- include('partials/sidebar') %>
+        <div class="flex-1 flex flex-col lg:ml-0">
+            <%- include('partials/navbar', { title: 'Pengaturan' }) %>
+            <main class="flex-1 p-4 sm:p-6 lg:p-8">
+                <div class="max-w-5xl mx-auto space-y-6">
+                    <% if (error) { %>
+                        <div class="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl"><%= error %></div>
+                    <% } %>
+                    <% if (success) { %>
+                        <div class="p-3 bg-green-50 border border-green-200 text-green-700 rounded-xl"><%= success %></div>
+                    <% } %>
+
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Webhook</h3>
+                        <form action="/settings/webhook" method="POST" class="space-y-3">
+                            <div>
+                                <label class="block text-sm text-gray-700 mb-1">Webhook URL</label>
+                                <input name="webhook_url" value="<%= webhookUrl %>" placeholder="https://example.com/webhook" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-700 mb-1">Webhook Secret (HMAC)</label>
+                                <input name="webhook_secret" value="<%= webhookSecret %>" placeholder="opsional" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <label class="inline-flex items-center space-x-2">
+                                    <input type="checkbox" name="webhook_toggle_connection" <%= webhookToggleConnection ? 'checked' : '' %> />
+                                    <span>Status Koneksi</span>
+                                </label>
+                                <label class="inline-flex items-center space-x-2">
+                                    <input type="checkbox" name="webhook_toggle_message_in" <%= webhookToggleMessageIn ? 'checked' : '' %> />
+                                    <span>Pesan Masuk</span>
+                                </label>
+                                <label class="inline-flex items-center space-x-2">
+                                    <input type="checkbox" name="webhook_toggle_message_out" <%= webhookToggleMessageOut ? 'checked' : '' %> />
+                                    <span>Pesan Keluar</span>
+                                </label>
+                            </div>
+                            <div class="flex justify-end space-x-2">
+                                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">Simpan</button>
+                                <form action="/settings/webhook/test" method="POST" class="inline">
+                                    <button type="submit" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg">Kirim Uji</button>
+                                </form>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <%- include('partials/simple-scripts') %>
+</body>
+</html>

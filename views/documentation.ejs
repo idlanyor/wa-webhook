@@ -1,125 +1,255 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <%- include('partials/head', { title: 'API Documentation' }) %>
+    <%- include('partials/head', { title: 'Dokumentasi API' }) %>
 </head>
-<body>
-    <div class="dashboard-layout">
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+    <div class="flex min-h-screen">
         <%- include('partials/sidebar') %>
-        <div class="main-content">
-            <%- include('partials/navbar', { title: 'API Documentation' }) %>
-            <main class="content-wrapper">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h3 class="card-title">Introduction</h3>
+        <div class="flex-1 flex flex-col lg:ml-0">
+            <%- include('partials/navbar', { title: 'Dokumentasi API' }) %>
+            <main class="flex-1 p-4 sm:p-6 lg:p-8">
+                <div class="max-w-5xl mx-auto">
+                    <!-- Welcome Section -->
+                    <div class="mb-8 fade-in">
+                        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Dokumentasi API</h1>
+                        <p class="text-lg text-gray-600">Panduan lengkap integrasi dengan WhatsApp Webhook API</p>
                     </div>
-                    <div class="card-content">
-                        <p>This page describes how to interact programmatically with the WhatsApp Webhook service and gives an overview of the features available in the dashboard.</p>
-                        <p>All API endpoints are protected. There are <strong>two</strong> ways to authenticate:</p>
-                        <ol>
-                            <li><strong>Session Cookie</strong> – Login via the web dashboard, then copy the <code>supabase-auth-token</code> cookie from your browser and attach it to each request.</li>
-                            <li><strong>API Key</strong> – Generate a key in the <em>API Keys</em> page. Send it using an <code>X-API-KEY</code> header or <code>?api_key=</code> query parameter.</li>
-                        </ol>
-                    </div>
-                </div>
 
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h3 class="card-title">REST API Endpoints</h3>
+                    <!-- Introduction Card -->
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8 fade-in">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-800">Pendahuluan</h3>
+                                <p class="text-sm text-gray-600 mt-1">Memulai dengan WhatsApp API</p>
+                            </div>
+                            <div class="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center shadow-inner">
+                                <i class="ri-book-2-line text-blue-600 text-2xl"></i>
+                            </div>
+                        </div>
+
+                        <div class="prose max-w-none">
+                            <p class="text-gray-700 mb-4">Halaman ini menjelaskan cara berinteraksi secara programatis dengan layanan WhatsApp Webhook dan memberikan gambaran fitur yang tersedia di dasbor.</p>
+
+                            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border-l-4 border-blue-500 mb-4">
+                                <h4 class="font-semibold text-blue-800 mb-2">Metode Autentikasi</h4>
+                                <p class="text-blue-700 mb-3">Semua endpoint API dilindungi. Tersedia <strong>dua</strong> cara untuk autentikasi:</p>
+                                <ol class="list-decimal list-inside space-y-2 text-blue-700">
+                                    <li><strong>Cookie Sesi</strong> – Masuk melalui dasbor web, lalu salin cookie <code class="bg-blue-200 px-2 py-1 rounded text-sm">supabase-auth-token</code> dari browser dan sertakan pada setiap request.</li>
+                                    <li><strong>Kunci API</strong> – Buat kunci di halaman <em>Kunci API</em>. Kirim lewat header <code class="bg-blue-200 px-2 py-1 rounded text-sm">X-API-KEY</code> atau parameter query <code class="bg-blue-200 px-2 py-1 rounded text-sm">?api_key=</code>.</li>
+                                </ol>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-content">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Method</th>
-                                    <th>Endpoint</th>
-                                    <th>Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><code>GET</code></td>
-                                    <td><code>/status</code></td>
-                                    <td>Returns WhatsApp connection status and QR code (if required). <em>(Auth: cookie or API key)</em></td>
-                                </tr>
-                                <tr>
-                                    <td><code>POST</code></td>
-                                    <td><code>/send-message</code></td>
-                                    <td>Sends a single WhatsApp message.<br/>
-                                        <strong>Body parameters</strong>:<br/>
-                                        <code>to</code> (string, phone number or JID)<br/>
-                                        <code>message</code> (string, text content)<br/>
-                                        <em>Auth: cookie or API key</em>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><code>POST</code></td>
-                                    <td><code>/send-bulk</code></td>
-                                    <td>Sends a message to multiple recipients with randomized delay.<br/>
-                                        <strong>Body parameters</strong>:<br/>
-                                        <code>numbers</code> (string, one phone number per line)<br/>
-                                        <code>message</code> (string)<br/>
-                                        <em>Auth: cookie or API key</em>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><code>GET</code></td>
-                                    <td><code>/api/contacts</code></td>
-                                    <td>Returns the saved contacts list.<br/>
-                                        <em>Auth: cookie or API key</em>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <p class="mt-4"><strong>Example with API Key:</strong></p>
-<pre>
-$ curl -X POST \
+
+                    <!-- REST API Endpoints Card -->
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8 fade-in">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-800">Endpoint REST API</h3>
+                                <p class="text-sm text-gray-600 mt-1">Endpoint yang tersedia untuk integrasi API</p>
+                            </div>
+                            <div class="w-14 h-14 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center shadow-inner">
+                                <i class="ri-code-s-slash-line text-green-600 text-2xl"></i>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b-2 border-gray-200">
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-800">Metode</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-800">Endpoint</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-800">Deskripsi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="py-4 px-4">
+                                            <span class="inline-block px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg">GET</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">/status</code>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-700">
+                                            <div class="mb-1">Returns WhatsApp connection status and QR code (if required)</div>
+                                            <div class="text-xs text-gray-500">Auth: cookie or API key</div>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="py-4 px-4">
+                                            <span class="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-lg">POST</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">/send-message</code>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-700">
+                                            <div class="mb-2">Sends a single WhatsApp message</div>
+                                            <div class="text-sm text-gray-600 mb-1"><strong>Body parameters:</strong></div>
+                                            <div class="text-xs space-y-1">
+                                                <div><code class="bg-gray-100 px-1 py-0.5 rounded text-xs">to</code> (string, phone number or JID)</div>
+                                                <div><code class="bg-gray-100 px-1 py-0.5 rounded text-xs">message</code> (string, text content)</div>
+                                            </div>
+                                            <div class="text-xs text-gray-500 mt-1">Auth: cookie or API key</div>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="py-4 px-4">
+                                            <span class="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-lg">POST</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">/send-bulk</code>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-700">
+                                            <div class="mb-2">Sends a message to multiple recipients with randomized delay</div>
+                                            <div class="text-sm text-gray-600 mb-1"><strong>Body parameters:</strong></div>
+                                            <div class="text-xs space-y-1">
+                                                <div><code class="bg-gray-100 px-1 py-0.5 rounded text-xs">numbers</code> (string, one phone number per line)</div>
+                                                <div><code class="bg-gray-100 px-1 py-0.5 rounded text-xs">message</code> (string)</div>
+                                            </div>
+                                            <div class="text-xs text-gray-500 mt-1">Auth: cookie or API key</div>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="py-4 px-4">
+                                            <span class="inline-block px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg">GET</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">/api/contacts</code>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-700">
+                                            <div class="mb-1">Returns the saved contacts list</div>
+                                            <div class="text-xs text-gray-500">Auth: cookie or API key</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Code Examples -->
+                        <div class="mt-8 space-y-6">
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-800 mb-3">Example with API Key:</h4>
+                                <div class="bg-gray-900 text-gray-100 rounded-xl p-4 overflow-x-auto">
+                                    <pre class="text-sm font-mono"><code>$ curl -X POST \
   -H "Content-Type: application/json" \
   -H "X-API-KEY: YOUR_API_KEY" \
   -d '{"to":"6281234567890","message":"Hello via API key!"}' \
-  http://localhost:3000/send-message
-</pre>
-                        <p class="mt-2"><strong>Example with Cookie:</strong></p>
-<pre>
-$ curl -X POST \
+  http://localhost:3000/send-message</code></pre>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-800 mb-3">Example with Cookie:</h4>
+                                <div class="bg-gray-900 text-gray-100 rounded-xl p-4 overflow-x-auto">
+                                    <pre class="text-sm font-mono"><code>$ curl -X POST \
   -H "Content-Type: application/json" \
   -H "Cookie: supabase-auth-token=YOUR_COOKIE_HERE" \
   -d '{"to":"6281234567890","message":"Hello via cookie!"}' \
-  http://localhost:3000/send-message
-</pre>
+  http://localhost:3000/send-message</code></pre>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h3 class="card-title">Dashboard Features</h3>
-                    </div>
-                    <div class="card-content">
-                        <ul>
-                            <li><strong>Dashboard</strong> – Real-time connection status, QR code generation, and recent messages.</li>
-                            <li><strong>Blaster</strong> – Send bulk messages with progress logs and randomized delays.</li>
-                            <li><strong>Contacts</strong> – CRUD interface to manage phonebook entries used by the blaster.</li>
-                            <li><strong>Auto Reply</strong> – Keyword-based bot with per-rule enable/disable and global master switch.</li>
-                            <li><strong>API Keys</strong> – Generate/revoke keys for programmatic access without session cookies.</li>
-                        </ul>
-                    </div>
-                </div>
+                    <!-- Dashboard Features Card -->
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8 fade-in">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-800">Dashboard Features</h3>
+                                <p class="text-sm text-gray-600 mt-1">Available features in the web dashboard</p>
+                            </div>
+                            <div class="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center shadow-inner">
+                                <i class="ri-dashboard-3-line text-purple-600 text-2xl"></i>
+                            </div>
+                        </div>
 
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Changelog & Resources</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <i class="ri-dashboard-line text-blue-600 text-xl"></i>
+                                    <h4 class="font-semibold text-blue-800">Dashboard</h4>
+                                </div>
+                                <p class="text-blue-700 text-sm">Real-time connection status, QR code generation, and recent messages.</p>
+                            </div>
+
+                            <div class="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <i class="ri-rocket-line text-purple-600 text-xl"></i>
+                                    <h4 class="font-semibold text-purple-800">Blaster</h4>
+                                </div>
+                                <p class="text-purple-700 text-sm">Kirim pesan massal dengan log progres dan jeda acak.</p>
+                            </div>
+
+                            <div class="p-4 bg-green-50 rounded-xl border border-green-200">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <i class="ri-contacts-book-line text-green-600 text-xl"></i>
+                                    <h4 class="font-semibold text-green-800">Kontak</h4>
+                                </div>
+                                <p class="text-green-700 text-sm">Antarmuka CRUD untuk mengelola daftar kontak yang digunakan oleh blaster.</p>
+                            </div>
+
+                            <div class="p-4 bg-orange-50 rounded-xl border border-orange-200">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <i class="ri-reply-all-line text-orange-600 text-xl"></i>
+                                    <h4 class="font-semibold text-orange-800">Balas Otomatis</h4>
+                                </div>
+                                <p class="text-orange-700 text-sm">Bot berbasis kata kunci dengan aktif/nonaktif per aturan dan sakelar global.</p>
+                            </div>
+
+                            <div class="p-4 bg-indigo-50 rounded-xl border border-indigo-200 md:col-span-2">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <i class="ri-key-line text-indigo-600 text-xl"></i>
+                                    <h4 class="font-semibold text-indigo-800">Kunci API</h4>
+                                </div>
+                                <p class="text-indigo-700 text-sm">Buat/cabut kunci untuk akses terprogram tanpa cookie sesi.</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-content">
-                        <p>For a deeper dive, refer to the Markdown documents shipped with the project:</p>
-                        <ul>
-                            <li><code>Quick Start Guide - WhatsApp Webhook API.md</code></li>
-                            <li><code>WhatsApp Webhook API Documentation.md</code></li>
-                        </ul>
-                        <p>The project is continuously evolving—check these files and this page for updates.</p>
+
+                    <!-- Changelog & Resources Card -->
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 fade-in">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-800">Catatan Perubahan & Sumber</h3>
+                                <p class="text-sm text-gray-600 mt-1">Dokumentasi tambahan dan pembaruan</p>
+                            </div>
+                            <div class="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center shadow-inner">
+                                <i class="ri-file-text-line text-gray-600 text-2xl"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200">
+                            <p class="text-gray-700 mb-4">Untuk penjelasan lebih dalam, lihat dokumen Markdown yang disertakan dalam proyek:</p>
+
+                            <div class="space-y-3">
+                                <div class="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200">
+                                    <i class="ri-file-text-line text-blue-500 text-lg"></i>
+                                    <code class="flex-1 text-sm font-mono bg-gray-100 px-2 py-1 rounded">Quick Start Guide - WhatsApp Webhook API.md</code>
+                                </div>
+                                <div class="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200">
+                                    <i class="ri-book-open-line text-green-500 text-lg"></i>
+                                    <code class="flex-1 text-sm font-mono bg-gray-100 px-2 py-1 rounded">WhatsApp Webhook API Documentation.md</code>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <i class="ri-information-line text-blue-600"></i>
+                                    <span class="font-medium text-blue-800">Catatan:</span>
+                                </div>
+                                <p class="text-blue-700 text-sm">Proyek ini terus berkembang—periksa berkas-berkas ini dan halaman ini untuk pembaruan.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>
         </div>
     </div>
+
+    <!-- Mobile menu overlay -->
+    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+
+    <%- include('partials/simple-scripts') %>
 </body>
 </html> 

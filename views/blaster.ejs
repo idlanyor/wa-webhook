@@ -1,205 +1,239 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <%- include('partials/head', { title: 'WhatsApp Blaster' }) %>
-    <style>
-        .log-box {
-            background-color: #2c2c2c;
-            color: #f1f1f1;
-            font-family: 'Fira Code', monospace;
-            padding: 1rem;
-            border-radius: var(--radius);
-            height: 300px;
-            overflow-y: auto;
-            font-size: 0.875rem;
-            margin-top: 1.5rem;
-        }
-        .log-item {
-            padding: 0.25rem 0;
-            border-bottom: 1px solid #444;
-        }
-        .log-item.success { color: #28a745; }
-        .log-item.error { color: #dc3545; }
-        .log-item.info { color: #17a2b8; }
-        .log-item:before {
-            content: '> ';
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 10% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-            border-radius: var(--radius);
-        }
-        .modal-header {
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .modal-header h4 {
-            font-size: 1.25rem;
-        }
-        .close-btn {
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .contact-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 1rem;
-        }
-        .contact-item {
-            display: flex;
-            align-items: center;
-            padding: 0.5rem;
-            border-radius: 0.25rem;
-        }
-        .contact-item:hover {
-            background-color: var(--muted);
-        }
-        .contact-item input {
-            margin-right: 1rem;
-        }
-    </style>
 </head>
-<body>
-    <div class="dashboard-layout">
-        <%- include('partials/sidebar') %>
-        <div class="main-content">
-            <%- include('partials/navbar', { title: 'WhatsApp Blaster' }) %>
-            <main class="content-wrapper">
-                <div class="grid-container">
-                    <div class="card" style="grid-column: 1 / -1;">
-                        <div class="card-header">
-                            <div>
-                                <h3 class="card-title">Bulk Message Sender</h3>
-                                <p class="card-description">Send a message to multiple numbers at once.</p>
-                            </div>
-                            <i class="ri-rocket-2-line"></i>
-                        </div>
-                        <div class="card-content">
-                            <div class="actions" style="margin-bottom: 1rem; justify-content: flex-start;">
-                                <button class="btn btn-secondary" id="selectContactsBtn">
-                                    <i class="ri-contacts-book-line"></i>
-                                    <span>Select from Contacts</span>
-                                </button>
-                            </div>
-                            <div class="grid-container" style="gap: 1.5rem;">
-                                <div>
-                                    <label for="numbers" style="font-weight: 500; display: block; margin-bottom: 0.5rem;">Phone Numbers</label>
-                                    <textarea id="numbers" rows="10" placeholder="Enter numbers, one per line..." style="width: 100%; padding: 0.5rem; border-radius: var(--radius); border: 1px solid var(--border); font-family: 'Inter', sans-serif;"></textarea>
-                                </div>
-                                <div>
-                                    <label for="message" style="font-weight: 500; display: block; margin-bottom: 0.5rem;">Message</label>
-                                    <textarea id="message" rows="10" placeholder="Type your message here..." style="width: 100%; padding: 0.5rem; border-radius: var(--radius); border: 1px solid var(--border); font-family: 'Inter', sans-serif;"></textarea>
-                                </div>
-                            </div>
-                            <div class="actions" style="margin-top: 1.5rem;">
-                                <button class="btn btn-primary" id="sendBtn">
-                                    <i class="ri-send-plane-fill"></i>
-                                    <span>Send Messages</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="card" style="grid-column: 1 / -1;">
-                        <div class="card-header">
-                            <div>
-                                <h3 class="card-title">Sending Log</h3>
-                                <p class="card-description">Real-time status of the bulk sending process.</p>
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+    <div class="flex min-h-screen">
+        <%- include('partials/sidebar') %>
+            <div class="flex-1 flex flex-col lg:ml-0">
+                <%- include('partials/navbar', { title: 'WhatsApp Blaster' }) %>
+                    <main class="flex-1 p-4 sm:p-6 lg:p-8">
+                        <div class="max-w-7xl mx-auto">
+                            <!-- Welcome Section -->
+                            <div class="mb-8 fade-in">
+                                <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">WhatsApp Blaster</h1>
+                                <p class="text-lg text-gray-600">Kirim pesan massal ke banyak kontak secara efisien</p>
                             </div>
-                             <i class="ri-file-text-line"></i>
+
+                            <!-- Message Composer -->
+                            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8 fade-in">
+                                <div class="flex items-center justify-between mb-6">
+                                    <div>
+                                        <h3 class="text-xl font-semibold text-gray-800">Pengirim Pesan Massal</h3>
+                                        <p class="text-sm text-gray-600 mt-1">Kirim pesan ke banyak nomor sekaligus</p>
+                                    </div>
+                                    <div
+                                        class="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center shadow-inner">
+                                        <i class="ri-rocket-2-line text-purple-600 text-2xl"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Select Contacts & Template Button -->
+                                <div class="mb-6">
+                                    <button
+                                        class="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1"
+                                        id="selectContactsBtn">
+                                        <i class="ri-contacts-book-line"></i>
+                                        <span>Pilih dari Kontak</span>
+                                    </button>
+                                    <button
+                                        class="ml-2 inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1"
+                                        id="chooseTemplateBtn" type="button" onclick="openTemplateChooser()">
+                                        <i class="ri-file-list-3-line"></i>
+                                        <span>Pilih Template</span>
+                                    </button>
+                                </div>
+
+                                <!-- Input Fields -->
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                                    <div class="space-y-2">
+                                        <label for="numbers" class="block text-sm font-medium text-gray-700">Nomor
+                                            Telepon</label>
+                                        <textarea id="numbers" rows="8"
+                                            placeholder="Masukkan nomor, satu per baris...&#10;Contoh:&#10;6281234567890&#10;6281234567891"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-mono text-sm resize-none"></textarea>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label for="message"
+                                            class="block text-sm font-medium text-gray-700">Pesan</label>
+                                        <textarea id="message" rows="8"
+                                            placeholder="Tulis pesan Anda di sini...&#10;&#10;Anda dapat menggunakan variabel seperti:&#10;{name} - Nama kontak&#10;{phone} - Nomor telepon"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors text-sm resize-none"></textarea>
+                                        <p class="text-xs text-gray-500 mt-2" id="templateHint" style="display:none">
+                                            Template: <span id="templateName" class="font-medium"></span> diterapkan.
+                                        </p>
+                                        <div id="templatePreview"
+                                            class="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-700"
+                                            style="display:none">
+                                            <div class="font-medium text-gray-800 mb-1">Pratinjau (3 nomor pertama):
+                                            </div>
+                                            <ul id="templatePreviewList" class="list-disc pl-4 space-y-1"></ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Send Button -->
+                                <div class="flex justify-end">
+                                    <button
+                                        class="group flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                        id="sendBtn">
+                                        <i class="ri-send-plane-fill group-hover:scale-110 transition-transform"></i>
+                                        <span>Kirim Pesan</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Sending Log -->
+                            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 fade-in">
+                                <div class="flex items-center justify-between mb-6">
+                                    <div>
+                                        <h3 class="text-xl font-semibold text-gray-800">Log Pengiriman</h3>
+                                        <p class="text-sm text-gray-600 mt-1">Status real-time proses pengiriman massal
+                                        </p>
+                                    </div>
+                                    <div
+                                        class="w-14 h-14 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center shadow-inner">
+                                        <i class="ri-file-text-line text-green-600 text-2xl"></i>
+                                    </div>
+                                </div>
+                                <div id="logs"
+                                    class="bg-gray-900 text-gray-100 font-mono p-4 rounded-xl h-80 overflow-y-auto text-sm border border-gray-700 messages-container">
+                                    <div class="text-gray-400 text-center py-8">
+                                        <i class="ri-file-list-line text-4xl mb-2"></i>
+                                        <p>Sending logs will appear here...</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-content">
-                            <div id="logs" class="log-box"></div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
+                    </main>
+            </div>
     </div>
 
     <!-- Contact Modal -->
-    <div id="contactModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4>Select Contacts</h4>
-                <span class="close-btn">&times;</span>
+    <div id="contactModal" class="hidden fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50">
+        <div class="bg-white mx-auto my-20 rounded-2xl shadow-2xl border border-gray-200 w-4/5 max-w-2xl">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h4 class="text-xl font-semibold text-gray-800">Select Contacts</h4>
+                    <p class="text-sm text-gray-600 mt-1">Choose contacts to add to your message list</p>
+                </div>
+                <button
+                    class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors close-btn">
+                    <i class="ri-close-line text-xl"></i>
+                </button>
             </div>
-            <div id="modalContactList" class="contact-list">
+            <div id="modalContactList" class="max-h-80 overflow-y-auto p-6">
                 <!-- Contacts will be loaded here -->
             </div>
-            <div class="actions" style="margin-top: 1.5rem;">
-                <button class="btn btn-primary" id="addSelectedContactsBtn">Add Selected to Blaster</button>
+            <div class="p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+                <div class="flex justify-end space-x-3">
+                    <button
+                        class="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors close-btn">Cancel</button>
+                    <button
+                        class="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+                        id="addSelectedContactsBtn">Add Selected</button>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Mobile menu overlay -->
+    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     <script>
         const sendBtn = document.getElementById('sendBtn');
         const numbersEl = document.getElementById('numbers');
         const messageEl = document.getElementById('message');
+        const chooseTemplateBtn = document.getElementById('chooseTemplateBtn');
+        const templateHint = document.getElementById('templateHint');
+        const templateNameEl = document.getElementById('templateName');
+        let currentTemplate = null;
+        let contactsMap = null;
         const logsEl = document.getElementById('logs');
-        const socket = io({ query: { userId: '<%= userId %>' } });
+        const socket = io('/', {
+            path: '/socket.io',
+            transports: ['polling'],
+            reconnection: true,
+            reconnectionAttempts: Infinity,
+            reconnectionDelay: 1000,
+            query: { userId: '<%= typeof userId !== "undefined" ? userId : "guest" %>' }
+        });
 
         // Modal elements
         const contactModal = document.getElementById('contactModal');
         const selectContactsBtn = document.getElementById('selectContactsBtn');
-        const closeBtn = document.querySelector('.close-btn');
+        const closeBtns = document.querySelectorAll('.close-btn');
         const modalContactList = document.getElementById('modalContactList');
         const addSelectedContactsBtn = document.getElementById('addSelectedContactsBtn');
+        // Mobile menu logic handled by shared partial
 
         function addLog(log) {
+            // Clear empty state if this is the first log
+            if (logsEl.querySelector('.text-gray-400')) {
+                logsEl.innerHTML = '';
+            }
+
             const logItem = document.createElement('div');
-            logItem.className = `log-item ${log.status}`;
-            logItem.textContent = `[${new Date().toLocaleTimeString()}] ${log.message}`;
+            logItem.className = `py-2 px-3 mb-2 rounded-lg border-l-4 ${log.status === 'success' ? 'border-green-500 bg-green-50 text-green-700' :
+                    log.status === 'error' ? 'border-red-500 bg-red-50 text-red-700' :
+                        'border-blue-500 bg-blue-50 text-blue-700'
+                }`;
+
+            logItem.innerHTML = `
+                <div class="flex items-start space-x-2">
+                    <span class="text-xs text-gray-500 mt-0.5">[${new Date().toLocaleTimeString()}]</span>
+                    <span class="flex-1">${log.message}</span>
+                    <i class="ri-${log.status === 'success' ? 'checkbox-circle-line text-green-500' :
+                    log.status === 'error' ? 'error-warning-line text-red-500' :
+                        'information-line text-blue-500'
+                }"></i>
+                </div>
+            `;
+
             logsEl.appendChild(logItem);
             logsEl.scrollTop = logsEl.scrollHeight;
         }
-        
+
         sendBtn.addEventListener('click', async () => {
-            const numbers = numbersEl.value;
-            const message = messageEl.value;
+            const numbers = numbersEl.value.trim();
+            let message = messageEl.value.trim();
 
             if (!numbers || !message) {
-                alert('Please provide both numbers and a message.');
+                showNotification('Mohon isi nomor dan pesan.', 'error');
                 return;
             }
 
-            if (!confirm('Are you sure you want to start the bulk sending process?')) {
+            const result = await Swal.fire({
+                title: 'Mulai pengiriman massal?',
+                text: 'Apakah Anda yakin ingin memulai proses pengiriman massal?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, mulai',
+            });
+            if (!result.isConfirmed) {
                 return;
             }
 
             sendBtn.disabled = true;
-            sendBtn.innerHTML = '<span class="loading"></span> Sending...';
+            sendBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> <span>Mengirim...</span>';
             logsEl.innerHTML = ''; // Clear previous logs
 
-            addLog({ status: 'info', message: 'Starting bulk sending process...' });
+            addLog({ status: 'info', message: 'Memulai proses pengiriman massal...' });
 
             try {
+                if (currentTemplate && !numbers.includes('\n')) {
+                    message = applyTemplateVariables(message, numbers);
+                }
                 const response = await fetch('/send-bulk', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ numbers, message })
+                    body: JSON.stringify({ numbers, message, templateId: currentTemplate?.id || null })
                 });
 
                 const result = await response.json();
@@ -207,13 +241,13 @@
                 if (!result.success) {
                     throw new Error(result.error);
                 }
-                
+
                 addLog({ status: 'info', message: result.message });
 
             } catch (error) {
-                addLog({ status: 'error', message: `Error starting process: ${error.message}` });
+                addLog({ status: 'error', message: `Gagal memulai proses: ${error.message}` });
                 sendBtn.disabled = false;
-                sendBtn.innerHTML = '<i class="ri-send-plane-fill"></i><span>Send Messages</span>';
+                sendBtn.innerHTML = '<i class="ri-send-plane-fill"></i> <span>Kirim Pesan</span>';
             }
         });
 
@@ -221,17 +255,18 @@
             addLog(log);
             if (log.status === 'done') {
                 sendBtn.disabled = false;
-                sendBtn.innerHTML = '<i class="ri-send-plane-fill"></i><span>Send Messages</span>';
+                sendBtn.innerHTML = '<i class="ri-send-plane-fill"></i> <span>Kirim Pesan</span>';
+                showNotification('Pengiriman massal selesai!', 'success');
             }
         });
 
         // Modal logic
         async function openContactModal() {
-            modalContactList.innerHTML = '<div class="loading"></div>';
-            contactModal.style.display = 'block';
+            modalContactList.innerHTML = '<div class="flex justify-center p-8"><div class="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full"></div></div>';
+            contactModal.classList.remove('hidden');
 
             try {
-                const response = await fetch('/api/contacts');
+                const response = await fetch('/contacts/api');
                 const contacts = await response.json();
 
                 modalContactList.innerHTML = '';
@@ -239,46 +274,191 @@
                 if (contacts.length > 0) {
                     contacts.forEach(contact => {
                         const item = document.createElement('div');
-                        item.className = 'contact-item';
+                        item.className = 'flex items-center p-3 rounded-xl hover:bg-gray-50 border border-gray-100 mb-2 transition-colors';
                         item.innerHTML = `
-                            <input type="checkbox" value="${contact.phone}" id="contact-${contact.id}">
-                            <label for="contact-${contact.id}">${contact.name} (${contact.phone})</label>
+                            <input type="checkbox" value="${contact.phone}" id="contact-${contact.id}" class="mr-3 w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                            <label for="contact-${contact.id}" class="cursor-pointer flex-1">
+                                <div class="font-medium text-gray-800">${contact.name}</div>
+                                <div class="text-sm text-gray-500">${contact.phone}</div>
+                            </label>
                         `;
                         modalContactList.appendChild(item);
                     });
                 } else {
-                    modalContactList.innerHTML = '<p>No contacts found.</p>';
+                    modalContactList.innerHTML = `
+                        <div class="text-center py-8">
+                            <i class="ri-contacts-book-line text-4xl text-gray-300 mb-3"></i>
+                            <p class="text-gray-500">Tidak ditemukan kontak.</p>
+                            <a href="/contacts" class="text-blue-600 hover:text-blue-800 text-sm">Tambahkan beberapa kontak terlebih dahulu</a>
+                        </div>
+                    `;
                 }
             } catch (error) {
-                modalContactList.innerHTML = '<p style="color: red;">Failed to load contacts.</p>';
+                modalContactList.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="ri-error-warning-line text-4xl text-red-300 mb-3"></i>
+                        <p class="text-red-500">Gagal memuat kontak.</p>
+                    </div>
+                `;
             }
         }
 
         function closeContactModal() {
-            contactModal.style.display = 'none';
+            contactModal.classList.add('hidden');
         }
 
         function addSelectedContacts() {
             const selectedContacts = modalContactList.querySelectorAll('input[type="checkbox"]:checked');
             const existingNumbers = new Set(numbersEl.value.split('\n').filter(n => n.trim() !== ''));
-            
+
+            let addedCount = 0;
             selectedContacts.forEach(checkbox => {
+                if (!existingNumbers.has(checkbox.value)) {
+                    addedCount++;
+                }
                 existingNumbers.add(checkbox.value);
             });
 
             numbersEl.value = Array.from(existingNumbers).join('\n');
             closeContactModal();
+
+            if (addedCount > 0) {
+                showNotification(`Added ${addedCount} contact${addedCount > 1 ? 's' : ''} to the list`, 'success');
+            }
         }
 
+        // Utility function for notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg transition-all duration-300 ${type === 'success' ? 'bg-green-500 text-white' :
+                    type === 'error' ? 'bg-red-500 text-white' :
+                        type === 'warning' ? 'bg-yellow-500 text-white' :
+                            'bg-blue-500 text-white'
+                }`;
+            notification.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <i class="ri-${type === 'success' ? 'checkbox-circle-line' :
+                    type === 'error' ? 'error-warning-line' :
+                        type === 'warning' ? 'alert-line' :
+                            'information-line'
+                }"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+                notification.style.opacity = '1';
+            }, 100);
+
+            // Auto remove
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) notification.parentNode.removeChild(notification);
+                }, 300);
+            }, 4000);
+        }
+
+        // Event listeners
         selectContactsBtn.addEventListener('click', openContactModal);
-        closeBtn.addEventListener('click', closeContactModal);
+        closeBtns.forEach(btn => btn.addEventListener('click', closeContactModal));
         addSelectedContactsBtn.addEventListener('click', addSelectedContacts);
+
         window.addEventListener('click', (event) => {
             if (event.target == contactModal) {
                 closeContactModal();
             }
         });
 
+        // Initialize fade-in animations
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.fade-in').forEach((el, index) => {
+                el.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+
+    <script>
+        // Template chooser
+        window.openTemplateChooser = async () => {
+            try {
+                const resp = await fetch('/templates/api');
+                const templates = await resp.json();
+                if (!Array.isArray(templates) || templates.length === 0) {
+                    showNotification('Belum ada template. Buat di menu Template.', 'warning');
+                    return;
+                }
+                const inputOptions = templates.reduce((acc, t) => { acc[t.id] = t.name; return acc; }, {});
+                const { value: templateId } = await Swal.fire({
+                    title: 'Pilih Template',
+                    input: 'select',
+                    inputOptions,
+                    inputPlaceholder: 'Pilih salah satu',
+                    showCancelButton: true
+                });
+                if (!templateId) return;
+                const tpl = templates.find(t => t.id === templateId);
+                currentTemplate = tpl;
+                templateNameEl.textContent = tpl.name;
+                templateHint.style.display = '';
+                if (!messageEl.value.trim()) {
+                    messageEl.value = tpl.content;
+                }
+                try { localStorage.setItem('selectedTemplateId', tpl.id); } catch { }
+                try {
+                    const cResp = await fetch('/contacts/api');
+                    const contacts = await cResp.json();
+                    contactsMap = new Map(contacts.map(c => [String(c.phone || '').replace(/^\+/, ''), c.name || '']));
+                } catch { }
+
+                // Pratinjau substitusi untuk 3 nomor pertama
+                try {
+                    const nums = numbersEl.value.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 3);
+                    const listEl = document.getElementById('templatePreviewList');
+                    const previewWrap = document.getElementById('templatePreview');
+                    listEl.innerHTML = '';
+                    nums.forEach(n => {
+                        const li = document.createElement('li');
+                        li.textContent = applyTemplateVariables(tpl.content, n);
+                        listEl.appendChild(li);
+                    });
+                    previewWrap.style.display = nums.length ? '' : 'none';
+                } catch { }
+            } catch (err) {
+                showNotification('Gagal memuat template', 'error');
+            }
+        };
+
+        // Restore template terakhir jika ada
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const lastId = localStorage.getItem('selectedTemplateId');
+                if (!lastId) return;
+                const resp = await fetch('/templates/api');
+                const templates = await resp.json();
+                const tpl = templates.find(t => t.id === lastId);
+                if (!tpl) return;
+                currentTemplate = tpl;
+                templateNameEl.textContent = tpl.name;
+                templateHint.style.display = '';
+                const cResp = await fetch('/contacts/api');
+                const contacts = await cResp.json();
+                contactsMap = new Map(contacts.map(c => [String(c.phone || '').replace(/^\+/, ''), c.name || '']));
+            } catch { }
+        });
+
+        function applyTemplateVariables(text, phoneRaw) {
+            const phone = String((phoneRaw || '').trim()).replace(/^\+/, '');
+            const name = contactsMap ? (contactsMap.get(phone) || '') : '';
+            return text.replace(/\{phone\}/g, phone).replace(/\{name\}/g, name);
+        }
+
     </script>
 </body>
-</html> 
+
+</html>

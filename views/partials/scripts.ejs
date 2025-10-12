@@ -1,20 +1,169 @@
 <script>
     // Socket.IO connections
-    const socket = io({ query: { userId: '<%= userId %>' } });
+    const socket = io('/', {
+        path: '/socket.io',
+        transports: ['polling'],
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 1000,
+        query: { userId: '<%= typeof userId !== "undefined" ? userId : "guest" %>' }
+    });
+
+    const socketStatusEl = document.getElementById('socketStatus');
+    function setSocketStatus(text, color = 'text-gray-500') {
+        if (!socketStatusEl) return;
+        socketStatusEl.className = `text-xs mt-1 ${color}`;
+        socketStatusEl.textContent = `Socket: ${text}`;
+    }
+
+        setSocketStatus('Menghubungkan…');
+
+    socket.on('connect', () => setSocketStatus('Terhubung', 'text-green-600'));
+    socket.on('disconnect', () => setSocketStatus('Terputus', 'text-red-600'));
+    socket.on('reconnect_attempt', () => setSocketStatus('Menyambungkan ulang…', 'text-yellow-600'));
+    socket.on('reconnect', () => setSocketStatus('Tersambung ulang', 'text-green-600'));
+    socket.on('connect_error', (err) => {
+        console.error('Socket connect_error:', err);
+        setSocketStatus('Gagal menghubungkan', 'text-red-600');
+    });
+    socket.on('reconnect_error', (err) => {
+        console.error('Socket reconnect_error:', err);
+        setSocketStatus('Gagal menyambungkan ulang', 'text-red-600');
+    });
 
     let currentStatus = 'disconnected';
     let messages = [];
+    let currentConnectionMethod = 'qr'; // Default prioritize QR method
+    let startTime = Date.now();
+    let messageCount = 0;
 
     // DOM elements
     const statusElement = document.getElementById('connectionStatus');
     const statusMessageElement = document.getElementById('statusMessage');
-    const qrCard = document.getElementById('qrCard');
+    const statusIndicator = document.getElementById('statusIndicator');
+    const statusIcon = document.getElementById('statusIcon');
+    const connectionCard = document.getElementById('connectionCard');
     const qrElement = document.getElementById('qrcode');
     const refreshBtn = document.getElementById('refreshBtn');
     const testBtn = document.getElementById('testBtn');
     const waLogoutBtn = document.getElementById('waLogoutBtn');
     const messagesCard = document.getElementById('messagesCard');
     const messagesList = document.getElementById('messagesList');
+    const sidebar = document.getElementById('sidebar');
+    const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+    const actionStatus = document.getElementById('actionStatus');
+    const actionStatusText = document.getElementById('actionStatusText');
+    const uptimeElement = document.getElementById('uptime');
+    const messageCountElement = document.getElementById('messageCount');
+
+    // Mobile menu functionality
+    if (!window.toggleMobileMenu) {
+        window.toggleMobileMenu = function() {
+            const isOpen = sidebar && sidebar.classList.contains('translate-x-0');
+
+            if (!sidebar) return;
+
+            if (isOpen) {
+                sidebar.classList.remove('translate-x-0');
+                sidebar.classList.add('-translate-x-full');
+                if (mobileMenuOverlay) mobileMenuOverlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            } else {
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.add('translate-x-0');
+                if (mobileMenuOverlay) mobileMenuOverlay.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+        };
+    }
+
+    // Initialize overlay listeners once
+    if (!window.__menuInit) {
+        if (mobileMenuOverlay) {
+            mobileMenuOverlay.addEventListener('click', toggleMobileMenu);
+        }
+
+        // Close mobile menu on window resize to desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) { // lg breakpoint
+                if (sidebar) sidebar.classList.remove('translate-x-0', '-translate-x-full');
+                if (mobileMenuOverlay) mobileMenuOverlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+        });
+
+        window.__menuInit = true;
+    }
+
+    // Connection method elements (QR only)
+    const qrTab = document.getElementById('qrTab');
+    const qrMethod = document.getElementById('qrMethod');
+
+    // Initialize connection method tab (QR only)
+    if (qrTab) {
+        qrTab.addEventListener('click', () => switchConnectionMethod('qr'));
+    }
+
+    // No pairing request in QR-only mode
+
+    // Update uptime and message count periodically
+    setInterval(updateMetrics, 1000);
+
+    function updateMetrics() {
+        if (currentStatus === 'connected' && uptimeElement) {
+            const uptime = Math.floor((Date.now() - startTime) / 1000);
+            const hours = Math.floor(uptime / 3600);
+            const minutes = Math.floor((uptime % 3600) / 60);
+            const seconds = uptime % 60;
+
+            if (hours > 0) {
+                uptimeElement.textContent = `${hours}h ${minutes}m`;
+            } else if (minutes > 0) {
+                uptimeElement.textContent = `${minutes}m ${seconds}s`;
+            } else {
+                uptimeElement.textContent = `${seconds}s`;
+            }
+        }
+
+        if (messageCountElement) {
+            messageCountElement.textContent = messageCount;
+        }
+    }
+
+    function showActionStatus(text, type = 'info') {
+        if (!actionStatus || !actionStatusText) return;
+
+        actionStatusText.textContent = text;
+        actionStatus.className = `mt-4 p-3 rounded-xl border flex items-center space-x-2`;
+
+        switch (type) {
+            case 'success':
+                actionStatus.classList.add('bg-green-50', 'border-green-200');
+                actionStatusText.classList.add('text-green-700');
+                break;
+            case 'error':
+                actionStatus.classList.add('bg-red-50', 'border-red-200');
+                actionStatusText.classList.add('text-red-700');
+                break;
+            default:
+                actionStatus.classList.add('bg-blue-50', 'border-blue-200');
+                actionStatusText.classList.add('text-blue-700');
+        }
+
+        actionStatus.classList.remove('hidden');
+
+        if (type !== 'info') {
+            setTimeout(() => {
+                actionStatus.classList.add('hidden');
+            }, 3000);
+        }
+    }
+
+    function hideActionStatus() {
+        if (actionStatus) {
+            actionStatus.classList.add('hidden');
+        }
+    }
 
     // Socket event listeners for WhatsApp service
     socket.on('connect', () => {
@@ -23,9 +172,13 @@
     });
 
     socket.on('qr', (qr) => {
+        // Only handle QR if UI is in QR mode
+        if (currentConnectionMethod !== 'qr') return;
         console.log('QR code received');
         displayQR(qr);
     });
+
+    // Pairing events removed (QR-only)
 
     socket.on('connection_status', (data) => {
         console.log('Connection status:', data);
@@ -35,47 +188,144 @@
     socket.on('new_message', (message) => {
         console.log('New message:', message);
         addMessage(message);
+        messageCount++;
     });
 
     // Functions
+    function switchConnectionMethod() {
+        currentConnectionMethod = 'qr';
+        if (qrTab) qrTab.classList.add('active');
+        if (qrMethod) qrMethod.style.display = 'block';
+    }
+
+    async function requestPairingCode() {
+        let phoneNumber = phoneNumberInput.value.trim();
+
+        if (!phoneNumber) {
+            showActionStatus('Please enter your phone number', 'error');
+            return;
+        }
+
+        // Normalize Indonesian local format starting with 08 -> 628
+        if (phoneNumber.startsWith('08')) {
+            phoneNumber = phoneNumber.replace(/^08/, '628');
+        }
+
+        // Clean to digits only for validation
+        const digits = phoneNumber.replace(/\D/g, '');
+
+        // Basic validation: 10-15 digits
+        if (digits.length < 10 || digits.length > 15) {
+            showActionStatus('Please enter a valid phone number (10-15 digits)', 'error');
+            return;
+        }
+
+        try {
+            requestPairingBtn.disabled = true;
+            requestPairingBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i><span>Requesting...</span>';
+            showActionStatus('Requesting pairing code...', 'info');
+
+            const response = await fetch('/connect-pairing', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ phoneNumber: digits })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                console.log('Pairing code request successful:', result);
+                showActionStatus('Pairing code sent! Check your phone.', 'success');
+                // The pairing code will be received via socket
+            } else {
+                showActionStatus('Error: ' + (result.error || 'Failed to request pairing code'), 'error');
+                requestPairingBtn.disabled = false;
+                requestPairingBtn.innerHTML = '<i class="ri-key-line"></i><span>Get Code</span>';
+            }
+        } catch (error) {
+            console.error('Pairing code request error:', error);
+            showActionStatus('Error: ' + error.message, 'error');
+            requestPairingBtn.disabled = false;
+            requestPairingBtn.innerHTML = '<i class="ri-key-line"></i><span>Get Code</span>';
+        }
+    }
+
+    function displayPairingCode(code) {
+        if (pairingCodeValue && pairingCodeDisplay) {
+            pairingCodeValue.textContent = code;
+            pairingCodeDisplay.style.display = 'block';
+
+            // Reset button state
+            requestPairingBtn.disabled = false;
+            requestPairingBtn.innerHTML = '<i class="ri-key-line"></i><span>Get Code</span>';
+            hideActionStatus();
+        }
+    }
+
     function updateStatus(status) {
         currentStatus = status;
-        statusElement.className = `status ${status}`;
 
-        switch (status) {
-            case 'connected':
-                statusElement.textContent = 'Connected';
-                statusMessageElement.textContent = 'WhatsApp is connected and ready to use.';
-                qrCard.style.display = 'none';
-                testBtn.disabled = false;
-                waLogoutBtn.disabled = false;
-                break;
-            case 'qr_ready':
-                statusElement.textContent = 'Waiting for QR Scan';
-                statusMessageElement.textContent = 'Scan the QR code with your WhatsApp app.';
-                testBtn.disabled = true;
-                waLogoutBtn.disabled = true;
-                break;
-            case 'disconnected':
-            default:
-                statusElement.textContent = 'Disconnected';
-                statusMessageElement.textContent = 'WhatsApp is not connected.';
-                qrCard.style.display = 'none';
-                testBtn.disabled = true;
-                waLogoutBtn.disabled = true;
-                break;
+        // Update status indicator and icon
+        if (statusIndicator && statusIcon) {
+            statusIndicator.className = 'w-3 h-3 rounded-full';
+            statusIcon.className = 'text-2xl';
+
+            switch (status) {
+                case 'connected':
+                    statusElement.textContent = 'Terhubung';
+                    statusElement.className = 'text-xl font-bold text-green-600';
+                    statusMessageElement.textContent = 'WhatsApp terhubung dan siap digunakan.';
+                    statusIndicator.classList.add('bg-green-500', 'status-pulse');
+                    statusIcon.classList.add('ri-checkbox-circle-line', 'text-green-600');
+                    connectionCard.style.display = 'none';
+                    testBtn.disabled = false;
+                    waLogoutBtn.disabled = false;
+                    if (!startTime || currentStatus !== 'connected') {
+                        startTime = Date.now();
+                    }
+                    break;
+                case 'qr_ready':
+                    statusElement.textContent = 'Menunggu Koneksi';
+                    statusElement.className = 'text-xl font-bold text-yellow-600';
+                    statusMessageElement.textContent = 'Pindai kode QR dengan aplikasi WhatsApp Anda.';
+                    statusIndicator.classList.add('bg-yellow-500', 'status-pulse');
+                    statusIcon.classList.add('ri-time-line', 'text-yellow-600');
+                    connectionCard.style.display = 'block';
+                    testBtn.disabled = true;
+                    waLogoutBtn.disabled = true;
+                    break;
+                // pairing_code_ready removed
+                case 'disconnected':
+                default:
+                    statusElement.textContent = 'Terputus';
+                    statusElement.className = 'text-xl font-bold text-red-600';
+                    statusMessageElement.textContent = 'WhatsApp belum terhubung.';
+                    statusIndicator.classList.add('bg-red-500');
+                    statusIcon.classList.add('ri-close-circle-line', 'text-red-600');
+                    connectionCard.style.display = 'none';
+                    testBtn.disabled = true;
+                    waLogoutBtn.disabled = true;
+                    break;
+            }
         }
     }
 
     function displayQR(qrData) {
         qrElement.innerHTML = '';
-        
+
         if (!qrData) {
-            qrCard.style.display = 'none';
+            connectionCard.style.display = 'none';
             return;
         }
 
-        qrCard.style.display = 'block';
+        // Switch to QR method if QR code is received
+        if (currentConnectionMethod !== 'qr') {
+            switchConnectionMethod('qr');
+        }
+
+        connectionCard.style.display = 'block';
 
         new QRCode(qrElement, {
             text: qrData,
@@ -85,6 +335,26 @@
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.H
         });
+        startQrCountdown(40);
+    }
+
+    // QR expiry countdown
+    let qrCountdownTimer = null;
+    function startQrCountdown(seconds) {
+        const descEl = document.getElementById('connectionDescription');
+        if (!descEl) return;
+        let remaining = seconds;
+        if (qrCountdownTimer) clearInterval(qrCountdownTimer);
+        qrCountdownTimer = setInterval(() => {
+            if (remaining <= 0) {
+                clearInterval(qrCountdownTimer);
+                qrCountdownTimer = null;
+                descEl.textContent = 'Kode QR kedaluwarsa. Klik Segarkan Status untuk membuat yang baru.';
+                return;
+            }
+            descEl.textContent = `Pilih metode koneksi yang Anda inginkan. (QR kedaluwarsa dalam ${remaining}s)`;
+            remaining--;
+        }, 1000);
     }
 
     function addMessage(message) {
@@ -92,14 +362,21 @@
         messagesCard.style.display = 'block';
 
         const messageElement = document.createElement('div');
-        messageElement.className = 'message-item';
+        messageElement.className = 'message-item fade-in p-4 bg-gray-50 rounded-xl border border-gray-200';
         messageElement.innerHTML = `
-            <div class="message-from">
-                ${message.groupName ? `[${message.groupName}] ` : ''}
-                ${message.sender || 'Unknown'}
+            <div class="flex items-start space-x-3">
+                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="ri-message-2-line text-blue-600"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="font-medium text-gray-800">
+                        ${message.groupName ? `[${message.groupName}] ` : ''}
+                        ${message.sender || 'Unknown'}
+                    </div>
+                    <div class="text-gray-700 mt-1">${message.message || message.text || 'No message'}</div>
+                    <div class="text-xs text-gray-500 mt-2">${new Date(message.timestamp * 1000 || Date.now()).toLocaleString()}</div>
+                </div>
             </div>
-            <div class="message-text">${message.message || message.text || 'No message'}</div>
-            <div class="message-time">${new Date(message.timestamp * 1000 || Date.now()).toLocaleString()}</div>
         `;
 
         messagesList.insertBefore(messageElement, messagesList.firstChild);
@@ -111,8 +388,9 @@
 
     async function refreshStatus() {
         const refreshText = document.getElementById('refreshText');
-        refreshText.innerHTML = '<span class="loading"></span>';
+        refreshText.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> <span>Refreshing...</span>';
         refreshBtn.disabled = true;
+        showActionStatus('Refreshing connection status...', 'info');
 
         try {
             const response = await fetch('/status');
@@ -125,11 +403,14 @@
             } else {
                 displayQR(null);
             }
+
+            showActionStatus('Status updated successfully', 'success');
         } catch (error) {
             console.error('Error refreshing status:', error);
             statusMessageElement.textContent = 'Error: Could not connect to the service.';
+            showActionStatus('Error: Could not connect to the service.', 'error');
         } finally {
-            refreshText.textContent = 'Refresh';
+            refreshText.innerHTML = '<i class="ri-refresh-line"></i> <span>Refresh Status</span>';
             refreshBtn.disabled = false;
         }
     }
@@ -140,6 +421,8 @@
         const finalPhone = phoneNumber.startsWith('08') ? phoneNumber.replace(/^08/, '628') : phoneNumber;
         const message = prompt('Enter test message:', 'Hello from WhatsApp API!');
         if (!message) return;
+
+        showActionStatus('Sending test message...', 'info');
 
         try {
             const response = await fetch('/send-message', {
@@ -156,17 +439,28 @@
             const result = await response.json();
 
             if (response.ok) {
-                alert('Message sent successfully!');
+                showActionStatus('Message sent successfully!', 'success');
             } else {
-                alert('Error: ' + (result.error || 'Failed to send message'));
+                showActionStatus('Error: ' + (result.error || 'Failed to send message'), 'error');
             }
         } catch (error) {
-            alert('Error: ' + error.message);
+            showActionStatus('Error: ' + error.message, 'error');
         }
     }
 
     async function waLogout() {
-        if (!confirm('Are you sure you want to log out from WhatsApp? This will clear the session and you will need to scan the QR code again.')) return;
+        const result = await Swal.fire({
+            title: 'Log out from WhatsApp?',
+            text: 'This will clear the session and you will need to scan the QR code again.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Log out',
+        });
+        if (!result.isConfirmed) return;
+
+        showActionStatus('Logging out from WhatsApp...', 'info');
 
         try {
             const response = await fetch('/logout', {
@@ -176,18 +470,75 @@
             const result = await response.json();
 
             if (response.ok) {
-                alert('Logged out from WhatsApp successfully.');
+                showActionStatus('Logged out from WhatsApp successfully.', 'success');
                 updateStatus('disconnected');
+                messageCount = 0;
             } else {
-                alert('Error: ' + (result.error || 'Failed to log out from WhatsApp.'));
+                showActionStatus('Error: ' + (result.error || 'Failed to log out from WhatsApp.'), 'error');
             }
         } catch (error) {
-            alert('Error: ' + error.message);
+            showActionStatus('Error: ' + error.message, 'error');
         }
     }
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
         refreshStatus();
+
+        // SweetAlert2 confirm for any form with data-confirm
+        document.querySelectorAll('form[data-confirm]').forEach(form => {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const message = form.getAttribute('data-confirm') || 'Are you sure?';
+                const result = await Swal.fire({
+                    title: 'Are you sure?',
+                    text: message,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes',
+                });
+                if (result.isConfirmed) form.submit();
+            });
+        });
+
+        // Add fade-in animation to elements
+        document.querySelectorAll('.fade-in').forEach((el, index) => {
+            el.style.animationDelay = `${index * 0.1}s`;
+        });
+
+        // Refresh button handler
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', refreshStatus);
+        }
+
+        // Reset session handler
+        const resetSessionBtn = document.getElementById('resetSessionBtn');
+        if (resetSessionBtn) {
+            resetSessionBtn.addEventListener('click', async () => {
+                const result = await Swal.fire({
+                    title: 'Reset sesi?',
+                    text: 'Sesi WhatsApp akan direset dan QR baru akan dibuat.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#f59e0b',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, reset',
+                });
+                if (!result.isConfirmed) return;
+
+                try {
+                    const resp = await fetch('/reset-session', { method: 'POST' });
+                    const json = await resp.json();
+                    if (!resp.ok || !json.success) throw new Error(json.error || 'Gagal mereset sesi');
+                    showActionStatus('Sesi berhasil direset. Memuat QR...', 'success');
+                    await refreshStatus();
+                    startQrCountdown(40);
+                } catch (err) {
+                    showActionStatus('Error: ' + err.message, 'error');
+                }
+            });
+        }
     });
-</script> 
+</script>

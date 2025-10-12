@@ -1,83 +1,97 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <%- include('partials/head', { title: 'API Keys' }) %>
+    <%- include('partials/head', { title: 'Kunci API' }) %>
 </head>
-<body>
-<div class="dashboard-layout">
-    <%- include('partials/sidebar') %>
-    <div class="main-content">
-        <%- include('partials/navbar', { title: 'API Keys' }) %>
-        <main class="content-wrapper">
-            <div class="card mb-4">
-                <div class="card-header justify-content-between align-items-center d-flex">
-                    <div>
-                        <h3 class="card-title">My API Keys</h3>
-                        <p class="card-description">Use these keys to access the REST endpoints without session cookie.</p>
-                    </div>
-                    <form action="/api-keys/generate" method="POST">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="ri-key-line"></i>
-                            Generate New
-                        </button>
-                    </form>
-                </div>
-                <div class="card-content">
-                    <% if (error) { %>
-                        <p style="color: var(--destructive);"><%= error %></p>
-                    <% } %>
-                    <% if (success) { %>
-                        <p style="color: var(--primary);"><%= success %></p>
-                    <% } %>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="flex min-h-screen">
+        <%- include('partials/sidebar') %>
+        <div class="flex-1 flex flex-col">
+            <%- include('partials/navbar', { title: 'Kunci API' }) %>
+            <main class="flex-1 p-6">
+                <div class="max-w-7xl mx-auto space-y-6">
+                    <div class="card col-span-full">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">Kunci API Saya</h3>
+                                <p class="card-description">Gunakan kunci ini untuk mengakses endpoint REST tanpa cookie sesi.</p>
+                            </div>
+                            <form action="/api-keys/generate" method="POST">
+                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="ri-key-line mr-2"></i>
+                                    Buat Baru
+                                </button>
+                            </form>
+                        </div>
+                        <div class="card-content">
+                            <% if (error) { %>
+                                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+                                    <%= error %>
+                                </div>
+                            <% } %>
+                            <% if (success) { %>
+                                <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-4">
+                                    <%= success %>
+                                </div>
+                            <% } %>
 
-                    <div class="table-container mt-4">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Key</th>
-                                    <th>Created At</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% if (keys && keys.length > 0) { %>
-                                    <% keys.forEach((k, index) => { %>
-                                        <tr>
-                                            <td><%= index + 1 %></td>
-                                            <td>
-                                                <% if (k.raw) { %>
-                                                    <code><%= k.raw %></code>
-                                                <% } else { %>
-                                                    <em>Hidden</em>
-                                                <% } %>
-                                            </td>
-                                            <td><%= new Date(k.created_at).toLocaleString() %></td>
-                                            <td>
-                                                <% if (k.id) { %>
-                                                    <form action="/api-keys/delete/<%= k.id %>" method="POST" onsubmit="return confirm('Revoke this key?');" style="display:inline;">
-                                                        <button class="btn btn-danger" style="padding:0.25rem 0.5rem;">
-                                                            <i class="ri-delete-bin-line"></i>
-                                                        </button>
-                                                    </form>
-                                                <% } %>
-                                            </td>
+                            <div class="overflow-x-auto mt-4">
+                                <table class="w-full border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-gray-200">
+                                            <th class="text-left py-3 px-4 font-medium text-gray-700">#</th>
+                                            <th class="text-left py-3 px-4 font-medium text-gray-700">Kunci</th>
+                                            <th class="text-left py-3 px-4 font-medium text-gray-700">Dibuat Pada</th>
+                                            <th class="text-left py-3 px-4 font-medium text-gray-700">Aksi</th>
                                         </tr>
-                                    <% }) %>
-                                <% } else { %>
-                                    <tr>
-                                        <td colspan="4" style="text-align:center;">No keys yet.</td>
-                                    </tr>
-                                <% } %>
-                            </tbody>
-                        </table>
-                    </div>
+                                    </thead>
+                                    <tbody>
+                                        <% if (keys && keys.length > 0) { %>
+                                            <% keys.forEach((k, index) => { %>
+                                                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                                    <td class="py-3 px-4"><%= index + 1 %></td>
+                                                    <td class="py-3 px-4">
+                                                        <% if (k.raw) { %>
+                                                            <code class="bg-gray-100 px-2 py-1 rounded font-mono text-sm"><%= k.raw %></code>
+                                                        <% } else { %>
+                                                            <span class="text-gray-500 italic">Tersembunyi</span>
+                                                        <% } %>
+                                                    </td>
+                                                    <td class="py-3 px-4 text-sm text-gray-600"><%= new Date(k.created_at).toLocaleString() %></td>
+                                                    <td class="py-3 px-4">
+                                                        <% if (k.id) { %>
+                                                            <form action="/api-keys/delete/<%= k.id %>" method="POST" data-confirm="Cabut kunci ini?" class="inline">
+                                                                <button class="inline-flex items-center p-1 text-red-600 hover:bg-red-50 rounded">
+                                                                    <i class="ri-delete-bin-line text-lg"></i>
+                                                                </button>
+                                                            </form>
+                                                        <% } %>
+                                                    </td>
+                                                </tr>
+                                            <% }) %>
+                                        <% } else { %>
+                                            <tr>
+                                                <td colspan="4" class="py-8 px-4 text-center text-gray-500">Belum ada kunci.</td>
+                                            </tr>
+                                        <% } %>
+                                    </tbody>
+                                </table>
+                            </div>
 
-                    <p class="mt-4"><strong>Usage:</strong> add a header <code>X-API-KEY: &lt;your_key&gt;</code> or query parameter <code>?api_key=&lt;your_key&gt;</code>.</p>
+                            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                                <p class="text-sm text-gray-700">
+                                    <strong>Cara pakai:</strong> tambahkan header <code class="bg-white px-1 py-0.5 rounded text-xs">X-API-KEY: &lt;kunci_anda&gt;</code> atau parameter query <code class="bg-white px-1 py-0.5 rounded text-xs">?api_key=&lt;kunci_anda&gt;</code>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </main>
+            </main>
     </div>
-</div>
+    </div>
+    <!-- Mobile menu overlay -->
+    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+
+    <%- include('partials/simple-scripts') %>
 </body>
 </html> 

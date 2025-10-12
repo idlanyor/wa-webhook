@@ -1,0 +1,230 @@
+<script>
+    // Simple JavaScript functionality for pages without socket requirements
+
+    // Mobile menu functionality
+    window.toggleMobileMenu = function() {
+        const sidebar = document.getElementById('sidebar');
+        const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+
+        if (!sidebar) return;
+
+        const isOpen = sidebar.classList.contains('translate-x-0');
+
+        if (isOpen) {
+            sidebar.classList.remove('translate-x-0');
+            sidebar.classList.add('-translate-x-full');
+            if (mobileMenuOverlay) mobileMenuOverlay.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        } else {
+            sidebar.classList.remove('-translate-x-full');
+            sidebar.classList.add('translate-x-0');
+            if (mobileMenuOverlay) mobileMenuOverlay.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+    };
+
+    // Close mobile menu when clicking overlay
+    document.addEventListener('DOMContentLoaded', () => {
+        // Intercept forms with data-confirm and show SweetAlert2
+        document.querySelectorAll('form[data-confirm]').forEach(form => {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const message = form.getAttribute('data-confirm') || 'Are you sure?';
+                const result = await Swal.fire({
+                    title: 'Are you sure?',
+                    text: message,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes',
+                });
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+        const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+        if (mobileMenuOverlay) {
+            mobileMenuOverlay.addEventListener('click', toggleMobileMenu);
+        }
+
+        // Close mobile menu on window resize to desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) { // lg breakpoint
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar) {
+                    sidebar.classList.remove('translate-x-0', '-translate-x-full');
+                    if (mobileMenuOverlay) mobileMenuOverlay.classList.add('hidden');
+                    document.body.classList.remove('overflow-hidden');
+                }
+            }
+        });
+
+        // Add fade-in animation to elements
+        document.querySelectorAll('.fade-in').forEach((el, index) => {
+            el.style.animationDelay = `${index * 0.1}s`;
+        });
+
+        // Global handler: openTemplateChooser (used by /blaster)
+        window.openTemplateChooser = async () => {
+            const numbersEl = document.getElementById('numbers');
+            const messageEl = document.getElementById('message');
+            const templateHint = document.getElementById('templateHint');
+            const templateNameEl = document.getElementById('templateName');
+            const previewWrap = document.getElementById('templatePreview');
+            const listEl = document.getElementById('templatePreviewList');
+            if (!messageEl || !templateHint || !templateNameEl) return;
+
+            try {
+                const resp = await fetch('/templates/api');
+                const templates = await resp.json();
+                if (!Array.isArray(templates) || templates.length === 0) {
+                    window.showNotification('Belum ada template. Buat di menu Template.', 'warning');
+                    return;
+                }
+                const inputOptions = templates.reduce((acc, t) => { acc[t.id] = t.name; return acc; }, {});
+                const { value: templateId } = await Swal.fire({
+                    title: 'Pilih Template',
+                    input: 'select',
+                    inputOptions,
+                    inputPlaceholder: 'Pilih salah satu',
+                    showCancelButton: true
+                });
+                if (!templateId) return;
+                const tpl = templates.find(t => t.id === templateId);
+                window.__currentTemplate = tpl;
+                templateNameEl.textContent = tpl.name;
+                templateHint.style.display = '';
+                if (!messageEl.value.trim()) {
+                    messageEl.value = tpl.content;
+                }
+                try { localStorage.setItem('selectedTemplateId', tpl.id); } catch {}
+
+                // Build contacts map for preview
+                let contactsMap = null;
+                try {
+                    const cResp = await fetch('/contacts/api');
+                    const contacts = await cResp.json();
+                    contactsMap = new Map(contacts.map(c => [String(c.phone || '').replace(/^\+/, ''), c.name || '']));
+                } catch {}
+
+                const applyVars = (text, phoneRaw) => {
+                    const phone = String((phoneRaw || '').trim()).replace(/^\+/, '');
+                    const name = contactsMap ? (contactsMap.get(phone) || '') : '';
+                    return text.replace(/\{phone\}/g, phone).replace(/\{name\}/g, name);
+                };
+
+                // Preview
+                try {
+                    if (numbersEl && previewWrap && listEl) {
+                        const nums = numbersEl.value.split('\n').map(s=>s.trim()).filter(Boolean).slice(0,3);
+                        listEl.innerHTML = '';
+                        nums.forEach(n => {
+                            const li = document.createElement('li');
+                            li.textContent = applyVars(tpl.content, n);
+                            listEl.appendChild(li);
+                        });
+                        previewWrap.style.display = nums.length ? '' : 'none';
+                    }
+                } catch {}
+            } catch (err) {
+                window.showNotification('Gagal memuat template', 'error');
+            }
+        };
+
+        // Form validation and enhancement
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                // Add loading state to submit buttons
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Processing...';
+
+                    // Re-enable button after a delay (in case of client-side errors)
+                    setTimeout(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }, 3000);
+                }
+            });
+        });
+
+        // Enhanced table functionality
+        const tables = document.querySelectorAll('table');
+        tables.forEach(table => {
+            // Add hover effects to table rows
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                row.addEventListener('mouseenter', () => {
+                    row.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
+                });
+                row.addEventListener('mouseleave', () => {
+                    row.style.backgroundColor = '';
+                });
+            });
+        });
+
+        // File input enhancements
+        const fileInputs = document.querySelectorAll('input[type="file"]');
+        fileInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const fileName = this.files[0]?.name;
+                if (fileName) {
+                    // Create or update file name display
+                    let fileNameDisplay = this.parentNode.querySelector('.file-name-display');
+                    if (!fileNameDisplay) {
+                        fileNameDisplay = document.createElement('div');
+                        fileNameDisplay.className = 'file-name-display text-sm text-gray-600 mt-1';
+                        this.parentNode.appendChild(fileNameDisplay);
+                    }
+                    fileNameDisplay.textContent = `Selected: ${fileName}`;
+                }
+            });
+        });
+
+        // Alert auto-dismiss
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    if (alert.parentNode) alert.parentNode.removeChild(alert);
+                }, 300);
+            }, 5000);
+        });
+    });
+
+    // Utility functions
+    window.showNotification = function(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg transition-all duration-300 ${
+            type === 'success' ? 'bg-green-500 text-white' :
+            type === 'error' ? 'bg-red-500 text-white' :
+            type === 'warning' ? 'bg-yellow-500 text-white' :
+            'bg-blue-500 text-white'
+        }`;
+        notification.textContent = message;
+
+        document.body.appendChild(notification);
+
+        // Animate in
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+            notification.style.opacity = '1';
+        }, 100);
+
+        // Auto remove
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (notification.parentNode) notification.parentNode.removeChild(notification);
+            }, 300);
+        }, 3000);
+    };
+</script>

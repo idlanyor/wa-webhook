@@ -57,3 +57,13 @@ function optimizedQuery(queryFn) {
 }
 
 module.exports = { initializeDatabase, getDatabase, optimizedQuery };
+
+// Create a scoped client with Authorization header for per-request RLS context
+function createScopedClient(accessToken) {
+    return createClient(config.supabase.url, config.supabase.serviceKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+        global: { headers: { Authorization: `Bearer ${accessToken}` } }
+    });
+}
+
+module.exports.createScopedClient = createScopedClient;

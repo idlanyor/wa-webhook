@@ -3,28 +3,56 @@
 <head>
     <%- include('partials/head') %>
 </head>
-<body>
-    <div class="dashboard-layout">
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+    <div class="flex min-h-screen">
         <%- include('partials/sidebar') %>
-        <div class="main-content">
+        <div class="flex-1 flex flex-col lg:ml-0">
             <%- include('partials/navbar') %>
-            <main class="content-wrapper">
-                <div class="grid-container">
-                    <div style="grid-column: 1 / -1;">
-                        <%- include('partials/status-card') %>
+            <main class="flex-1 p-4 sm:p-6 lg:p-8">
+                <div class="max-w-7xl mx-auto">
+                    <!-- Welcome Section -->
+                    <div class="mb-8 fade-in">
+                        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Dasbor</h1>
+                        <p class="text-lg text-gray-600">Kelola layanan WhatsApp Webhook Anda</p>
                     </div>
-                    <%- include('partials/qr-container') %>
-                    <%- include('partials/actions') %>
-                    <div style="grid-column: 1 / -1;">
-                        <%- include('partials/messages') %>
+
+                    <!-- Top Grid: Status + QR + Actions -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- Left: Status + QR -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="fade-in">
+                                <%- include('partials/status-card') %>
+                            </div>
+                            <div class="fade-in">
+                                <%- include('partials/qr-container') %>
+                            </div>
+                        </div>
+
+                        <!-- Right: Quick Actions -->
+                        <div class="space-y-6">
+                            <div class="fade-in">
+                                <%- include('partials/actions') %>
+                            </div>
+                        </div>
                     </div>
-                    <div style="grid-column: 1 / -1;">
-                        <%- include('partials/api-info') %>
+
+                    <!-- Messages & API Info -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="fade-in">
+                            <%- include('partials/messages') %>
+                        </div>
+                        <div class="fade-in">
+                            <%- include('partials/api-info') %>
+                        </div>
                     </div>
                 </div>
             </main>
         </div>
     </div>
+
+    <!-- Mobile menu overlay -->
+    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+
     <%- include('partials/scripts') %>
 </body>
-</html> 
+</html>

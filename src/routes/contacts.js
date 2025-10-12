@@ -9,7 +9,9 @@ const router = express.Router();
 router.get('/', isAuthenticated, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const result = await ContactService.getContacts(req.user.id, page);
+        const { createScopedClient } = require('../config/database');
+        const scoped = createScopedClient(req.userAccessToken);
+        const result = await ContactService.getContacts(req.user.id, page, scoped);
         
         res.render('contacts', { 
             ...result,
@@ -32,10 +34,14 @@ router.get('/', isAuthenticated, async (req, res) => {
 
 // Add single contact
 router.post('/add', isAuthenticated, async (req, res) => {
-    const { name, phone } = req.body;
+    const { name, phone, tags } = req.body;
     
     try {
-        await ContactService.addContact(req.user.id, name, phone);
+        // Use scoped client with user's access token for RLS context
+        const { createScopedClient } = require('../config/database');
+        const scoped = createScopedClient(req.userAccessToken);
+        const { error } = await scoped.rpc('insert_contact_secure', { p_user: req.user.id, p_name: name, p_phone: phone, p_tags: tags || '' });
+        if (error) throw error;
         res.redirect('/contacts?success=' + encodeURIComponent('Contact added successfully.'));
     } catch (error) {
         console.error('Error adding contact:', error);
@@ -104,7 +110,9 @@ router.post('/delete/:id', isAuthenticated, async (req, res) => {
 router.get('/api', isAuthenticatedOrApiKey, async (req, res) => {
     try {
         const userId = getEffectiveUserId(req);
-        const contacts = await ContactService.getAllContacts(userId);
+        const { createScopedClient } = require('../config/database');
+        const scoped = createScopedClient(req.userAccessToken || req.headers['x-access-token'] || '');
+        const contacts = await ContactService.getAllContacts(userId, scoped);
         res.json(contacts);
     } catch (error) {
         console.error('Error fetching contacts API:', error);
@@ -113,3 +121,13 @@ router.get('/api', isAuthenticatedOrApiKey, async (req, res) => {
 });
 
 module.exports = router;
+// Update tags
+router.post('/tags/:id', isAuthenticated, async (req, res) => {
+    try {
+        await ContactService.updateTags(req.user.id, req.params.id, req.body.tags || '');
+        res.redirect('/contacts?success=' + encodeURIComponent('Tags updated.'));
+    } catch (error) {
+        console.error('Error updating tags:', error);
+        res.redirect('/contacts?error=' + encodeURIComponent('Failed to update tags.'));
+    }
+});

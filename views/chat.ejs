@@ -138,10 +138,12 @@
                                 </div>
                                 <div id="messagesBox" class="chat-box"></div>
                                 <form id="sendForm" class="chat-send" onsubmit="return sendMessage(event)">
-                                    <input type="text" id="toInput" placeholder="Phone number (e.g. 628123...)" required />
-                                    <input type="text" id="msgInput" placeholder="Type message..." required />
-                                    <button class="btn btn-primary" type="submit">Send</button>
+                                    <input type="text" id="toInput" placeholder="Nomor telepon (mis. 628123...)" required />
+                                    <input type="text" id="msgInput" placeholder="Tulis pesan..." required />
+                                    <button class="btn btn-secondary" type="button" id="chooseTemplateBtn">Pilih Template</button>
+                                    <button class="btn btn-primary" type="submit">Kirim</button>
                                 </form>
+                                <div id="templateHint" style="padding: .5rem 1rem; font-size: .85rem; color: #374151; display:none">Template: <span id="templateName" style="font-weight:600"></span> diterapkan.</div>
                             </div>
                         </div>
                     </main>
@@ -150,12 +152,24 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     <script>
-        const socket = io({ query: { userId: '<%= userId %>' } });
+        const socket = io('/', {
+            path: '/socket.io',
+            transports: ['polling'],
+            reconnection: true,
+            reconnectionAttempts: Infinity,
+            reconnectionDelay: 1000,
+            query: { userId: '<%= userId %>' }
+        });
         const messagesBox = document.getElementById('messagesBox');
         const chatListEl = document.getElementById('chatList');
         const replyPreviewEl = document.getElementById('replyPreview');
         const replyToIdEl = document.getElementById('replyToId');
         let currentChat = null;
+        let currentTemplate = null;
+        const chooseTemplateBtn = document.getElementById('chooseTemplateBtn');
+        const templateHint = document.getElementById('templateHint');
+        const templateNameEl = document.getElementById('templateName');
+        let contactsCache = null;
 
         async function loadChats(){
             try{
@@ -248,24 +262,88 @@
         async function sendMessage(ev) {
             ev.preventDefault();
             const to = document.getElementById('toInput').value.trim();
-            const msg = document.getElementById('msgInput').value.trim();
+            let msg = document.getElementById('msgInput').value.trim();
             const reply_to_id = replyToIdEl.value || null;
             if (!to || !msg) return;
             try {
+                if (currentTemplate) {
+                    await loadContactsCache();
+                    msg = applyTemplateVariables(msg, to);
+                }
                 const res = await fetch('/send-message', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ to: to, message: msg, reply_to_id: reply_to_id })
                 });
                 const json = await res.json();
-                if (!res.ok) alert(json.error || 'Failed');
+                if (!res.ok) {
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'Failed',
+                        text: json.error || 'Failed to send message',
+                    });
+                }
                 else {
                     document.getElementById('msgInput').value = '';
                     cancelReply();
                 }
-            } catch (err) { alert(err.message); }
+            } catch (err) {
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: err.message,
+                });
+            }
         }
     </script>
+    <!-- Mobile menu overlay -->
+    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+
+    <%- include('partials/simple-scripts') %>
 </body>
 
 </html>
+        async function loadContactsCache(){
+            if (contactsCache) return contactsCache;
+            try {
+                const resp = await fetch('/contacts/api');
+                contactsCache = await resp.json();
+            } catch(e){ contactsCache = []; }
+            return contactsCache;
+        }
+
+        function findContactNameByPhone(phone){
+            if (!contactsCache) return '';
+            const cleaned = phone.replace(/^\+/, '');
+            const found = contactsCache.find(c => (c.phone||'').endsWith(cleaned));
+            return found ? (found.name || '') : '';
+        }
+
+        function applyTemplateVariables(text, phone){
+            const name = findContactNameByPhone(phone);
+            return text.replace(/\{phone\}/g, phone).replace(/\{name\}/g, name);
+        }
+
+        if (chooseTemplateBtn){
+            chooseTemplateBtn.addEventListener('click', async ()=>{
+                try{
+                    const resp = await fetch('/templates/api');
+                    const templates = await resp.json();
+                    if (!Array.isArray(templates) || templates.length === 0){
+                        await Swal.fire({ icon: 'info', title: 'Info', text: 'Belum ada template. Buat di menu Template.' });
+                        return;
+                    }
+                    const options = templates.reduce((acc, t)=>{ acc[t.id]=t.name; return acc; }, {});
+                    const { value: tplId } = await Swal.fire({ title: 'Pilih Template', input: 'select', inputOptions: options, inputPlaceholder: 'Pilih salah satu', showCancelButton: true });
+                    if (!tplId) return;
+                    const tpl = templates.find(t=>t.id===tplId);
+                    currentTemplate = tpl;
+                    templateNameEl.textContent = tpl.name;
+                    templateHint.style.display = '';
+                    if (!document.getElementById('msgInput').value.trim()){
+                        document.getElementById('msgInput').value = tpl.content;
+                    }
+                    await loadContactsCache();
+                }catch(err){ console.error(err); }
+            });
+        }

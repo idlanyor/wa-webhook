@@ -21,6 +21,7 @@ async function isAuthenticated(req, res, next) {
         }
         
         req.user = user;
+        req.userAccessToken = JSON.parse(token).access_token;
         next();
     } catch (error) {
         console.error('Authentication error:', error);
