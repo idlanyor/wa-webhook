@@ -176,7 +176,7 @@ function validateLoginData(body) {
     };
 }
 
-module.exports = {
+export {
     validateSendMessageRequest,
     validateBulkMessageRequest,
     validateContactData,

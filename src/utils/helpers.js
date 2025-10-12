@@ -98,7 +98,7 @@ function isEmpty(str) {
     return !str || str.trim().length === 0;
 }
 
-module.exports = {
+export {
     formatPhoneToJid,
     getRandomDelay,
     isValidPhoneNumber,

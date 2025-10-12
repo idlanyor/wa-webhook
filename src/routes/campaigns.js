@@ -1,6 +1,6 @@
-const express = require('express');
-const { isAuthenticated, getEffectiveUserId } = require('../middleware/auth');
-const CampaignService = require('../services/CampaignService');
+import express from 'express';
+import { isAuthenticated } from '../middleware/auth.js';
+import CampaignService from '../services/CampaignService.js';
 
 const router = express.Router();
 
@@ -23,5 +23,5 @@ router.post('/create', isAuthenticated, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;
 

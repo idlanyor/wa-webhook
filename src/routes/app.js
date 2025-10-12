@@ -1,7 +1,7 @@
-const express = require('express');
-const { isAuthenticated } = require('../middleware/auth');
+import { Router } from 'express';
+import { isAuthenticated } from '../middleware/auth.js';
 
-const router = express.Router();
+const router = Router();
 
 // Main redirect
 router.get('/', (req, res) => {
@@ -12,7 +12,7 @@ router.get('/', (req, res) => {
 router.get('/dashboard', isAuthenticated, async (req, res) => {
     try {
         // Ensure user has a WhatsApp session
-        const WhatsAppService = require('../services/WhatsAppService');
+        const WhatsAppService = require('../services/WhatsAppService').default;
         const whatsappService = req.app.get('whatsappService');
         await whatsappService.ensureSession(req.user.id);
         
@@ -53,4 +53,4 @@ router.get('/documentation', isAuthenticated, (req, res) => {
     });
 });
 
-module.exports = router;
+export default router;

@@ -1,6 +1,6 @@
-const { getDatabase } = require('../config/database');
-const TemplateService = require('./TemplateService');
-const ContactService = require('./ContactService');
+import { getDatabase } from '../config/database.js';
+import { getTemplateById } from './TemplateService.js';
+import { getAllContacts } from './ContactService.js';
 
 class CampaignService {
     static async create(userId, data) {
@@ -63,13 +63,13 @@ class CampaignService {
 
         let contactsMap = new Map();
         try {
-            const contacts = await ContactService.getAllContacts(userId);
+            const contacts = await getAllContacts(userId);
             contacts.forEach(c => contactsMap.set(String(c.phone || '').replace(/^\+/, ''), c.name || ''));
         } catch {}
 
         let template = null;
         if (campaign.template_id) {
-            try { template = await TemplateService.getTemplateById(userId, campaign.template_id); } catch {}
+            try { template = await getTemplateById(userId, campaign.template_id); } catch {}
         }
 
         const applyVars = (text, phoneRaw) => {
@@ -97,5 +97,5 @@ class CampaignService {
     }
 }
 
-module.exports = CampaignService;
+export default CampaignService;
 

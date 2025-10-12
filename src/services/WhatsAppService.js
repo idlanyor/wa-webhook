@@ -1,9 +1,12 @@
-const { default: makeWASocket, DisconnectReason, useMultiFileAuthState } = require('@whiskeysockets/baileys');
-const { Boom } = require('@hapi/boom');
-const fs = require('fs');
-const path = require('path');
-const { config } = require('../config');
-const { getDatabase } = require('../config/database');
+import { default as makeWASocket, DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
+import { existsSync, rmSync, readdirSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { config } from '../config/index.js';
+import { getDatabase } from '../config/database.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 class WhatsAppService {
     constructor(io) {
@@ -66,7 +69,7 @@ class WhatsAppService {
      * Create a new WhatsApp session for a user
      */
     async createSession(userId, phoneNumber = null) {
-        const authDir = path.join(__dirname, '../../auth_info_baileys', userId);
+        const authDir = join(__dirname, '../../auth_info_baileys', userId);
         const { state, saveCreds } = await useMultiFileAuthState(authDir);
 
         const session = {
@@ -167,8 +170,8 @@ class WhatsAppService {
             
             if (loggedOut) {
                 try {
-                    if (fs.existsSync(authDir)) {
-                        fs.rmSync(authDir, { recursive: true, force: true });
+                    if (existsSync(authDir)) {
+                        rmSync(authDir, { recursive: true, force: true });
                     }
                 } catch (error) {
                     console.error('Error removing auth directory:', error);
@@ -218,7 +221,7 @@ class WhatsAppService {
             }
 
             // Record incoming message
-            const MessageService = require('./MessageService');
+            const MessageService = require('./MessageService').default;
             const recordedMessage = await MessageService.recordMessage({
                 userId,
                 chatJid: message.key.remoteJid,
@@ -271,7 +274,7 @@ class WhatsAppService {
                     const result = await sock.sendMessage(message.key.remoteJid, { text: rule.reply });
                     
                     // Record auto-reply message
-                    const MessageService = require('./MessageService');
+                    const MessageService = require('./MessageService').default;
                     const recordedReply = await MessageService.recordMessage({
                         userId,
                         chatJid: message.key.remoteJid,
@@ -338,7 +341,7 @@ class WhatsAppService {
         const result = await session.sock.sendMessage(phone, { text: message }, { quoted: quotedInfo });
         
         // Record outgoing message
-        const MessageService = require('./MessageService');
+        const MessageService = require('./MessageService').default;
         const recordedOutgoing = await MessageService.recordMessage({
             userId,
             chatJid: phone,
@@ -389,10 +392,10 @@ class WhatsAppService {
         }
         this.sessions.delete(userId);
 
-        const authDir = path.join(__dirname, '../../auth_info_baileys', userId);
+        const authDir = join(__dirname, '../../auth_info_baileys', userId);
         try {
-            if (fs.existsSync(authDir)) {
-                fs.rmSync(authDir, { recursive: true, force: true });
+            if (existsSync(authDir)) {
+                rmSync(authDir, { recursive: true, force: true });
             }
         } catch (error) {
             console.error('Error removing auth directory:', error);
@@ -420,10 +423,10 @@ class WhatsAppService {
      */
     async preloadSessions() {
         try {
-            const authRoot = path.join(__dirname, '../../auth_info_baileys');
-            if (!fs.existsSync(authRoot)) return;
+            const authRoot = join(__dirname, '../../auth_info_baileys');
+            if (!existsSync(authRoot)) return;
 
-            const userDirs = fs.readdirSync(authRoot, { withFileTypes: true })
+            const userDirs = readdirSync(authRoot, { withFileTypes: true })
                 .filter(dirent => dirent.isDirectory())
                 .map(dirent => dirent.name);
 
@@ -437,4 +440,4 @@ class WhatsAppService {
     }
 }
 
-module.exports = WhatsAppService;
+export default WhatsAppService;

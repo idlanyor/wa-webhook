@@ -1,5 +1,5 @@
-const request = require('supertest');
-const { app } = require('../whatsapp-service');
+import request from 'supertest';
+import { app } from '../whatsapp-service';
 
 jest.mock('../supabaseClient', () => {
   const builder = (data = null, error = null) => {
@@ -32,7 +32,7 @@ jest.mock('../supabaseClient', () => {
   };
 });
 
-const supabase = require('../supabaseClient');
+import { from as _from } from '../supabaseClient';
 
 function authCookie() {
   const token = { access_token: 'token' };
@@ -82,7 +82,7 @@ describe('All Endpoint Tests', () => {
   });
 
   it('GET /api/contacts returns array', async () => {
-    supabase.from.mockImplementationOnce(() => ({
+    _from.mockImplementationOnce(() => ({
       select: () => ({ order: () => Promise.resolve({ data: [], error: null }) }),
     }));
 

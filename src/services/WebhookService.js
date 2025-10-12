@@ -1,4 +1,4 @@
-const crypto = require('crypto');
+import { createHmac } from 'crypto';
 
 class WebhookService {
     constructor(getSettings) {
@@ -10,7 +10,7 @@ class WebhookService {
         if (!url) return;
 
         const body = JSON.stringify({ event: eventType, data: payload, timestamp: Date.now() });
-        const signature = secret ? crypto.createHmac('sha256', secret).update(body).digest('hex') : null;
+        const signature = secret ? createHmac('sha256', secret).update(body).digest('hex') : null;
 
         const attempt = async (n, delayMs) => {
             try {
@@ -38,4 +38,4 @@ class WebhookService {
     }
 }
 
-module.exports = WebhookService;
+export default WebhookService;

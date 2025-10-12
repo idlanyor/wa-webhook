@@ -1,4 +1,4 @@
-const { getDatabase } = require('../config/database');
+import { getDatabase } from '../config/database.js';
 
 class SettingsService {
     static async get(key) {
@@ -92,4 +92,14 @@ class SettingsService {
     }
 }
 
-module.exports = SettingsService;
+export default SettingsService;
+
+// Named exports for convenience
+export const getSettings = SettingsService.getSettings;
+export const getAutoReplies = SettingsService.getAutoReplies;
+export const updateSetting = SettingsService.updateSetting;
+export const addAutoReply = SettingsService.addAutoReply;
+export const deleteAutoReply = SettingsService.deleteAutoReply;
+export const toggleAutoReply = SettingsService.toggleAutoReply;
+export const getMany = SettingsService.getMany;
+export const set = SettingsService.set;

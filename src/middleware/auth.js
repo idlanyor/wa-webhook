@@ -1,5 +1,5 @@
-const crypto = require('crypto');
-const { getDatabase } = require('../config/database');
+import { createHash } from 'crypto';
+import { getDatabase } from '../config/database.js';
 
 /**
  * Middleware to check if user is authenticated via session cookie
@@ -35,7 +35,7 @@ async function isAuthenticated(req, res, next) {
  */
 async function verifyApiKey(key) {
     try {
-        const keyHash = crypto.createHash('sha256').update(key).digest('hex');
+        const keyHash = createHash('sha256').update(key).digest('hex');
         const supabase = getDatabase();
         const { data, error } = await supabase
             .from('api_keys')
@@ -76,7 +76,7 @@ function getEffectiveUserId(req) {
     return req.user?.id || req.apiUserId;
 }
 
-module.exports = {
+export {
     isAuthenticated,
     isAuthenticatedOrApiKey,
     verifyApiKey,

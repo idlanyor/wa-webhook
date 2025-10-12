@@ -1,4 +1,4 @@
-const { getDatabase } = require('../config/database');
+import { getDatabase } from '../config/database.js';
 
 class MessageService {
     /**
@@ -117,4 +117,9 @@ class MessageService {
     }
 }
 
-module.exports = MessageService;
+export default MessageService;
+
+// Named exports for convenience
+export const recordMessage = MessageService.recordMessage;
+export const getChats = MessageService.getChats;
+export const getChatMessages = MessageService.getChatMessages;

@@ -1,4 +1,4 @@
-require('dotenv').config();
+import 'dotenv/config';
 
 // Runtime detection
 const runtime = {
@@ -7,7 +7,7 @@ const runtime = {
     name: typeof Bun !== 'undefined' ? 'bun' : 'node'
 };
 
-const config = {
+export const config = {
     runtime,
     port: process.env.PORT || 8181,
     node_env: process.env.NODE_ENV || 'development',
@@ -50,7 +50,7 @@ const config = {
 };
 
 // Validate required environment variables
-function validateConfig() {
+export function validateConfig() {
     const required = ['SUPABASE_URL', 'SUPABASE_SERVICE_KEY'];
     const missing = required.filter(key => !process.env[key]);
     
@@ -65,4 +65,3 @@ function validateConfig() {
     }
 }
 
-module.exports = { config, validateConfig };

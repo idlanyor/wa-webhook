@@ -1,13 +1,13 @@
-const express = require('express');
-const { isAuthenticated } = require('../middleware/auth');
-const ApiKeyService = require('../services/ApiKeyService');
+import { Router } from 'express';
+import { isAuthenticated } from '../middleware/auth.js';
+import { getUserApiKeys, generateApiKey, deleteApiKey } from '../services/ApiKeyService.js';
 
-const router = express.Router();
+const router = Router();
 
 // API keys management page
 router.get('/', isAuthenticated, async (req, res) => {
     try {
-        const keys = await ApiKeyService.getUserApiKeys(req.user.id);
+        const keys = await getUserApiKeys(req.user.id);
         
         res.render('api-keys', { 
             keys, 
@@ -29,7 +29,7 @@ router.get('/', isAuthenticated, async (req, res) => {
 // Generate new API key
 router.post('/generate', isAuthenticated, async (req, res) => {
     try {
-        const apiKey = await ApiKeyService.generateApiKey(req.user.id);
+        const apiKey = await generateApiKey(req.user.id);
         
         res.render('api-keys', { 
             keys: [{ 
@@ -55,7 +55,7 @@ router.post('/generate', isAuthenticated, async (req, res) => {
 // Delete API key
 router.post('/delete/:id', isAuthenticated, async (req, res) => {
     try {
-        await ApiKeyService.deleteApiKey(req.user.id, req.params.id);
+        await deleteApiKey(req.user.id, req.params.id);
         res.redirect('/api-keys?success=' + encodeURIComponent('API key deleted successfully.'));
     } catch (error) {
         console.error('Error deleting API key:', error);
@@ -63,4 +63,4 @@ router.post('/delete/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

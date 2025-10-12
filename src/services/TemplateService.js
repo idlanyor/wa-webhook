@@ -1,4 +1,4 @@
-const { getDatabase } = require('../config/database');
+import { getDatabase } from '../config/database.js';
 
 class TemplateService {
     static async listTemplates(userId) {
@@ -53,4 +53,11 @@ class TemplateService {
     }
 }
 
-module.exports = TemplateService;
+export default TemplateService;
+
+// Named exports for convenience
+export const listTemplates = TemplateService.listTemplates;
+export const getTemplateById = TemplateService.getTemplateById;
+export const createTemplate = TemplateService.createTemplate;
+export const updateTemplate = TemplateService.updateTemplate;
+export const deleteTemplate = TemplateService.deleteTemplate;

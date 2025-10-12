@@ -1,13 +1,13 @@
-const express = require('express');
-const { isAuthenticated } = require('../middleware/auth');
-const MessageService = require('../services/MessageService');
+import { Router } from 'express';
+import { isAuthenticated } from '../middleware/auth.js';
+import { getChats, getChatMessages } from '../services/MessageService.js';
 
-const router = express.Router();
+const router = Router();
 
 // Get chat list
 router.get('/', isAuthenticated, async (req, res) => {
     try {
-        const chats = await MessageService.getChats(req.user.id);
+        const chats = await getChats(req.user.id);
         res.json(chats);
     } catch (error) {
         console.error('Fetch chats error:', error);
@@ -18,7 +18,7 @@ router.get('/', isAuthenticated, async (req, res) => {
 // Get messages for specific chat
 router.get('/:jid', isAuthenticated, async (req, res) => {
     try {
-        const messages = await MessageService.getChatMessages(req.user.id, req.params.jid);
+        const messages = await getChatMessages(req.user.id, req.params.jid);
         res.json(messages);
     } catch (error) {
         console.error('Fetch chat messages error:', error);
@@ -26,4 +26,4 @@ router.get('/:jid', isAuthenticated, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

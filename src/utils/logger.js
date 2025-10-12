@@ -2,8 +2,13 @@
  * Logger utility with different levels - optimized for both Node.js and Bun
  */
 
-const fs = require('fs');
-const path = require('path');
+import { existsSync, mkdirSync, appendFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Runtime detection
 const runtime = {
@@ -13,14 +18,14 @@ const runtime = {
 
 class Logger {
     constructor() {
-        this.logDir = path.join(__dirname, '../../logs');
+        this.logDir = join(__dirname, '../../logs');
         this.ensureLogDirectory();
         this.runtime = runtime;
     }
 
     ensureLogDirectory() {
-        if (!fs.existsSync(this.logDir)) {
-            fs.mkdirSync(this.logDir, { recursive: true });
+        if (!existsSync(this.logDir)) {
+            mkdirSync(this.logDir, { recursive: true });
         }
     }
 
@@ -37,16 +42,16 @@ class Logger {
     }
 
     writeToFile(filename, content) {
-        const filePath = path.join(this.logDir, filename);
+        const filePath = join(this.logDir, filename);
         
         // Use Bun's optimized file writing if available
         if (this.runtime.isBun && typeof Bun !== 'undefined' && Bun.write) {
             // Bun has async file operations that are faster
             const file = Bun.file(filePath);
             // For append operation, we'll use Node.js fs for compatibility
-            fs.appendFileSync(filePath, content);
+            appendFileSync(filePath, content);
         } else {
-            fs.appendFileSync(filePath, content);
+            appendFileSync(filePath, content);
         }
     }
 
@@ -87,4 +92,12 @@ class Logger {
     }
 }
 
-module.exports = new Logger();
+export default new Logger();
+
+// Named exports for convenience
+const logger = new Logger();
+export const info = logger.info.bind(logger);
+export const error = logger.error.bind(logger);
+export const warn = logger.warn.bind(logger);
+export const debug = logger.debug.bind(logger);
+export const whatsapp = logger.whatsapp.bind(logger);

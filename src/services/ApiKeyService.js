@@ -1,5 +1,5 @@
-const crypto = require('crypto');
-const { getDatabase } = require('../config/database');
+import { randomBytes, createHash } from 'crypto';
+import { getDatabase } from '../config/database.js';
 
 class ApiKeyService {
     /**
@@ -27,8 +27,8 @@ class ApiKeyService {
      */
     static async generateApiKey(userId) {
         try {
-            const rawKey = crypto.randomBytes(32).toString('hex');
-            const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
+            const rawKey = randomBytes(32).toString('hex');
+            const keyHash = createHash('sha256').update(rawKey).digest('hex');
             
             const supabase = getDatabase();
             const { data, error } = await supabase
@@ -69,4 +69,9 @@ class ApiKeyService {
     }
 }
 
-module.exports = ApiKeyService;
+export default ApiKeyService;
+
+// Named exports for convenience
+export const getUserApiKeys = ApiKeyService.getUserApiKeys;
+export const generateApiKey = ApiKeyService.generateApiKey;
+export const deleteApiKey = ApiKeyService.deleteApiKey;

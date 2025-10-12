@@ -1,6 +1,6 @@
-const { createClient } = require('@supabase/supabase-js');
-const { config } = require('./index');
-const { bunUtils } = require('./bun');
+import { createClient } from '@supabase/supabase-js';
+import { config } from './index.js';
+import { bunUtils } from './bun.js';
 
 let supabase = null;
 
@@ -56,7 +56,7 @@ function optimizedQuery(queryFn) {
     return queryFn();
 }
 
-module.exports = { initializeDatabase, getDatabase, optimizedQuery };
+export { initializeDatabase, getDatabase, optimizedQuery };
 
 // Create a scoped client with Authorization header for per-request RLS context
 function createScopedClient(accessToken) {
@@ -66,4 +66,5 @@ function createScopedClient(accessToken) {
     });
 }
 
-module.exports.createScopedClient = createScopedClient;
+const _createScopedClient = createScopedClient;
+export { _createScopedClient as createScopedClient };

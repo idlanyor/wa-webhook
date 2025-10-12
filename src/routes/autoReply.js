@@ -1,15 +1,15 @@
-const express = require('express');
-const { isAuthenticated } = require('../middleware/auth');
-const SettingsService = require('../services/SettingsService');
+import { Router } from 'express';
+import { isAuthenticated } from '../middleware/auth.js';
+import { getSettings, getAutoReplies, updateSetting, addAutoReply, deleteAutoReply, toggleAutoReply } from '../services/SettingsService.js';
 
-const router = express.Router();
+const router = Router();
 
 // Auto-reply settings page
 router.get('/', isAuthenticated, async (req, res) => {
     try {
         const [settings, replies] = await Promise.all([
-            SettingsService.getSettings(),
-            SettingsService.getAutoReplies()
+            getSettings(),
+            getAutoReplies()
         ]);
         
         res.render('auto-reply', { 
@@ -37,7 +37,7 @@ router.post('/settings', isAuthenticated, async (req, res) => {
     
     try {
         const enabled = auto_reply_enabled ? 'true' : 'false';
-        await SettingsService.updateSetting('auto_reply_enabled', enabled);
+        await updateSetting('auto_reply_enabled', enabled);
         
         // Reload settings in WhatsApp service
         const whatsappService = req.app.get('whatsappService');
@@ -59,7 +59,7 @@ router.post('/add', isAuthenticated, async (req, res) => {
     }
     
     try {
-        await SettingsService.addAutoReply(keyword, reply);
+        await addAutoReply(keyword, reply);
         
         // Reload settings in WhatsApp service
         const whatsappService = req.app.get('whatsappService');
@@ -75,7 +75,7 @@ router.post('/add', isAuthenticated, async (req, res) => {
 // Delete auto-reply rule
 router.post('/delete/:id', isAuthenticated, async (req, res) => {
     try {
-        await SettingsService.deleteAutoReply(req.params.id);
+        await deleteAutoReply(req.params.id);
         
         // Reload settings in WhatsApp service
         const whatsappService = req.app.get('whatsappService');
@@ -91,7 +91,7 @@ router.post('/delete/:id', isAuthenticated, async (req, res) => {
 // Toggle auto-reply rule
 router.get('/toggle/:id', isAuthenticated, async (req, res) => {
     try {
-        await SettingsService.toggleAutoReply(req.params.id);
+        await toggleAutoReply(req.params.id);
         
         // Reload settings in WhatsApp service
         const whatsappService = req.app.get('whatsappService');
@@ -104,4 +104,4 @@ router.get('/toggle/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

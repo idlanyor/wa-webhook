@@ -1,7 +1,7 @@
-const express = require('express');
-const { isAuthenticatedOrApiKey, getEffectiveUserId, isAuthenticated } = require('../middleware/auth');
+import { Router } from 'express';
+import { isAuthenticatedOrApiKey, getEffectiveUserId, isAuthenticated } from '../middleware/auth.js';
 
-const router = express.Router();
+const router = Router();
 
 // Get WhatsApp connection status
 router.get('/status', isAuthenticatedOrApiKey, async (req, res) => {
@@ -87,8 +87,8 @@ router.post('/send-bulk', isAuthenticatedOrApiKey, async (req, res) => {
 
         // Start bulk sending in background
         const io = req.app.get('io');
-        const TemplateService = require('../services/TemplateService');
-        const ContactService = require('../services/ContactService');
+        const TemplateService = require('../services/TemplateService').default;
+        const ContactService = require('../services/ContactService').default;
         (async () => {
             let template = null;
             if (templateId) {
@@ -121,7 +121,7 @@ router.post('/send-bulk', isAuthenticatedOrApiKey, async (req, res) => {
                     });
                     
                     // Record message
-                    const MessageService = require('../services/MessageService');
+                    const MessageService = require('../services/MessageService').default;
                     const accessToken = req.userAccessToken || (req.cookies && req.cookies['supabase-auth-token'] ? JSON.parse(req.cookies['supabase-auth-token']).access_token : null);
                     await MessageService.recordMessage({ 
                         userId, 
@@ -199,4 +199,4 @@ router.post('/reset-session', isAuthenticated, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

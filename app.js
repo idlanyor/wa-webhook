@@ -1,13 +1,18 @@
-const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
-const cors = require('cors');
-const path = require('path');
-const cookieParser = require('cookie-parser');
+import express, { static as expressStatic, json, urlencoded } from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import cookieParser from 'cookie-parser';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Import configuration
-const { config, validateConfig } = require('./src/config');
-const { initializeDatabase } = require('./src/config/database');
+import { config, validateConfig } from './src/config/index.js';
+import { initializeDatabase } from './src/config/database.js';
 
 // Runtime detection
 const runtime = {
@@ -17,29 +22,30 @@ const runtime = {
 };
 
 // Import services
-const WhatsAppService = require('./src/services/WhatsAppService');
-const WebhookService = require('./src/services/WebhookService');
-const SettingsService = require('./src/services/SettingsService');
+import WhatsAppService from './src/services/WhatsAppService.js';
+import WebhookService from './src/services/WebhookService.js';
+import CampaignService from './src/services/CampaignService.js';
+import { getMany } from './src/services/SettingsService.js';
 
 // Import routes
-const authRoutes = require('./src/routes/auth');
-const appRoutes = require('./src/routes/app');
-const whatsappRoutes = require('./src/routes/whatsapp');
-const contactRoutes = require('./src/routes/contacts');
-const autoReplyRoutes = require('./src/routes/autoReply');
-const apiKeyRoutes = require('./src/routes/apiKeys');
-const chatRoutes = require('./src/routes/chat');
-const templateRoutes = require('./src/routes/templates');
-const campaignRoutes = require('./src/routes/campaigns');
-const settingsRoutes = require('./src/routes/settings');
+import authRoutes from './src/routes/auth.js';
+import appRoutes from './src/routes/app.js';
+import whatsappRoutes from './src/routes/whatsapp.js';
+import contactRoutes from './src/routes/contacts.js';
+import autoReplyRoutes from './src/routes/autoReply.js';
+import apiKeyRoutes from './src/routes/apiKeys.js';
+import chatRoutes from './src/routes/chat.js';
+import templateRoutes from './src/routes/templates.js';
+import campaignRoutes from './src/routes/campaigns.js'; 
+import settingsRoutes from './src/routes/settings.js';
 
 // Import utilities
-const logger = require('./src/utils/logger');
+import { info, error as _error, warn } from './src/utils/logger.js';
 
 class Application {
     constructor() {
         this.app = express();
-        this.server = http.createServer(this.app);
+        this.server = createServer(this.app);
         this.io = null;
         this.whatsappService = null;
     }
@@ -51,11 +57,11 @@ class Application {
         try {
             // Validate configuration
             validateConfig();
-            logger.info(`Configuration validated successfully - Runtime: ${runtime.name}`);
+            info(`Configuration validated successfully - Runtime: ${runtime.name}`);
 
             // Initialize database
             initializeDatabase();
-            logger.info('Database initialized successfully');
+            info('Database initialized successfully');
 
             // Setup Express app
             this.setupExpress();
@@ -72,9 +78,9 @@ class Application {
             // Setup error handling
             this.setupErrorHandling();
 
-            logger.info('Application initialized successfully');
+            info('Application initialized successfully');
         } catch (error) {
-            logger.error('Failed to initialize application', error);
+            _error('Failed to initialize application', error);
             throw error;
         }
     }
@@ -85,14 +91,15 @@ class Application {
     setupExpress() {
         // View engine setup
         this.app.set('view engine', 'ejs');
-        this.app.set('views', path.join(__dirname, 'views'));
+        this.app.set('views', join(__dirname, 'views'));
 
         // Middleware
-        this.app.use(express.static(path.join(__dirname, 'public')));
+        const puki = expressStatic(join(__dirname, 'public'));
+        this.app.use(puki);
         this.app.use(cors());
         
         // Custom JSON parser with better error handling
-        this.app.use(express.json({
+        this.app.use(json({
             verify: (req, res, buf, encoding) => {
                 try {
                     // Store raw body for potential fixing
@@ -103,12 +110,12 @@ class Application {
             }
         }));
         
-        this.app.use(express.urlencoded({ extended: true }));
+        this.app.use(urlencoded({ extended: true }));
         this.app.use(cookieParser());
 
         // Request logging middleware
         this.app.use((req, res, next) => {
-            logger.info(`${req.method} ${req.path}`, {
+            info(`${req.method} ${req.path}`, {
                 ip: req.ip,
                 userAgent: req.get('User-Agent'),
                 runtime: runtime.name
@@ -116,14 +123,14 @@ class Application {
             next();
         });
 
-        logger.info('Express application configured');
+        info('Express application configured');
     }
 
     /**
      * Setup Socket.IO
      */
     setupSocketIO() {
-        this.io = socketIo(this.server, {
+        this.io = new Server(this.server, {
             cors: {
                 origin: "*",
                 methods: ["GET", "POST"]
@@ -135,18 +142,18 @@ class Application {
             const userId = socket.handshake.query.userId;
             if (userId) {
                 socket.join(userId);
-                logger.info(`Socket connected for user: ${userId}`);
+                info(`Socket connected for user: ${userId}`);
             }
 
             socket.on('disconnect', () => {
-                logger.info(`Socket disconnected for user: ${userId}`);
+                info(`Socket disconnected for user: ${userId}`);
             });
         });
 
         // Make io available to routes
         this.app.set('io', this.io);
 
-        logger.info('Socket.IO configured');
+        info('Socket.IO configured');
     }
 
     /**
@@ -163,7 +170,7 @@ class Application {
 
         // Setup Webhook service with dynamic settings
         const getWebhookSettings = async () => {
-            const map = await SettingsService.getMany(['webhook_url', 'webhook_secret']);
+            const map = await getMany(['webhook_url', 'webhook_secret']);
             return { url: map.get('webhook_url') || null, secret: map.get('webhook_secret') || null };
         };
         this.webhookService = new WebhookService(getWebhookSettings);
@@ -171,10 +178,9 @@ class Application {
         // Attach webhooks to WhatsAppService
         this.whatsappService.setWebhookService(this.webhookService);
 
-        logger.info('WhatsApp service configured');
+        info('WhatsApp service configured');
 
         // Simple scheduler for campaigns
-        const CampaignService = require('./src/services/CampaignService');
         setInterval(async () => {
             try {
                 const due = await CampaignService.dueCampaigns(new Date());
@@ -184,7 +190,7 @@ class Application {
                     CampaignService.processCampaign(this.app, c).catch(()=>{});
                 }
             } catch (e) {
-                logger.error('Scheduler error', e);
+                _error('Scheduler error', e);
             }
         }, 15000);
     }
@@ -223,7 +229,7 @@ class Application {
         // Settings routes
         this.app.use('/settings', settingsRoutes);
 
-        logger.info('Routes configured');
+        info('Routes configured');
     }
 
     /**
@@ -232,7 +238,7 @@ class Application {
     setupErrorHandling() {
         // 404 handler
         this.app.use((req, res) => {
-            logger.warn(`404 - Page not found: ${req.path}`);
+            warn(`404 - Page not found: ${req.path}`);
             res.status(404).render('error', { 
                 error: 'Page not found',
                 message: 'The page you are looking for does not exist.'
@@ -241,11 +247,11 @@ class Application {
 
         // Global error handler
         this.app.use((err, req, res, next) => {
-            logger.error('Unhandled error', err);
+            _error('Unhandled error', err);
             
             // Handle JSON parsing errors specifically
             if (err.type === 'entity.parse.failed' && err.body && req.rawBody) {
-                logger.warn('JSON parse error detected, attempting to fix backticks in message');
+                warn('JSON parse error detected, attempting to fix backticks in message');
                 
                 try {
                     // Fix backticks in the raw body
@@ -256,7 +262,7 @@ class Application {
                     req.body = parsedBody;
                     
                     // Log the fix
-                    logger.info('Successfully fixed JSON with backticks', {
+                    info('Successfully fixed JSON with backticks', {
                         original: req.rawBody.substring(0, 200) + '...',
                         fixed: fixedBody.substring(0, 200) + '...'
                     });
@@ -264,7 +270,7 @@ class Application {
                     // Continue to the route handler
                     return next();
                 } catch (fixError) {
-                    logger.error('Failed to fix JSON parsing error', fixError);
+                    _error('Failed to fix JSON parsing error', fixError);
                 }
             }
             
@@ -290,7 +296,7 @@ class Application {
             });
         });
 
-        logger.info('Error handling configured');
+        info('Error handling configured');
     }
 
     /**
@@ -307,8 +313,8 @@ class Application {
 
             // Start server
             this.server.listen(config.port, '0.0.0.0', () => {
-                logger.info(`WhatsApp service running on port ${config.port}`);
-                logger.info(`Server started successfully on ${runtime.name} runtime`, { 
+                info(`WhatsApp service running on port ${config.port}`);
+                info(`Server started successfully on ${runtime.name} runtime`, { 
                     port: config.port,
                     runtime: runtime.name,
                     optimizations: runtime.isBun ? 'enabled' : 'disabled'
@@ -320,7 +326,7 @@ class Application {
             });
 
         } catch (error) {
-            logger.error('Failed to start server', error);
+            _error('Failed to start server', error);
             process.exit(1);
         }
     }
@@ -329,7 +335,7 @@ class Application {
      * Graceful shutdown
      */
     async shutdown() {
-        logger.info('Shutting down server...');
+        info('Shutting down server...');
         
         // Close all WhatsApp sessions
         if (this.whatsappService) {
@@ -338,7 +344,7 @@ class Application {
 
         // Close server
         this.server.close(() => {
-            logger.info('Server shut down successfully');
+            info('Server shut down successfully');
             process.exit(0);
         });
     }
@@ -347,7 +353,7 @@ class Application {
 // For testing environment
 if (process.env.JEST_WORKER_ID) {
     const mockApp = express();
-    const mockServer = http.createServer(mockApp);
+    const mockServer = createServer(mockApp);
     
     // Export mock objects for testing
     module.exports = { 

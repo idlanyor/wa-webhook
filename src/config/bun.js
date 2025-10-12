@@ -2,7 +2,7 @@
  * Bun-specific configuration and optimizations
  */
 
-const bunConfig = {
+export const bunConfig = {
     // Enable Bun's faster JSON parsing
     fastJSON: true,
     
@@ -39,7 +39,7 @@ const bunConfig = {
 };
 
 // Bun-specific utilities
-const bunUtils = {
+export const bunUtils = {
     /**
      * Check if we're running on Bun
      */
@@ -94,4 +94,3 @@ const bunUtils = {
     }
 };
 
-module.exports = { bunConfig, bunUtils };

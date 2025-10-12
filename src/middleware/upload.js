@@ -1,12 +1,12 @@
-const multer = require('multer');
-const path = require('path');
-const { config } = require('../config');
+import multer, { memoryStorage } from 'multer';
+import { extname } from 'path';
+import { config } from '../config/index.js';
 
 // Configure multer for file uploads
 const upload = multer({
-    storage: multer.memoryStorage(),
+    storage: memoryStorage(),
     fileFilter: (req, file, cb) => {
-        const fileExt = path.extname(file.originalname).toLowerCase();
+        const fileExt = extname(file.originalname).toLowerCase();
         const { allowedExtensions, allowedMimeTypes } = config.upload;
         
         const isValidExtension = allowedExtensions.includes(fileExt);
@@ -20,4 +20,4 @@ const upload = multer({
     }
 });
 
-module.exports = { upload };
+export { upload };

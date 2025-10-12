@@ -1,8 +1,9 @@
-const vCard = require('vcf');
-const csv = require('csv-parser');
-const { Readable } = require('stream');
-const { getDatabase } = require('../config/database');
-const { config } = require('../config');
+import vcf from 'vcf';
+const { parse } = vcf;
+import csv from 'csv-parser';
+import { Readable } from 'stream';
+import { getDatabase } from '../config/database.js';
+import { config } from '../config/index.js';
 
 class ContactService {
     /**
@@ -94,7 +95,7 @@ class ContactService {
     static async importFromVCF(userId, fileBuffer) {
         try {
             const vcfContent = fileBuffer.toString('utf8');
-            const cards = vCard.parse(vcfContent);
+            const cards = parse(vcfContent);
 
             if (!cards || cards.length === 0) {
                 throw new Error('VCF file is empty or invalid');
@@ -237,4 +238,11 @@ class ContactService {
     }
 }
 
-module.exports = ContactService;
+export default ContactService;
+
+export const getContacts = ContactService.getContacts;
+export const importFromVCF = ContactService.importFromVCF;
+export const importFromCSV = ContactService.importFromCSV;
+export const deleteContact = ContactService.deleteContact;
+export const getAllContacts = ContactService.getAllContacts;
+export const updateTags = ContactService.updateTags;

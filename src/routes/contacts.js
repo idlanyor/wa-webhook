@@ -1,9 +1,9 @@
-const express = require('express');
-const { isAuthenticated, isAuthenticatedOrApiKey, getEffectiveUserId } = require('../middleware/auth');
-const { upload } = require('../middleware/upload');
-const ContactService = require('../services/ContactService');
+import { Router } from 'express';
+import { isAuthenticated, isAuthenticatedOrApiKey, getEffectiveUserId } from '../middleware/auth.js';
+import { upload } from '../middleware/upload.js';
+import { getContacts, importFromVCF, importFromCSV, deleteContact, getAllContacts, updateTags } from '../services/ContactService.js';
 
-const router = express.Router();
+const router = Router();
 
 // Contacts page
 router.get('/', isAuthenticated, async (req, res) => {
@@ -11,7 +11,7 @@ router.get('/', isAuthenticated, async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const { createScopedClient } = require('../config/database');
         const scoped = createScopedClient(req.userAccessToken);
-        const result = await ContactService.getContacts(req.user.id, page, scoped);
+        const result = await getContacts(req.user.id, page, scoped);
         
         res.render('contacts', { 
             ...result,
@@ -56,7 +56,7 @@ router.post('/import', isAuthenticated, upload.single('vcfFile'), async (req, re
     }
 
     try {
-        const result = await ContactService.importFromVCF(req.user.id, req.file.buffer);
+        const result = await importFromVCF(req.user.id, req.file.buffer);
         
         let successMessage = `${result.imported} contacts imported successfully.`;
         if (result.duplicates > 0) {
@@ -79,7 +79,7 @@ router.post('/import/csv', isAuthenticated, upload.single('csvFile'), async (req
     }
 
     try {
-        const result = await ContactService.importFromCSV(req.user.id, req.file.buffer);
+        const result = await importFromCSV(req.user.id, req.file.buffer);
         
         let successMessage = `${result.imported} contacts imported successfully.`;
         if (result.duplicates > 0) {
@@ -98,7 +98,7 @@ router.post('/import/csv', isAuthenticated, upload.single('csvFile'), async (req
 // Delete contact
 router.post('/delete/:id', isAuthenticated, async (req, res) => {
     try {
-        await ContactService.deleteContact(req.user.id, req.params.id);
+        await deleteContact(req.user.id, req.params.id);
         res.redirect('/contacts?success=' + encodeURIComponent('Contact deleted successfully.'));
     } catch (error) {
         console.error('Error deleting contact:', error);
@@ -112,7 +112,7 @@ router.get('/api', isAuthenticatedOrApiKey, async (req, res) => {
         const userId = getEffectiveUserId(req);
         const { createScopedClient } = require('../config/database');
         const scoped = createScopedClient(req.userAccessToken || req.headers['x-access-token'] || '');
-        const contacts = await ContactService.getAllContacts(userId, scoped);
+        const contacts = await getAllContacts(userId, scoped);
         res.json(contacts);
     } catch (error) {
         console.error('Error fetching contacts API:', error);
@@ -120,11 +120,11 @@ router.get('/api', isAuthenticatedOrApiKey, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;
 // Update tags
 router.post('/tags/:id', isAuthenticated, async (req, res) => {
     try {
-        await ContactService.updateTags(req.user.id, req.params.id, req.body.tags || '');
+        await updateTags(req.user.id, req.params.id, req.body.tags || '');
         res.redirect('/contacts?success=' + encodeURIComponent('Tags updated.'));
     } catch (error) {
         console.error('Error updating tags:', error);

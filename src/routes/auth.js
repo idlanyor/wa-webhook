@@ -1,8 +1,8 @@
-const express = require('express');
-const { config } = require('../config');
-const { getDatabase } = require('../config/database');
+import { Router } from 'express';
+import { config } from '../config/index.js';
+import { getDatabase } from '../config/database.js';
 
-const router = express.Router();
+const router = Router();
 
 // Login page
 router.get('/login', (req, res) => {
@@ -137,4 +137,4 @@ router.post('/logout-user', async (req, res) => {
     res.redirect('/login');
 });
 
-module.exports = router;
+export default router;

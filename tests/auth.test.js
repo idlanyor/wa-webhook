@@ -1,4 +1,4 @@
-const request = require('supertest');
+import request from 'supertest';
 
 jest.mock('../supabaseClient', () => {
   const signUpMock = jest.fn();
@@ -17,8 +17,8 @@ jest.mock('../supabaseClient', () => {
   };
 });
 
-const supabase = require('../supabaseClient');
-const { app } = require('../whatsapp-service');
+import { auth as _auth } from '../supabaseClient';
+import { app } from '../whatsapp-service';
 
 describe('Authentication Routes', () => {
   afterEach(() => jest.clearAllMocks());
@@ -28,7 +28,7 @@ describe('Authentication Routes', () => {
       const res = await request(app).post('/register').send({});
       expect(res.statusCode).toBe(200);
       expect(res.text).toContain('All fields are required');
-      expect(supabase.auth.signUp).not.toHaveBeenCalled();
+      expect(_auth.signUp).not.toHaveBeenCalled();
     });
 
     it('should validate password mismatch', async () => {
@@ -40,11 +40,11 @@ describe('Authentication Routes', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.text).toContain('Passwords do not match');
-      expect(supabase.auth.signUp).not.toHaveBeenCalled();
+      expect(_auth.signUp).not.toHaveBeenCalled();
     });
 
     it('should register and redirect on success', async () => { 
-      supabase.auth.signUp.mockResolvedValue({
+      _auth.signUp.mockResolvedValue({
         data: { session: { access_token: 'token', expires_in: 3600 } },
         error: null,
       });
@@ -58,7 +58,7 @@ describe('Authentication Routes', () => {
           confirmPassword: 'pass123',
         });
 
-      expect(supabase.auth.signUp).toHaveBeenCalled();
+      expect(_auth.signUp).toHaveBeenCalled();
       expect(res.statusCode).toBe(302);
       expect(res.headers.location).toBe('/dashboard');
       expect(res.headers['set-cookie']).toBeDefined();
@@ -67,7 +67,7 @@ describe('Authentication Routes', () => {
 
   describe('POST /login', () => {
     it('should login and redirect to dashboard', async () => {
-      supabase.auth.signInWithPassword.mockResolvedValue({
+      _auth.signInWithPassword.mockResolvedValue({
         data: { session: { access_token: 'token', expires_in: 3600 } },
         error: null,
       });
@@ -76,13 +76,13 @@ describe('Authentication Routes', () => {
         .post('/login')
         .send({ email: 'login@example.com', password: 'pass123' });
 
-      expect(supabase.auth.signInWithPassword).toHaveBeenCalled();
+      expect(_auth.signInWithPassword).toHaveBeenCalled();
       expect(res.statusCode).toBe(302);
       expect(res.headers.location).toBe('/dashboard');
     });
 
     it('should return error on invalid credentials', async () => {
-      supabase.auth.signInWithPassword.mockResolvedValue({
+      _auth.signInWithPassword.mockResolvedValue({
         data: null,
         error: { message: 'Invalid login' },
       });
