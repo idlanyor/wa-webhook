@@ -1,0 +1,59 @@
+<%
+    const bottomMenuItems = [
+        { 
+            id: 'dashboard', 
+            label: 'Dasbor', 
+            path: '/dashboard', 
+            icon: 'ri-dashboard-line', 
+            activeClass: 'text-blue-600',
+            inactiveClass: 'text-gray-500 hover:text-gray-700'
+        },
+        { 
+            id: 'auto-reply', 
+            label: 'Auto Reply', 
+            path: '/auto-reply', 
+            icon: 'ri-reply-all-line', 
+            activeClass: 'text-orange-600',
+            inactiveClass: 'text-gray-500 hover:text-gray-700'
+        },
+        { 
+            id: 'api-keys', 
+            label: 'API Keys', 
+            path: '/api-keys', 
+            icon: 'ri-key-line', 
+            activeClass: 'text-indigo-600',
+            inactiveClass: 'text-gray-500 hover:text-gray-700'
+        },
+        { 
+            id: 'documentation', 
+            label: 'Docs', 
+            path: '/documentation', 
+            icon: 'ri-file-text-line', 
+            activeClass: 'text-gray-800',
+            inactiveClass: 'text-gray-500 hover:text-gray-700'
+        }
+    ];
+%>
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 lg:hidden z-50" style="padding-bottom: env(safe-area-inset-bottom);">
+    <ul class="flex justify-around items-center h-16">
+        <% bottomMenuItems.forEach(item => { %>
+            <% 
+                const isActive = typeof page !== 'undefined' && page === item.id;
+            %>
+            <li class="flex-1">
+                <a href="<%= item.path %>" class="flex flex-col items-center justify-center h-full w-full space-y-1 <%= isActive ? item.activeClass : item.inactiveClass %>">
+                    <i class="<%= item.icon %> text-2xl"></i>
+                    <span class="text-[10px] font-medium"><%= item.label %></span>
+                </a>
+            </li>
+        <% }); %>
+    </ul>
+</nav>
+<!-- Add padding to body to prevent content being hidden behind bottom nav -->
+<style>
+    @media (max-width: 1023px) {
+        body {
+            padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+        }
+    }
+</style>

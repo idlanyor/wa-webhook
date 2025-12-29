@@ -277,8 +277,8 @@
                     statusElement.textContent = 'Terhubung';
                     statusElement.className = 'text-xl font-bold text-green-600';
                     statusMessageElement.textContent = 'WhatsApp terhubung dan siap digunakan.';
-                    statusIndicator.classList.add('bg-green-500', 'status-pulse');
-                    statusIcon.classList.add('ri-checkbox-circle-line', 'text-green-600');
+                    statusIndicator.className = 'w-2.5 h-2.5 rounded-full bg-green-500 status-pulse';
+                    statusIcon.className = 'ri-checkbox-circle-line text-green-600 text-xl';
                     connectionCard.style.display = 'none';
                     testBtn.disabled = false;
                     waLogoutBtn.disabled = false;
@@ -287,23 +287,22 @@
                     }
                     break;
                 case 'qr_ready':
-                    statusElement.textContent = 'Menunggu Koneksi';
+                    statusElement.textContent = 'Scan QR';
                     statusElement.className = 'text-xl font-bold text-yellow-600';
                     statusMessageElement.textContent = 'Pindai kode QR dengan aplikasi WhatsApp Anda.';
-                    statusIndicator.classList.add('bg-yellow-500', 'status-pulse');
-                    statusIcon.classList.add('ri-time-line', 'text-yellow-600');
+                    statusIndicator.className = 'w-2.5 h-2.5 rounded-full bg-yellow-500 status-pulse';
+                    statusIcon.className = 'ri-qr-code-line text-yellow-600 text-xl';
                     connectionCard.style.display = 'block';
                     testBtn.disabled = true;
                     waLogoutBtn.disabled = true;
                     break;
-                // pairing_code_ready removed
                 case 'disconnected':
                 default:
                     statusElement.textContent = 'Terputus';
                     statusElement.className = 'text-xl font-bold text-red-600';
                     statusMessageElement.textContent = 'WhatsApp belum terhubung.';
-                    statusIndicator.classList.add('bg-red-500');
-                    statusIcon.classList.add('ri-close-circle-line', 'text-red-600');
+                    statusIndicator.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
+                    statusIcon.className = 'ri-close-circle-line text-red-600 text-xl';
                     connectionCard.style.display = 'none';
                     testBtn.disabled = true;
                     waLogoutBtn.disabled = true;
@@ -483,6 +482,31 @@
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const html = document.documentElement;
+
+        const applyTheme = (theme) => {
+            if (theme === 'dark') {
+                html.classList.add('dark');
+                if (darkModeToggle) darkModeToggle.innerHTML = '<i class="ri-sun-line text-yellow-400 text-xl"></i>';
+            } else {
+                html.classList.remove('dark');
+                if (darkModeToggle) darkModeToggle.innerHTML = '<i class="ri-moon-line text-gray-600 text-xl"></i>';
+            }
+        };
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+
+        if (darkModeToggle) {
+            darkModeToggle.addEventListener('click', () => {
+                const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+        }
+        
         refreshStatus();
 
         // SweetAlert2 confirm for any form with data-confirm

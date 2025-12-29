@@ -1,5 +1,5 @@
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>WhatsApp Webhook API - Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
@@ -7,6 +7,13 @@
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
 <link href="/css/tailwind.css" rel="stylesheet">
+<link href="/css/dark-mode.css" rel="stylesheet">
+<script>
+    // Apply dark mode immediately to prevent flash
+    if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+    }
+</script>
 <!-- <link rel="stylesheet" href="/css/dashboard.css"> -->
 <link rel="stylesheet" href="/css/connection-methods.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -45,5 +52,16 @@
     
     .message-time {
         @apply text-xs text-gray-500 mt-2;
+    }
+
+    /* Prevent horizontal overflow globally */
+    html, body {
+        max-width: 100%;
+        overflow-x: hidden;
+        position: relative;
+    }
+    
+    * {
+        box-sizing: border-box;
     }
 </style>

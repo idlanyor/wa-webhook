@@ -25,6 +25,30 @@
 
     // Close mobile menu when clicking overlay
     document.addEventListener('DOMContentLoaded', () => {
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const html = document.documentElement;
+
+        const applyTheme = (theme) => {
+            if (theme === 'dark') {
+                html.classList.add('dark');
+                if (darkModeToggle) darkModeToggle.innerHTML = '<i class="ri-sun-line text-yellow-400 text-xl"></i>';
+            } else {
+                html.classList.remove('dark');
+                if (darkModeToggle) darkModeToggle.innerHTML = '<i class="ri-moon-line text-gray-600 text-xl"></i>';
+            }
+        };
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+
+        if (darkModeToggle) {
+            darkModeToggle.addEventListener('click', () => {
+                const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+        }
         // Intercept forms with data-confirm and show SweetAlert2
         document.querySelectorAll('form[data-confirm]').forEach(form => {
             form.addEventListener('submit', async function(e) {
@@ -65,73 +89,6 @@
         document.querySelectorAll('.fade-in').forEach((el, index) => {
             el.style.animationDelay = `${index * 0.1}s`;
         });
-
-        // Global handler: openTemplateChooser (used by /blaster)
-        window.openTemplateChooser = async () => {
-            const numbersEl = document.getElementById('numbers');
-            const messageEl = document.getElementById('message');
-            const templateHint = document.getElementById('templateHint');
-            const templateNameEl = document.getElementById('templateName');
-            const previewWrap = document.getElementById('templatePreview');
-            const listEl = document.getElementById('templatePreviewList');
-            if (!messageEl || !templateHint || !templateNameEl) return;
-
-            try {
-                const resp = await fetch('/templates/api');
-                const templates = await resp.json();
-                if (!Array.isArray(templates) || templates.length === 0) {
-                    window.showNotification('Belum ada template. Buat di menu Template.', 'warning');
-                    return;
-                }
-                const inputOptions = templates.reduce((acc, t) => { acc[t.id] = t.name; return acc; }, {});
-                const { value: templateId } = await Swal.fire({
-                    title: 'Pilih Template',
-                    input: 'select',
-                    inputOptions,
-                    inputPlaceholder: 'Pilih salah satu',
-                    showCancelButton: true
-                });
-                if (!templateId) return;
-                const tpl = templates.find(t => t.id === templateId);
-                window.__currentTemplate = tpl;
-                templateNameEl.textContent = tpl.name;
-                templateHint.style.display = '';
-                if (!messageEl.value.trim()) {
-                    messageEl.value = tpl.content;
-                }
-                try { localStorage.setItem('selectedTemplateId', tpl.id); } catch {}
-
-                // Build contacts map for preview
-                let contactsMap = null;
-                try {
-                    const cResp = await fetch('/contacts/api');
-                    const contacts = await cResp.json();
-                    contactsMap = new Map(contacts.map(c => [String(c.phone || '').replace(/^\+/, ''), c.name || '']));
-                } catch {}
-
-                const applyVars = (text, phoneRaw) => {
-                    const phone = String((phoneRaw || '').trim()).replace(/^\+/, '');
-                    const name = contactsMap ? (contactsMap.get(phone) || '') : '';
-                    return text.replace(/\{phone\}/g, phone).replace(/\{name\}/g, name);
-                };
-
-                // Preview
-                try {
-                    if (numbersEl && previewWrap && listEl) {
-                        const nums = numbersEl.value.split('\n').map(s=>s.trim()).filter(Boolean).slice(0,3);
-                        listEl.innerHTML = '';
-                        nums.forEach(n => {
-                            const li = document.createElement('li');
-                            li.textContent = applyVars(tpl.content, n);
-                            listEl.appendChild(li);
-                        });
-                        previewWrap.style.display = nums.length ? '' : 'none';
-                    }
-                } catch {}
-            } catch (err) {
-                window.showNotification('Gagal memuat template', 'error');
-            }
-        };
 
         // Form validation and enhancement
         const forms = document.querySelectorAll('form');

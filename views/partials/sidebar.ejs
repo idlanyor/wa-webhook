@@ -1,55 +1,64 @@
-<aside class="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col fixed inset-y-0 left-0 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto lg:translate-x-0 transform -translate-x-full transition-transform duration-300 ease-in-out z-50" id="sidebar">
+<%
+    const menuItems = [
+        { 
+            id: 'dashboard', 
+            label: 'Dasbor', 
+            path: '/dashboard', 
+            icon: 'ri-dashboard-line', 
+            activeClass: 'bg-blue-50 text-blue-700 shadow-sm border-r-4 border-blue-500',
+            hoverClass: 'hover:bg-gray-50 hover:text-blue-700'
+        },
+        { 
+            id: 'auto-reply', 
+            label: 'Balas Otomatis', 
+            path: '/auto-reply', 
+            icon: 'ri-reply-all-line', 
+            activeClass: 'bg-orange-50 text-orange-700 shadow-sm border-r-4 border-orange-500',
+            hoverClass: 'hover:bg-gray-50 hover:text-orange-700'
+        },
+        { 
+            id: 'api-keys', 
+            label: 'Kunci API', 
+            path: '/api-keys', 
+            icon: 'ri-key-line', 
+            activeClass: 'bg-indigo-50 text-indigo-700 shadow-sm border-r-4 border-indigo-500',
+            hoverClass: 'hover:bg-gray-50 hover:text-indigo-700'
+        },
+        { 
+            id: 'documentation', 
+            label: 'Dokumentasi', 
+            path: '/documentation', 
+            icon: 'ri-file-text-line', 
+            activeClass: 'bg-gray-50 text-gray-800 shadow-sm border-r-4 border-gray-500',
+            hoverClass: 'hover:bg-gray-50 hover:text-gray-800'
+        }
+    ];
+%>
+<aside class="w-64 bg-white shadow-lg border-r border-gray-200 hidden lg:flex flex-col sticky top-0 h-screen overflow-y-auto z-50" id="sidebar">
     <div class="p-6 border-b border-gray-200">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                <div class="w-10 h-10 bg-linear-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
                     <i class="ri-whatsapp-line text-white text-xl"></i>
                 </div>
                 <h1 class="text-xl font-bold text-gray-800">WA Webhook</h1>
             </div>
-            <button class="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="toggleMobileMenu()">
-                <i class="ri-close-line text-gray-600 text-xl"></i>
-            </button>
         </div>
     </div>
     <nav class="flex-1 py-6 overflow-y-auto">
         <ul class="space-y-2 px-4">
-            <li>
-                <a href="/dashboard" class="group flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 <%= (typeof page !== 'undefined' && page === 'dashboard') ? 'bg-blue-50 text-blue-700 shadow-sm border-r-4 border-blue-500' : '' %>">
-                    <i class="ri-dashboard-line text-lg group-hover:scale-110 transition-transform"></i>
-                    <span class="font-medium">Dasbor</span>
-                </a>
-            </li>
-            <li>
-                <a href="/contacts" class="group flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-green-50 hover:text-green-700 transition-all duration-200 <%= (typeof page !== 'undefined' && page === 'contacts') ? 'bg-green-50 text-green-700 shadow-sm border-r-4 border-green-500' : '' %>">
-                    <i class="ri-contacts-book-line text-lg group-hover:scale-110 transition-transform"></i>
-                    <span class="font-medium">Kontak</span>
-                </a>
-            </li>
-            <li>
-                <a href="/auto-reply" class="group flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-all duration-200 <%= (typeof page !== 'undefined' && page === 'auto-reply') ? 'bg-orange-50 text-orange-700 shadow-sm border-r-4 border-orange-500' : '' %>">
-                    <i class="ri-reply-all-line text-lg group-hover:scale-110 transition-transform"></i>
-                    <span class="font-medium">Balas Otomatis</span>
-                </a>
-            </li>
-            <li>
-                <a href="/templates" class="group flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-gray-800 transition-all duration-200 <%= (typeof page !== 'undefined' && page === 'templates') ? 'bg-gray-50 text-gray-800 shadow-sm border-r-4 border-gray-500' : '' %>">
-                    <i class="ri-file-list-3-line text-lg group-hover:scale-110 transition-transform"></i>
-                    <span class="font-medium">Template</span>
-                </a>
-            </li>
-            <li>
-                <a href="/api-keys" class="group flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200 <%= (typeof page !== 'undefined' && page === 'api-keys') ? 'bg-indigo-50 text-indigo-700 shadow-sm border-r-4 border-indigo-500' : '' %>">
-                    <i class="ri-key-line text-lg group-hover:scale-110 transition-transform"></i>
-                    <span class="font-medium">Kunci API</span>
-                </a>
-            </li>
-            <li>
-                <a href="/documentation" class="group flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-gray-800 transition-all duration-200 <%= (typeof page !== 'undefined' && page === 'documentation') ? 'bg-gray-50 text-gray-800 shadow-sm border-r-4 border-gray-500' : '' %>">
-                    <i class="ri-file-text-line text-lg group-hover:scale-110 transition-transform"></i>
-                    <span class="font-medium">Dokumentasi</span>
-                </a>
-            </li>
+            <% menuItems.forEach(item => { %>
+                <% 
+                    const isActive = typeof page !== 'undefined' && page === item.id;
+                %>
+                <li>
+                    <a href="<%= item.path %>" 
+                       class="group flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition-all duration-200 <%= isActive ? item.activeClass : item.hoverClass %>">
+                        <i class="<%= item.icon %> text-lg group-hover:scale-110 transition-transform"></i>
+                        <span class="font-medium"><%= item.label %></span>
+                    </a>
+                </li>
+            <% }); %>
         </ul>
     </nav>
 

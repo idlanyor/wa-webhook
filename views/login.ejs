@@ -7,71 +7,255 @@
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
     <link href="/css/tailwind.css" rel="stylesheet">
     <style>
-        .glass-container {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
+        :root {
+            --insta-yellow: #f09433; 
+            --insta-orange: #e6683c; 
+            --insta-red: #dc2743; 
+            --insta-pink: #cc2366; 
+            --insta-purple: #bc1888;
+            --insta-gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            --bg-color: #e0e5ec;
+            --text-main: #333;
+            --text-secondary: #666;
         }
-        .fade-in {
-            animation: fadeIn 0.8s ease-out forwards;
+
+        body {
+            background: var(--bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+
+        /* Skeuomorphic Card */
+        .skeuo-card {
+            background: var(--bg-color);
+            border-radius: 30px;
+            box-shadow: 
+                20px 20px 60px #bebebe, 
+                -20px -20px 60px #ffffff;
+            padding: 3rem;
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        /* Instagram Gradient Top Border/Accent */
+        .skeuo-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: var(--insta-gradient);
+        }
+
+        /* Skeuomorphic Input Fields (Inner Shadow) */
+        .skeuo-input-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .skeuo-input {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            border: none;
+            border-radius: 15px;
+            background: var(--bg-color);
+            box-shadow: inset 6px 6px 12px #bebebe, inset -6px -6px 12px #ffffff;
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .skeuo-input:focus {
+            box-shadow: inset 3px 3px 6px #bebebe, inset -3px -3px 6px #ffffff;
+            color: #bc1888; /* Insta purple */
+        }
+
+        .skeuo-input::placeholder {
+            color: #999;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            font-size: 1.2rem;
+            transition: color 0.3s;
+        }
+
+        .skeuo-input:focus + .input-icon {
+            color: #bc1888;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        /* Skeuomorphic Button (Raised) */
+        .skeuo-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 50px;
+            background: var(--bg-color); /* Fallback */
+            background: var(--insta-gradient);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            box-shadow: 
+                5px 5px 15px rgba(0,0,0,0.2), 
+                -5px -5px 15px rgba(255,255,255,0.8);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .skeuo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                8px 8px 20px rgba(0,0,0,0.25), 
+                -8px -8px 20px rgba(255,255,255,0.9);
+        }
+
+        .skeuo-btn:active {
+            transform: translateY(1px);
+            box-shadow: 
+                inset 3px 3px 8px rgba(0,0,0,0.3), 
+                inset -3px -3px 8px rgba(255,255,255,0.1);
+        }
+
+        /* Logo Area */
+        .logo-container {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: var(--bg-color);
+            box-shadow: 
+                10px 10px 20px #bebebe, 
+                -10px -10px 20px #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem auto;
+        }
+
+        .logo-icon {
+            font-size: 40px;
+            background: var(--insta-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Text Styles */
+        h1 {
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+        }
+        
+        p {
+            color: var(--text-secondary);
+        }
+
+        a {
+            background: var(--insta-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        /* Error Alert */
+        .skeuo-alert {
+            padding: 1rem;
+            border-radius: 15px;
+            background: var(--bg-color);
+            box-shadow: inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff;
+            color: #dc2743;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #dc2743;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .skeuo-card {
+                padding: 2rem;
+                box-shadow: none; /* Flatten on very small screens if needed, or keep */
+            }
+            body {
+                background: var(--bg-color); /* Keep consistent */
+            }
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 min-h-screen flex items-center justify-center p-4">
-    <div class="max-w-md w-full glass-container rounded-[2.5rem] shadow-2xl overflow-hidden p-8 sm:p-12 fade-in">
-        <div class="text-center mb-10">
-            <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-500/30">
-                <i class="ri-whatsapp-line text-white text-4xl"></i>
+<body>
+
+    <div class="skeuo-card">
+        <div class="text-center mb-8">
+            <div class="logo-container">
+                <i class="ri-whatsapp-fill logo-icon"></i>
             </div>
-            <h1 class="text-3xl font-black text-gray-900 tracking-tight">Selamat Datang</h1>
-            <p class="text-gray-500 mt-2 font-medium">Masuk untuk mengelola bot Anda</p>
+            <h1 class="text-3xl tracking-tight">Selamat Datang</h1>
+            <p class="text-sm">Masuk untuk mengelola bot Anda</p>
         </div>
 
         <% if (error) { %>
-            <div class="mb-8 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl flex items-center space-x-3 text-sm font-medium">
+            <div class="skeuo-alert">
                 <i class="ri-error-warning-fill text-xl"></i>
-                <span><%= error %></span>
+                <span class="text-sm font-medium"><%= error %></span>
             </div>
         <% } %>
 
-        <form action="/login" method="POST" class="space-y-6">
-            <div class="space-y-2">
-                <label class="text-sm font-bold text-gray-700 ml-1">Email</label>
-                <div class="relative group">
-                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                        <i class="ri-mail-line"></i>
-                    </span>
-                    <input type="email" name="email" required 
-                           class="w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none font-medium" 
-                           placeholder="nama@email.com">
-                </div>
+        <form action="/login" method="POST">
+            <div class="skeuo-input-group">
+                <input type="email" name="email" required class="skeuo-input" placeholder="nama@email.com">
+                <i class="ri-mail-line input-icon"></i>
             </div>
 
-            <div class="space-y-2">
-                <label class="text-sm font-bold text-gray-700 ml-1">Kata Sandi</label>
-                <div class="relative group">
-                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                        <i class="ri-lock-2-line"></i>
-                    </span>
-                    <input type="password" name="password" id="passwordInput" required 
-                           class="w-full pl-11 pr-12 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none font-medium" 
-                           placeholder="••••••••">
-                    <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600">
-                        <i class="ri-eye-line" id="toggleIcon"></i>
-                    </button>
-                </div>
+            <div class="skeuo-input-group">
+                <input type="password" name="password" id="passwordInput" required class="skeuo-input" placeholder="••••••••">
+                <i class="ri-lock-2-line input-icon"></i>
+                <button type="button" onclick="togglePassword()" class="toggle-password">
+                    <i class="ri-eye-line" id="toggleIcon"></i>
+                </button>
             </div>
 
-            <button type="submit" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-bold text-lg shadow-xl shadow-blue-500/20 transition-all transform hover:-translate-y-1 active:scale-[0.98]">
+            <button type="submit" class="skeuo-btn mt-4">
                 Masuk Sekarang
             </button>
         </form>
 
-        <div class="mt-10 text-center">
-            <p class="text-gray-500 font-medium">Belum punya akun? <a href="/register" class="text-blue-600 font-bold hover:underline">Daftar disini</a></p>
+        <div class="mt-8 text-center text-sm text-gray-500">
+            Belum punya akun? <a href="/register">Daftar disini</a>
         </div>
     </div>
 

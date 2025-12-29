@@ -33,7 +33,6 @@ import whatsappRoutes from './src/routes/whatsapp.js';
 import contactRoutes from './src/routes/contacts.js';
 import autoReplyRoutes from './src/routes/autoReply.js';
 import apiKeyRoutes from './src/routes/apiKeys.js';
-import templateRoutes from './src/routes/templates.js';
 import settingsRoutes from './src/routes/settings.js';
 
 // Import utilities
@@ -191,8 +190,8 @@ class Application {
         // WhatsApp API routes
         this.app.use('/', whatsappRoutes);
         
-        // Contact management routes
-        this.app.use('/contacts', contactRoutes);
+        // Contact management routes (Disabled)
+        // this.app.use('/contacts', contactRoutes);
         
         // Auto-reply routes
         this.app.use('/auto-reply', autoReplyRoutes);
@@ -200,9 +199,6 @@ class Application {
         // API key management routes
         this.app.use('/api-keys', apiKeyRoutes);
         
-        // Message templates routes
-        this.app.use('/templates', templateRoutes);
-
         // Settings routes
         this.app.use('/settings', settingsRoutes);
 

@@ -30,7 +30,6 @@
 - **Manajemen Sesi**: Hubungkan WhatsApp dengan scan QR Code langsung dari dashboard.
 - **Live Chat**: Antarmuka chatting real-time menggunakan Socket.IO.
 - **Balas Otomatis (Auto-Reply)**: Konfigurasi jawaban otomatis berdasarkan kata kunci.
-- **Template Pesan**: Buat draf pesan dengan variabel dinamis seperti `{name}` dan `{phone}`.
 - **Manajemen Kontak**: Impor kontak secara massal via berkas VCF atau CSV.
 - **Integrasi Webhook**: Kirim notifikasi event (pesan masuk/keluar, status koneksi) ke server Anda.
 - **Kunci API (API Keys)**: Akses fitur pengiriman pesan melalui HTTP REST API.

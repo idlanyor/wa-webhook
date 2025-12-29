@@ -1,10 +1,6 @@
 <header class="bg-white shadow-sm border-b border-gray-200 px-4 sm:px-6 py-4">
     <div class="flex items-center justify-between">
         <div class="flex items-center space-x-4">
-            <!-- Mobile menu button -->
-            <button class="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="toggleMobileMenu()">
-                <i class="ri-menu-line text-gray-600 text-xl"></i>
-            </button>
             <div>
                 <h2 class="text-xl sm:text-2xl font-bold text-gray-800"><%= typeof title !== 'undefined' ? title : 'Dasbor' %></h2>
                 <p class="text-sm text-gray-500 hidden sm:block mt-1">Kelola layanan WhatsApp Webhook Anda</p>
@@ -23,6 +19,11 @@
                     </div>
                 </div>
             <% } %>
+
+            <!-- Dark mode toggle -->
+            <button id="darkModeToggle" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <i class="ri-sun-line text-gray-600 text-xl"></i>
+            </button>
 
             <!-- Logout button -->
             <form id="logoutForm" action="/logout-user" method="POST" data-confirm="Apakah Anda yakin ingin logout?">

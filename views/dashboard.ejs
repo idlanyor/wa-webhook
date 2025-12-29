@@ -10,38 +10,42 @@
             <%- include('partials/navbar') %>
             <main class="flex-1 p-4 sm:p-6 lg:p-8">
                 <div class="max-w-7xl mx-auto">
-                    <!-- Welcome Section -->
-                    <div class="mb-8 fade-in">
-                        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Dasbor</h1>
-                        <p class="text-lg text-gray-600">Kelola layanan WhatsApp Webhook Anda</p>
+                    
+                    <!-- Top Status Bar (Seberis Memanjang) -->
+                    <div class="fade-in">
+                        <%- include('partials/status-card') %>
                     </div>
 
-                    <!-- Top Grid: Status + QR + Actions -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                        <!-- Left: Status + QR -->
-                        <div class="lg:col-span-2 space-y-6">
-                            <div class="fade-in">
-                                <%- include('partials/status-card') %>
-                            </div>
-                            <div class="fade-in">
-                                <%- include('partials/qr-container') %>
-                            </div>
+                    <!-- Grid: QR + Actions (Berjejeran) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <!-- Left: QR Container -->
+                        <div class="fade-in">
+                            <%- include('partials/qr-container') %>
                         </div>
 
                         <!-- Right: Quick Actions -->
-                        <div class="space-y-6">
-                            <div class="fade-in">
-                                <%- include('partials/actions') %>
-                            </div>
+                        <div class="fade-in">
+                            <%- include('partials/actions') %>
                         </div>
                     </div>
+
+                    <!-- Recent Messages (Optional, can be added below) -->
+                    <div id="messagesCard" class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 fade-in" style="display: none;">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800">Pesan Terbaru</h3>
+                            <i class="ri-history-line text-blue-500 text-xl"></i>
+                        </div>
+                        <div id="messagesList" class="space-y-4">
+                            <!-- Messages will appear here -->
+                        </div>
+                    </div>
+
                 </div>
             </main>
         </div>
     </div>
 
-    <!-- Mobile menu overlay -->
-    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+    <%- include('partials/bottom-nav') %>
 
     <%- include('partials/scripts') %>
 </body>

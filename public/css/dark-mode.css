@@ -1,0 +1,177 @@
+/* public/css/dark-mode.css */
+
+:root {
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+}
+
+.dark {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+}
+
+/* Base Body Override */
+.dark body, 
+.dark .bg-gradient-to-br {
+    background-color: var(--bg-main) !important;
+    background-image: none !important;
+    color: var(--text-main) !important;
+}
+
+/* Backgrounds */
+.dark .bg-white {
+    background-color: var(--bg-card) !important;
+}
+
+.dark .bg-gray-50,
+.dark .bg-blue-50,
+.dark .bg-green-50,
+.dark .bg-orange-50,
+.dark .bg-indigo-50,
+.dark .bg-purple-50,
+.dark .bg-red-50 {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-blue-50:hover,
+.dark .hover\:bg-green-50:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Text Colors */
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-gray-700,
+.dark .text-slate-900,
+.dark .text-slate-800 {
+    color: var(--text-main) !important;
+}
+
+.dark .text-gray-600,
+.dark .text-gray-500,
+.dark .text-slate-600,
+.dark .text-slate-500,
+.dark .text-blue-700,
+.dark .text-green-700,
+.dark .text-orange-700,
+.dark .text-indigo-700 {
+    color: var(--text-muted) !important;
+}
+
+.dark .border-blue-500,
+.dark .border-green-500,
+.dark .border-orange-500,
+.dark .border-indigo-500 {
+    border-color: #60a5fa !important; /* light blue for active border in dark mode */
+}
+
+/* Borders */
+.dark .border,
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-slate-200 {
+    border-color: var(--border-color) !important;
+}
+
+.dark .bg-gray-50\/50,
+.dark .bg-slate-50\/30 {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+.dark .bg-indigo-50\/50 {
+    background-color: rgba(99, 102, 241, 0.1) !important;
+}
+
+.dark code.text-indigo-600 {
+    color: #818cf8 !important; /* light indigo */
+}
+
+.dark .divide-gray-50 > * + * {
+    border-color: var(--border-color) !important;
+}
+
+.dark .text-indigo-500 {
+    color: #818cf8 !important;
+}
+
+/* Sidebar Specific */
+.dark aside#sidebar {
+    background-color: var(--bg-card) !important;
+    border-right-color: var(--border-color) !important;
+}
+
+/* Card Overrides */
+.dark .card-hover:hover {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Inputs */
+.dark input, 
+.dark textarea, 
+.dark select {
+    background-color: #0f172a !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+
+.dark input::placeholder, 
+.dark textarea::placeholder {
+    color: #475569 !important;
+}
+
+/* Navbar */
+.dark header {
+    background-color: var(--bg-card) !important;
+    border-bottom-color: var(--border-color) !important;
+}
+
+/* Tables */
+.dark table thead tr {
+    border-bottom-color: var(--border-color) !important;
+}
+
+.dark table tbody tr {
+    border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Buttons (Non-gradients) */
+.dark .bg-blue-100,
+.dark .bg-gradient-to-br.from-blue-100 {
+    background: rgba(59, 130, 246, 0.2) !important;
+}
+
+.dark .md\:flex.border-x {
+    border-color: var(--border-color) !important;
+}
+
+/* Scrollbars */
+.dark ::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* Utilities */
+.dark .shadow-lg,
+.dark .shadow-sm,
+.dark .shadow-md {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2) !important;
+}
