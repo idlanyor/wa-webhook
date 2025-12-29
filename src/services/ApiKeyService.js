@@ -1,5 +1,5 @@
 import { randomBytes, createHash } from 'crypto';
-import { getDatabase } from '../config/database.js';
+import ApiKey from '../models/ApiKey.js';
 
 class ApiKeyService {
     /**
@@ -7,15 +7,13 @@ class ApiKeyService {
      */
     static async getUserApiKeys(userId) {
         try {
-            const supabase = getDatabase();
-            const { data, error } = await supabase
-                .from('api_keys')
-                .select('id, created_at')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false });
+            const keys = await ApiKey.find({ userId })
+                .sort({ createdAt: -1 });
 
-            if (error) throw error;
-            return data || [];
+            return keys.map(k => ({
+                id: k._id,
+                created_at: k.createdAt
+            }));
         } catch (error) {
             console.error('Error fetching API keys:', error);
             throw error;
@@ -30,17 +28,15 @@ class ApiKeyService {
             const rawKey = randomBytes(32).toString('hex');
             const keyHash = createHash('sha256').update(rawKey).digest('hex');
             
-            const supabase = getDatabase();
-            const { data, error } = await supabase
-                .from('api_keys')
-                .insert({ user_id: userId, key_hash: keyHash })
-                .select()
-                .single();
-
-            if (error) throw error;
+            const apiKey = new ApiKey({
+                userId,
+                keyHash
+            });
+            await apiKey.save();
 
             return {
-                ...data,
+                id: apiKey._id,
+                created_at: apiKey.createdAt,
                 raw_key: rawKey // Only returned once during creation
             };
         } catch (error) {
@@ -54,13 +50,7 @@ class ApiKeyService {
      */
     static async deleteApiKey(userId, keyId) {
         try {
-            const supabase = getDatabase();
-            const { error } = await supabase
-                .from('api_keys')
-                .delete()
-                .match({ id: keyId, user_id: userId });
-
-            if (error) throw error;
+            await ApiKey.findOneAndDelete({ _id: keyId, userId });
             return true;
         } catch (error) {
             console.error('Error deleting API key:', error);

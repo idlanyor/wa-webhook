@@ -1,58 +1,90 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <%- include('partials/head', { title: 'Pengaturan Bot WhatsApp' }) %>
+    <%- include('partials/head', { title: 'Pengaturan Bot Balas Otomatis' }) %>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
     <div class="flex min-h-screen">
         <%- include('partials/sidebar') %>
-        <div class="flex-1 flex flex-col">
-            <%- include('partials/navbar', { title: 'Pengaturan Bot WhatsApp' }) %>
-            <main class="flex-1 p-6">
-                <div class="max-w-7xl mx-auto space-y-6">
-                <!-- Global Bot Toggle -->
-                    <div class="card">
-                        <div class="card-header">
-                            <div>
-                                <h3 class="card-title">Status Bot</h3>
-                                <p class="card-description">Aktifkan/nonaktifkan seluruh bot balas otomatis.</p>
-                            </div>
-                            <i class="ri-settings-3-line text-xl text-gray-500"></i>
-                        </div>
-                        <div class="card-content">
-                            <form action="/auto-reply/settings" method="POST" id="settingsForm" class="flex justify-between items-center">
-                                <label for="auto_reply_enabled" class="text-sm font-medium text-gray-700">Aktifkan Bot</label>
-                                <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-gray-200 rounded-full cursor-pointer">
-                                    <input type="checkbox" name="auto_reply_enabled" id="auto_reply_enabled" <%= settings.auto_reply_enabled === 'true' ? 'checked' : '' %> onchange="document.getElementById('settingsForm').submit()" class="absolute w-6 h-6 transition duration-200 ease-in-out transform bg-white border-2 border-gray-300 rounded-full cursor-pointer checked:translate-x-6 checked:bg-blue-600 checked:border-blue-600">
-                                </div>
-                            </form>
-                        </div>
+        <div class="flex-1 flex flex-col lg:ml-0">
+            <%- include('partials/navbar', { title: 'Pengaturan Bot Balas Otomatis' }) %>
+            <main class="flex-1 p-4 sm:p-6 lg:p-8">
+                <div class="max-w-7xl mx-auto">
+                    <!-- Welcome Section -->
+                    <div class="mb-8 fade-in">
+                        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Bot Balas Otomatis</h1>
+                        <p class="text-lg text-gray-600">Konfigurasi balasan otomatis untuk pesan WhatsApp Anda</p>
                     </div>
 
-                <!-- Add New Rule -->
-                    <div class="card">
-                        <div class="card-header">
-                            <div>
-                                <h3 class="card-title">Tambah Aturan Balas Otomatis Baru</h3>
-                                <p class="card-description">Buat kata kunci baru dan balasan yang sesuai.</p>
+                    <!-- Action Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- Global Bot Toggle -->
+                        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 card-hover transition-all duration-300 fade-in">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800">Status Bot</h3>
+                                    <p class="text-sm text-gray-600 mt-1">Kontrol utama bot</p>
+                                </div>
+                                <div class="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl flex items-center justify-center shadow-inner">
+                                    <i class="ri-robot-2-line text-orange-600 text-2xl"></i>
+                                </div>
                             </div>
-                            <i class="ri-add-line text-xl text-gray-500"></i>
+                            <form action="/auto-reply/settings" method="POST" id="settingsForm" class="flex flex-col space-y-4">
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                    <span class="text-sm font-medium text-gray-700">Aktifkan Seluruh Bot</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="auto_reply_enabled" id="auto_reply_enabled" 
+                                               <%= settings.auto_reply_enabled === 'true' ? 'checked' : '' %> 
+                                               onchange="document.getElementById('settingsForm').submit()" 
+                                               class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                </div>
+                                <p class="text-xs text-gray-500 text-center italic">
+                                    Bot akan <%= settings.auto_reply_enabled === 'true' ? 'aktif' : 'nonaktif' %> secara global.
+                                </p>
+                            </form>
                         </div>
-                        <div class="card-content">
-                            <form action="/auto-reply/add" method="POST">
-                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                        <!-- Add New Rule -->
+                        <div class="lg:col-span-2 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 card-hover transition-all duration-300 fade-in">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800">Tambah Aturan Baru</h3>
+                                    <p class="text-sm text-gray-600 mt-1">Definisikan kata kunci dan balasannya</p>
+                                </div>
+                                <div class="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center shadow-inner">
+                                    <i class="ri-add-box-line text-blue-600 text-2xl"></i>
+                                </div>
+                            </div>
+                            <form action="/auto-reply/add" method="POST" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="space-y-2">
                                         <label for="keyword" class="block text-sm font-medium text-gray-700">Kata Kunci</label>
-                                        <input type="text" name="keyword" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="contoh: info">
+                                        <div class="relative">
+                                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                                <i class="ri-key-2-line"></i>
+                                            </span>
+                                            <input type="text" name="keyword" required 
+                                                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" 
+                                                   placeholder="contoh: info">
+                                        </div>
                                     </div>
                                     <div class="space-y-2">
                                         <label for="reply" class="block text-sm font-medium text-gray-700">Pesan Balasan</label>
-                                        <input type="text" name="reply" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Pesan yang akan dikirim sebagai balasan">
+                                        <div class="relative">
+                                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                                <i class="ri-chat-1-line"></i>
+                                            </span>
+                                            <input type="text" name="reply" required 
+                                                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" 
+                                                   placeholder="Tulis pesan balasan...">
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="flex justify-end mt-6">
-                                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                                        <i class="ri-save-line mr-2"></i>
+                                <div class="flex justify-end">
+                                    <button type="submit" class="group flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1">
+                                        <i class="ri-save-line group-hover:scale-110 transition-transform"></i>
                                         <span>Simpan Aturan</span>
                                     </button>
                                 </div>
@@ -60,63 +92,101 @@
                         </div>
                     </div>
 
-                <!-- Rules List -->
-                    <div class="card col-span-full">
-                        <div class="card-header">
-                             <div>
-                                <h3 class="card-title">Daftar Aturan Balas Otomatis</h3>
-                                <p class="card-description">Kelola balasan berdasarkan kata kunci yang sudah ada.</p>
+                    <!-- Rules List -->
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 fade-in">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-800">Daftar Aturan Balasan</h3>
+                                <p class="text-sm text-gray-600 mt-1">Kelola aturan yang sudah Anda buat</p>
                             </div>
-                            <i class="ri-list-settings-line text-xl text-gray-500"></i>
+                            <div class="w-14 h-14 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-2xl flex items-center justify-center shadow-inner">
+                                <i class="ri-list-settings-line text-indigo-600 text-2xl"></i>
+                            </div>
                         </div>
-                        <div class="card-content">
-                            <div class="overflow-x-auto">
-                                <table class="w-full border-collapse">
-                                    <thead>
-                                        <tr class="border-b border-gray-200">
-                                            <th class="text-left py-3 px-4 font-medium text-gray-700">Status</th>
-                                            <th class="text-left py-3 px-4 font-medium text-gray-700">Kata Kunci</th>
-                                            <th class="text-left py-3 px-4 font-medium text-gray-700">Balasan</th>
-                                            <th class="text-left py-3 px-4 font-medium text-gray-700">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <% if (replies.length > 0) { %>
-                                            <% replies.forEach(rule => { %>
-                                                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                                    <td class="py-3 px-4">
-                                                        <a href="/auto-reply/toggle/<%= rule.id %>" class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full <%= rule.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
-                                                            <%= rule.enabled ? 'On' : 'Off' %>
-                                                        </a>
-                                                    </td>
-                                                    <td class="py-3 px-4 font-mono text-sm"><%= rule.keyword %></td>
-                                                    <td class="py-3 px-4 text-sm"><%= rule.reply %></td>
-                                                    <td class="py-3 px-4">
-                                                            <form action="/auto-reply/delete/<%= rule.id %>" method="POST" data-confirm="Hapus aturan ini?" class="inline">
-                                                            <button type="submit" class="inline-flex items-center p-1 text-red-600 hover:bg-red-50 rounded">
+
+                        <!-- Alerts -->
+                        <% if (locals.error) { %>
+                            <div class="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center space-x-2">
+                                <i class="ri-error-warning-line"></i>
+                                <span><%= error %></span>
+                            </div>
+                        <% } %>
+                        <% if (locals.success) { %>
+                            <div class="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-center space-x-2">
+                                <i class="ri-checkbox-circle-line"></i>
+                                <span><%= success %></span>
+                            </div>
+                        <% } %>
+
+                        <!-- Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-left border-b border-gray-100">
+                                        <th class="pb-4 px-4 font-semibold text-gray-800">Status</th>
+                                        <th class="pb-4 px-4 font-semibold text-gray-800">Kata Kunci</th>
+                                        <th class="pb-4 px-4 font-semibold text-gray-800">Pesan Balasan</th>
+                                        <th class="pb-4 px-4 font-center font-semibold text-gray-800 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50">
+                                    <% if (replies && replies.length > 0) { %>
+                                        <% replies.forEach(rule => { %>
+                                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                                <td class="py-4 px-4">
+                                                    <a href="/auto-reply/toggle/<%= rule.id %>" 
+                                                       class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold transition-all
+                                                       <%= rule.enabled ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' %>">
+                                                        <span class="w-2 h-2 rounded-full mr-1.5 <%= rule.enabled ? 'bg-green-500' : 'bg-gray-400' %>"></span>
+                                                        <%= rule.enabled ? 'AKTIF' : 'NONAKTIF' %>
+                                                    </a>
+                                                </td>
+                                                <td class="py-4 px-4 font-medium text-blue-600 bg-blue-50/30 rounded-lg">
+                                                    <%= rule.keyword %>
+                                                </td>
+                                                <td class="py-4 px-4 text-gray-600 max-w-md truncate">
+                                                    <%= rule.reply %>
+                                                </td>
+                                                <td class="py-4 px-4 text-center">
+                                                    <div class="flex items-center justify-center space-x-2">
+                                                        <form action="/auto-reply/delete/<%= rule.id %>" method="POST" 
+                                                              data-confirm="Apakah Anda yakin ingin menghapus aturan ini?" 
+                                                              class="inline">
+                                                            <button type="submit" 
+                                                                    class="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200"
+                                                                    title="Hapus Aturan">
                                                                 <i class="ri-delete-bin-line text-lg"></i>
                                                             </button>
                                                         </form>
-                                                    </td>
-                                                </tr>
-                                            <% }); %>
-                                        <% } else { %>
-                                            <tr>
-                                                <td colspan="4" class="py-8 px-4 text-center text-gray-500">Belum ada aturan yang dikonfigurasi.</td>
+                                                    </div>
+                                                </td>
                                             </tr>
-                                        <% } %>
-                                    </tbody>
-                                </table>
-                            </div>
+                                        <% }); %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="4" class="py-12 text-center text-gray-500">
+                                                <div class="flex flex-col items-center space-y-3">
+                                                    <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-2">
+                                                        <i class="ri-chat-delete-line text-4xl text-gray-300"></i>
+                                                    </div>
+                                                    <p class="text-lg font-medium text-gray-400">Belum ada aturan balas otomatis</p>
+                                                    <p class="text-sm">Mulai dengan menambahkan aturan baru di atas.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </main>
         </div>
     </div>
+
     <!-- Mobile menu overlay -->
     <div id="mobileMenuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
 
     <%- include('partials/simple-scripts') %>
 </body>
-</html> 
+</html>

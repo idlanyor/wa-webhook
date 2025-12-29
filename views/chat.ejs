@@ -1,156 +1,147 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-    <%- include('partials/head') %>
-        <style>
-            .chat-container {
-                display: flex;
-                height: calc(100vh - 120px);
-                background: var(--card);
-                border-radius: var(--radius);
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-                overflow: hidden;
-            }
-
-            .chat-list {
-                width: 280px;
-                border-right: 1px solid var(--border);
-                overflow-y: auto;
-                background: var(--background);
-            }
-
-            .chat-item {
-                padding: .75rem 1rem;
-                cursor: pointer;
-                border-bottom: 1px solid var(--border);
-            }
-
-            .chat-item.active { background: rgba(0,0,0,.08); }
-
-            .chat-panel { flex: 1; display:flex; flex-direction:column; }
-
-            .chat-box {
-                flex: 1;
-                overflow-y: auto;
-                padding: 1rem;
-                background: var(--background);
-                border-bottom: 1px solid var(--border);
-            }
-
-            .message-item {
-                margin-bottom: 1rem;
-                padding: .75rem 1rem;
-                border-radius: var(--radius);
-                background: var(--card);
-                border: 1px solid var(--border);
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            }
-
-            .message-item .message-from {
-                font-weight: 600;
-                margin-bottom: .25rem;
-                color: var(--foreground);
-            }
-
-            .message-item .message-text {
-                color: var(--foreground);
-            }
-
-            .chat-send {
-                display: flex;
-                gap: .5rem;
-                padding: 1rem;
-                background: var(--card);
-                border-top: 1px solid var(--border);
-            }
-
-            .chat-send input {
-                flex: 1;
-                padding: .75rem;
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                background: var(--background);
-                color: var(--foreground);
-                font-size: 14px;
-            }
-
-            .chat-send input:focus {
-                outline: none;
-                border-color: var(--ring);
-                box-shadow: 0 0 0 2px rgba(37, 211, 102, 0.1);
-            }
-
-            .chat-send button {
-                white-space: nowrap;
-                padding: .75rem 1.5rem;
-            }
-
-            .quoted-reply {
-                background: rgba(0,0,0,0.1);
-                border-left: 2px solid #25D366;
-                padding: 0.5rem;
-                margin-bottom: 0.5rem;
-                border-radius: 4px;
-                font-size: 0.9em;
-                opacity: 0.8;
-            }
-            .quoted-reply .quoted-sender { font-weight: bold; }
-            .message-actions { float: right; opacity: 0; transition: opacity 0.2s ease-in-out; }
-            .message-item:hover .message-actions { opacity: 1; }
-            .message-actions i { cursor: pointer; margin-left: 8px; font-size: 1.1rem; }
-
-            .reply-preview {
-                padding: 0.5rem 1rem;
-                background: var(--background);
-                border-bottom: 1px solid var(--border);
-                display: none;
-            }
-            .reply-preview-content {
-                background: rgba(0,0,0,0.1);
-                border-left: 2px solid #25D366;
-                padding: .5rem;
-                border-radius: 4px;
-            }
-            .reply-preview p { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            #reply-close-btn { position: absolute; top: .5rem; right: .5rem; background: none; border: none; font-size: 1.2rem; cursor: pointer; }
-        </style>
+    <%- include('partials/head', { title: 'Live Chat' }) %>
+    <style>
+        .chat-container {
+            height: calc(100vh - 160px);
+            min-height: 500px;
+        }
+        .chat-list-container {
+            width: 320px;
+        }
+        .chat-box-container {
+            flex: 1;
+        }
+        .message-bubble {
+            max-width: 80%;
+            border-radius: 1.25rem;
+        }
+        .message-in {
+            background-color: white;
+            border-bottom-left-radius: 0.25rem;
+        }
+        .message-out {
+            background-color: #dcf8c6;
+            border-bottom-right-radius: 0.25rem;
+            margin-left: auto;
+        }
+        .chat-item.active {
+            background-color: #f0f4ff;
+            border-right: 4px solid #3b82f6;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        #messagesBox {
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            background-repeat: repeat;
+            background-attachment: local;
+        }
+    </style>
 </head>
-
-<body>
-    <div class="dashboard-layout">
-        <%- include('partials/sidebar', { page: 'chat' }) %>
-            <div class="main-content">
-                <%- include('partials/navbar', { title: 'Live Chat' }) %>
-                    <main class="content-wrapper">
-                        <div class="chat-container">
-                            <div class="chat-list" id="chatList"></div>
-                            <div class="chat-panel">
-                                <div id="replyPreview" class="reply-preview">
-                                    <div style="position:relative">
-                                        <button id="reply-close-btn" onclick="cancelReply()">&times;</button>
-                                        <div class="reply-preview-content">
-                                            <p>Replying to <strong id="replySender"></strong></p>
-                                            <p id="replyText" style="opacity:0.8;"></p>
-                                        </div>
-                                    </div>
-                                    <input type="hidden" id="replyToId" />
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+    <div class="flex min-h-screen">
+        <%- include('partials/sidebar') %>
+        <div class="flex-1 flex flex-col lg:ml-0">
+            <%- include('partials/navbar', { title: 'Live Chat' }) %>
+            <main class="flex-1 p-4 sm:p-6">
+                <div class="max-w-7xl mx-auto">
+                    <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden chat-container flex fade-in">
+                        <!-- Sidebar: Chat List -->
+                        <div class="chat-list-container flex flex-col border-r border-gray-100 bg-gray-50/30">
+                            <div class="p-5 border-b border-gray-100 bg-white">
+                                <h3 class="text-xl font-bold text-gray-800">Obrolan</h3>
+                                <p class="text-xs text-gray-500 mt-1">Pesan terbaru dari pelanggan</p>
+                            </div>
+                            <div class="flex-1 overflow-y-auto scrollbar-hide" id="chatList">
+                                <!-- Skeleton Loaders -->
+                                <div class="p-4 space-y-4">
+                                    <div class="h-16 bg-gray-100 rounded-2xl animate-pulse"></div>
+                                    <div class="h-16 bg-gray-100 rounded-2xl animate-pulse"></div>
+                                    <div class="h-16 bg-gray-100 rounded-2xl animate-pulse"></div>
                                 </div>
-                                <div id="messagesBox" class="chat-box"></div>
-                                <form id="sendForm" class="chat-send" onsubmit="return sendMessage(event)">
-                                    <input type="text" id="toInput" placeholder="Nomor telepon (mis. 628123...)" required />
-                                    <input type="text" id="msgInput" placeholder="Tulis pesan..." required />
-                                    <button class="btn btn-secondary" type="button" id="chooseTemplateBtn">Pilih Template</button>
-                                    <button class="btn btn-primary" type="submit">Kirim</button>
-                                </form>
-                                <div id="templateHint" style="padding: .5rem 1rem; font-size: .85rem; color: #374151; display:none">Template: <span id="templateName" style="font-weight:600"></span> diterapkan.</div>
                             </div>
                         </div>
-                    </main>
-            </div>
+
+                        <!-- Main Chat Panel -->
+                        <div class="chat-box-container flex flex-col bg-white">
+                            <!-- Chat Header -->
+                            <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-white z-10">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+                                        <i class="ri-user-3-line text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-gray-800" id="activeChatName">Pilih Obrolan</h4>
+                                        <p class="text-xs text-green-500 flex items-center">
+                                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
+                                            Terhubung
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button class="p-2 text-gray-400 hover:bg-gray-50 rounded-lg transition-all" id="chooseTemplateBtn">
+                                        <i class="ri-layout-grid-line text-xl" title="Pilih Template"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Messages Area -->
+                            <div class="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-hide" id="messagesBox">
+                                <div class="flex flex-col items-center justify-center h-full text-gray-400 opacity-50">
+                                    <i class="ri-chat-smile-2-line text-6xl mb-4"></i>
+                                    <p>Pilih salah satu percakapan di samping</p>
+                                </div>
+                            </div>
+
+                            <!-- Reply Preview -->
+                            <div id="replyPreview" class="px-6 py-3 bg-indigo-50 border-t border-indigo-100 hidden relative">
+                                <div class="border-l-4 border-indigo-500 pl-3 py-1 bg-white/50 rounded-r-lg">
+                                    <p class="text-xs font-bold text-indigo-600">Membalas <span id="replySender"></span></p>
+                                    <p class="text-sm text-gray-500 truncate" id="replyText"></p>
+                                </div>
+                                <button onclick="cancelReply()" class="absolute top-2 right-4 text-gray-400 hover:text-red-500">
+                                    <i class="ri-close-circle-fill text-xl"></i>
+                                </button>
+                                <input type="hidden" id="replyToId" />
+                            </div>
+
+                            <!-- Input Area -->
+                            <div class="p-4 bg-white border-t border-gray-100">
+                                <div id="templateHint" class="mb-3 px-3 py-1.5 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg flex items-center justify-between hidden">
+                                    <span><i class="ri-checkbox-circle-line mr-1"></i> Template: <span id="templateName"></span></span>
+                                    <button onclick="clearTemplate()" class="text-blue-800 hover:underline">Hapus</button>
+                                </div>
+                                <form id="sendForm" onsubmit="return sendMessage(event)" class="flex items-end space-x-3">
+                                    <div class="flex-1 space-y-2">
+                                        <input type="hidden" id="toInput" required />
+                                        <div class="relative">
+                                            <textarea id="msgInput" rows="1" 
+                                                      class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all outline-none resize-none" 
+                                                      placeholder="Ketik pesan..." required></textarea>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="w-12 h-12 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg shadow-blue-200 transition-all hover:-translate-y-1">
+                                        <i class="ri-send-plane-2-fill text-xl"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <!-- Mobile menu overlay -->
+    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+
+    <%- include('partials/simple-scripts') %>
     <script>
         const socket = io('/', {
             path: '/socket.io',
@@ -164,12 +155,26 @@
         const chatListEl = document.getElementById('chatList');
         const replyPreviewEl = document.getElementById('replyPreview');
         const replyToIdEl = document.getElementById('replyToId');
+        const activeChatNameEl = document.getElementById('activeChatName');
         let currentChat = null;
         let currentTemplate = null;
         const chooseTemplateBtn = document.getElementById('chooseTemplateBtn');
         const templateHint = document.getElementById('templateHint');
         const templateNameEl = document.getElementById('templateName');
+        const msgInput = document.getElementById('msgInput');
         let contactsCache = null;
+
+        // Auto-expand textarea
+        msgInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            if (this.scrollHeight > 150) {
+                this.style.overflowY = 'scroll';
+                this.style.height = '150px';
+            } else {
+                this.style.overflowY = 'hidden';
+            }
+        });
 
         async function loadChats(){
             try{
@@ -178,64 +183,88 @@
                 const chats = await res.json();
                 chatListEl.innerHTML = '';
                 if(chats.length === 0){
-                    chatListEl.innerHTML = '<p style="padding: 1rem; opacity: 0.7;">No chats yet...</p>';
+                    chatListEl.innerHTML = '<div class="p-8 text-center text-gray-400"><p>Belum ada obrolan</p></div>';
                     return;
                 }
                 chats.forEach(c=>{
                     const item=document.createElement('div');
-                    item.className='chat-item';
-                    item.dataset.jid=c.chat_jid;
+                    const jid = c.chat_jid;
+                    const name = c.sender || jid.split('@')[0];
+                    const isActive = currentChat === jid;
+                    
+                    item.className=`chat-item p-4 cursor-pointer border-b border-gray-50 flex items-center space-x-3 transition-all ${isActive ? 'active' : 'hover:bg-gray-50'}`;
+                    item.dataset.jid=jid;
                     item.innerHTML = `
-                        <div style="font-weight: 600;">${c.sender || c.chat_jid.replace('@s.whatsapp.net','')}</div>
-                        <div style="opacity: 0.8; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.message}</div>
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-500 font-bold">
+                            ${name.substring(0, 1).toUpperCase()}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-start">
+                                <h5 class="font-bold text-gray-800 truncate">${name}</h5>
+                                <span class="text-[10px] text-gray-400">${new Date(c.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            </div>
+                            <p class="text-xs text-gray-500 truncate mt-0.5">${c.message || ''}</p>
+                        </div>
                     `;
-                    item.addEventListener('click',()=>selectChat(c.chat_jid));
+                    item.addEventListener('click',()=>selectChat(jid, name));
                     chatListEl.appendChild(item);
                 });
-                if(chats.length>0 && !currentChat){ selectChat(chats[0].chat_jid); }
+                if(chats.length>0 && !currentChat){ 
+                    const first = chats[0];
+                    selectChat(first.chat_jid, first.sender || first.chat_jid.split('@')[0]); 
+                }
             }catch(err){
                 console.error(err);
-                chatListEl.innerHTML = '<p style="padding: 1rem; color: red;">Could not load chats.</p>';
+                chatListEl.innerHTML = '<div class="p-8 text-center text-red-400"><p>Gagal memuat obrolan</p></div>';
             }
         }
 
-        async function selectChat(jid){
+        async function selectChat(jid, name){
             currentChat=jid;
+            activeChatNameEl.innerText = name;
             [...chatListEl.children].forEach(el=>el.classList.toggle('active', el.dataset.jid===jid));
-            messagesBox.innerHTML='';
+            messagesBox.innerHTML='<div class="flex items-center justify-center h-full"><div class="loading"></div></div>';
             document.getElementById('toInput').value = jid.replace(/@s\.whatsapp\.net$/, '');
             try{
                 const res=await fetch(`/api/chats/${encodeURIComponent(jid)}`);
                 const msgs=await res.json();
+                messagesBox.innerHTML = '';
                 msgs.forEach(m=>addMessage(m));
             }catch(err){console.error(err);}
         }
 
         function addMessage(data) {
-            const el = document.createElement('div');
-            el.className = 'message-item';
+            const isMe = data.direction === 'out';
+            const container = document.createElement('div');
+            container.className = `flex w-full mb-4 ${isMe ? 'justify-end' : 'justify-start'}`;
+            
             const ts = data.timestamp ? (data.timestamp < 1e12 ? data.timestamp * 1000 : data.timestamp) : Date.now();
             
             let quotedHtml = '';
             if (data.quoted_text) {
-                quotedHtml = `<div class="quoted-reply">
-                    <div class="quoted-sender">${(data.quoted_sender || '').split('@')[0]}</div>
-                    <div>${data.quoted_text}</div>
+                quotedHtml = `<div class="mb-2 p-2 bg-black/5 rounded-lg border-l-4 border-blue-500 text-xs">
+                    <div class="font-bold opacity-60">${(data.quoted_sender || '').split('@')[0]}</div>
+                    <div class="opacity-80 italic truncate">${data.quoted_text}</div>
                 </div>`;
             }
 
-            const actionsHtml = data.id ? `<div class="message-actions">
-                <i class="ri-reply-line" onclick="prepareReply(${data.id}, '${data.sender}', '${(data.message || '').replace(/'/g, "\\'").replace(/\n/g, ' ')}')"></i>
-            </div>` : '';
+            const bubble = document.createElement('div');
+            bubble.className = `message-bubble p-3 shadow-sm border border-gray-100 ${isMe ? 'message-out' : 'message-in'}`;
+            
+            const actionsHtml = !isMe ? `<button onclick="prepareReply('${data.id}', '${data.sender}', '${(data.message || '').replace(/'/g, "\'" ).replace(/\n/g, ' ')}')" class="float-right text-gray-300 hover:text-blue-500 ml-2">
+                <i class="ri-reply-line"></i>
+            </button>` : '';
 
-            el.innerHTML = `
+            bubble.innerHTML = `
                 ${actionsHtml}
-                <div class="message-from">${data.sender || 'Unknown'}</div>
+                <div class="text-[10px] font-bold uppercase opacity-40 mb-1">${isMe ? 'Anda' : (data.sender || 'Unknown')}</div>
                 ${quotedHtml}
-                <div class="message-text">${data.message || data.text || ''}</div>
-                <div class="message-time" style="font-size:0.75rem;opacity:.7">${new Date(ts).toLocaleTimeString()}</div>
+                <div class="text-sm text-gray-800 leading-relaxed">${data.message || data.text || ''}</div>
+                <div class="text-[9px] text-right mt-1 opacity-40 font-bold">${new Date(ts).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
             `;
-            messagesBox.appendChild(el);
+            
+            container.appendChild(bubble);
+            messagesBox.appendChild(container);
             messagesBox.scrollTop = messagesBox.scrollHeight;
         }
 
@@ -244,12 +273,17 @@
             document.getElementById('replySender').textContent = sender;
             document.getElementById('replyText').textContent = text;
             replyPreviewEl.style.display = 'block';
-            document.getElementById('msgInput').focus();
+            msgInput.focus();
         }
 
         function cancelReply() {
             replyToIdEl.value = '';
             replyPreviewEl.style.display = 'none';
+        }
+
+        function clearTemplate() {
+            currentTemplate = null;
+            templateHint.style.display = 'none';
         }
 
         socket.on('new_message', msg=>{
@@ -259,50 +293,6 @@
 
         document.addEventListener('DOMContentLoaded', loadChats);
 
-        async function sendMessage(ev) {
-            ev.preventDefault();
-            const to = document.getElementById('toInput').value.trim();
-            let msg = document.getElementById('msgInput').value.trim();
-            const reply_to_id = replyToIdEl.value || null;
-            if (!to || !msg) return;
-            try {
-                if (currentTemplate) {
-                    await loadContactsCache();
-                    msg = applyTemplateVariables(msg, to);
-                }
-                const res = await fetch('/send-message', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ to: to, message: msg, reply_to_id: reply_to_id })
-                });
-                const json = await res.json();
-                if (!res.ok) {
-                    await Swal.fire({
-                        icon: 'error',
-                        title: 'Failed',
-                        text: json.error || 'Failed to send message',
-                    });
-                }
-                else {
-                    document.getElementById('msgInput').value = '';
-                    cancelReply();
-                }
-            } catch (err) {
-                await Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: err.message,
-                });
-            }
-        }
-    </script>
-    <!-- Mobile menu overlay -->
-    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
-
-    <%- include('partials/simple-scripts') %>
-</body>
-
-</html>
         async function loadContactsCache(){
             if (contactsCache) return contactsCache;
             try {
@@ -324,26 +314,68 @@
             return text.replace(/\{phone\}/g, phone).replace(/\{name\}/g, name);
         }
 
+        async function sendMessage(ev) {
+            ev.preventDefault();
+            const to = document.getElementById('toInput').value.trim();
+            let msg = msgInput.value.trim();
+            const reply_to_id = replyToIdEl.value || null;
+            if (!to || !msg) return;
+            try {
+                if (currentTemplate) {
+                    await loadContactsCache();
+                    msg = applyTemplateVariables(msg, to);
+                }
+                const res = await fetch('/send-message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ to: to, message: msg, reply_to_id: reply_to_id })
+                });
+                const json = await res.json();
+                if (!res.ok) {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: json.error || 'Gagal mengirim pesan' });
+                }
+                else {
+                    msgInput.value = '';
+                    msgInput.style.height = 'auto';
+                    cancelReply();
+                    clearTemplate();
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+            }
+        }
+
         if (chooseTemplateBtn){
             chooseTemplateBtn.addEventListener('click', async ()=>{
                 try{
                     const resp = await fetch('/templates/api');
                     const templates = await resp.json();
                     if (!Array.isArray(templates) || templates.length === 0){
-                        await Swal.fire({ icon: 'info', title: 'Info', text: 'Belum ada template. Buat di menu Template.' });
+                        Swal.fire({ icon: 'info', title: 'Info', text: 'Belum ada template. Buat di menu Template.' });
                         return;
                     }
                     const options = templates.reduce((acc, t)=>{ acc[t.id]=t.name; return acc; }, {});
-                    const { value: tplId } = await Swal.fire({ title: 'Pilih Template', input: 'select', inputOptions: options, inputPlaceholder: 'Pilih salah satu', showCancelButton: true });
+                    const { value: tplId } = await Swal.fire({ 
+                        title: 'Pilih Template', 
+                        input: 'select', 
+                        inputOptions: options, 
+                        inputPlaceholder: 'Pilih salah satu',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3b82f6'
+                    });
                     if (!tplId) return;
                     const tpl = templates.find(t=>t.id===tplId);
                     currentTemplate = tpl;
                     templateNameEl.textContent = tpl.name;
-                    templateHint.style.display = '';
-                    if (!document.getElementById('msgInput').value.trim()){
-                        document.getElementById('msgInput').value = tpl.content;
+                    templateHint.style.display = 'flex';
+                    if (!msgInput.value.trim()){
+                        msgInput.value = tpl.content;
+                        msgInput.dispatchEvent(new Event('input'));
                     }
                     await loadContactsCache();
                 }catch(err){ console.error(err); }
             });
         }
+    </script>
+</body>
+</html>

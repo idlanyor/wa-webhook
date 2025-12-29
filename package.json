@@ -4,7 +4,7 @@
   "main": "app.js",
   "type": "module",
   "engines": {
-    "node": ">=16.0.0",
+    "node": ">=20.0.0",
     "bun": ">=1.0.0"
   },
   "scripts": {
@@ -22,8 +22,8 @@
   "description": "",
   "dependencies": {
     "@hapi/boom": "^10.0.1",
-    "@supabase/supabase-js": "^2.58.0",
     "@whiskeysockets/baileys": "latest",
+    "bcryptjs": "^3.0.3",
     "body-parser": "^1.20.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -34,8 +34,9 @@
     "express-session": "^1.18.2",
     "j": "^1.0.0",
     "jimp": "^1.6.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.0.2",
     "multer": "^1.4.5-lts.2",
-    "pg": "^8.16.3",
     "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0",
     "socket.io": "^4.8.1",

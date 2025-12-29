@@ -11,9 +11,8 @@ export const config = {
     runtime,
     port: process.env.PORT || 8181,
     node_env: process.env.NODE_ENV || 'development',
-    supabase: {
-        url: process.env.SUPABASE_URL,
-        serviceKey: process.env.SUPABASE_SERVICE_KEY,
+    mongodb: {
+        uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/whatsapp-webhook',
     },
     session: {
         secret: process.env.SESSION_SECRET || 'default-secret',
@@ -51,11 +50,16 @@ export const config = {
 
 // Validate required environment variables
 export function validateConfig() {
-    const required = ['SUPABASE_URL', 'SUPABASE_SERVICE_KEY'];
+    const required = ['MONGODB_URI'];
     const missing = required.filter(key => !process.env[key]);
     
     if (missing.length > 0) {
-        throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+        // Fallback for local development if not provided
+        if (config.node_env === 'development') {
+            console.warn(`⚠️ MONGODB_URI not found in .env, using default: ${config.mongodb.uri}`);
+        } else {
+            throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+        }
     }
     
     // Log runtime information

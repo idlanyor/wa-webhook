@@ -1,55 +1,73 @@
-import { getDatabase } from '../config/database.js';
+import Template from '../models/Template.js';
 
 class TemplateService {
     static async listTemplates(userId) {
-        const supabase = getDatabase();
-        const { data, error } = await supabase
-            .from('message_templates')
-            .select('*')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false });
-        if (error) throw error;
-        return data || [];
+        try {
+            const templates = await Template.find({ userId })
+                .sort({ createdAt: -1 });
+            
+            return templates.map(t => ({
+                id: t._id,
+                user_id: t.userId,
+                name: t.name,
+                content: t.content,
+                created_at: t.createdAt,
+                updated_at: t.updatedAt
+            }));
+        } catch (error) {
+            console.error('Error listing templates:', error);
+            throw error;
+        }
     }
 
     static async getTemplateById(userId, id) {
-        const supabase = getDatabase();
-        const { data, error } = await supabase
-            .from('message_templates')
-            .select('*')
-            .eq('user_id', userId)
-            .eq('id', id)
-            .maybeSingle();
-        if (error) throw error;
-        return data || null;
+        try {
+            const template = await Template.findOne({ _id: id, userId });
+            if (!template) return null;
+
+            return {
+                id: template._id,
+                user_id: template.userId,
+                name: template.name,
+                content: template.content,
+                created_at: template.createdAt,
+                updated_at: template.updatedAt
+            };
+        } catch (error) {
+            console.error('Error getting template:', error);
+            throw error;
+        }
     }
 
     static async createTemplate(userId, name, content) {
-        const supabase = getDatabase();
-        const { error } = await supabase
-            .from('message_templates')
-            .insert({ user_id: userId, name, content });
-        if (error) throw error;
+        try {
+            const template = new Template({ userId, name, content });
+            await template.save();
+        } catch (error) {
+            console.error('Error creating template:', error);
+            throw error;
+        }
     }
 
     static async updateTemplate(userId, id, name, content) {
-        const supabase = getDatabase();
-        const { error } = await supabase
-            .from('message_templates')
-            .update({ name, content })
-            .eq('id', id)
-            .eq('user_id', userId);
-        if (error) throw error;
+        try {
+            await Template.findOneAndUpdate(
+                { _id: id, userId },
+                { name, content }
+            );
+        } catch (error) {
+            console.error('Error updating template:', error);
+            throw error;
+        }
     }
 
     static async deleteTemplate(userId, id) {
-        const supabase = getDatabase();
-        const { error } = await supabase
-            .from('message_templates')
-            .delete()
-            .eq('id', id)
-            .eq('user_id', userId);
-        if (error) throw error;
+        try {
+            await Template.findOneAndDelete({ _id: id, userId });
+        } catch (error) {
+            console.error('Error deleting template:', error);
+            throw error;
+        }
     }
 }
 

@@ -1,184 +1,118 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register • WhatsApp Webhook</title>
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-0a6luv0RgZNpmjQe7YQDdyCjTiMQuuLHfoalGexiBoNvKcJsteVEh9UpAJZciV06Pq4jG3Ejj6LikUeJ8V+5w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
+    <title>Daftar • WhatsApp Webhook</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
+    <link href="/css/tailwind.css" rel="stylesheet">
     <style>
-        :root {
-            --primary:#25D366;
-            --primary-dark:#128C7E;
-            --bg-gradient:linear-gradient(135deg,#43107A 0%, #FF004D 100%);
-            --card-bg:rgba(20,20,30,.55);
-            --card-border:rgba(255,255,255,.08);
-            --text-primary:#fafafa;
-            --text-secondary:#c9c9c9;
+        .glass-container {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
         }
-
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{
-            font-family:'Poppins',sans-serif;
-            background:var(--bg-gradient);
-            min-height:100vh;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            padding:1.5rem;
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
         }
-
-        /* Glass card */
-        .register-container{
-            backdrop-filter:blur(22px) saturate(180%);
-            -webkit-backdrop-filter:blur(22px) saturate(180%);
-            background:var(--card-bg);
-            border:1px solid var(--card-border);
-            border-radius:20px;
-            padding:3rem 2.5rem;
-            width:100%;
-            max-width:420px;
-            text-align:center;
-            animation:fadein .6s ease-out;
-        }
-
-        @keyframes fadein{from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none}}
-
-        .logo{
-            width:88px;
-            height:88px;
-            background:var(--primary);
-            border-radius:50%;
-            display:flex;align-items:center;justify-content:center;
-            color:#fff;font-size:42px;margin:0 auto 1.5rem;
-            box-shadow:0 8px 20px rgba(37,211,102,.4);
-        }
-
-        h1{font-size:1.9rem;color:var(--text-primary);font-weight:600;margin-bottom:.25rem}
-        .subtitle{color:var(--text-secondary);font-size:.95rem;margin-bottom:2.2rem}
-
-        .input-group{text-align:left;margin-bottom:1.4rem;position:relative}
-        label{display:block;color:var(--text-secondary);margin-bottom:.5rem;font-size:.9rem;font-weight:500}
-
-        .input-group input{
-            width:100%;padding:13px 48px 13px 16px;border-radius:10px;border:none;
-            font-size:.95rem;background:rgba(255,255,255,.08);color:var(--text-primary);
-        }
-        .input-group input:focus{outline:none;box-shadow:0 0 0 3px rgba(37,211,102,.35)}
-
-        .toggle-pass{
-            position:absolute;right:14px;top:50%;transform:translateY(-50%);
-            background:transparent;border:none;color:#bbb;font-size:1rem;cursor:pointer;
-        }
-
-        .btn{
-            width:100%;padding:13px 0;border:none;border-radius:10px;
-            background:var(--primary);color:#fff;font-size:1.05rem;font-weight:600;
-            cursor:pointer;transition:.25s ease;
-        }
-        .btn:hover{background:var(--primary-dark);transform:translateY(-2px)}
-
-        .error-message{
-            background:rgba(255,80,80,.15);border-left:4px solid #ff4d4d;color:#ffb3b3;
-            padding:.9rem 1rem;border-radius:8px;font-size:.85rem;margin-bottom:1.5rem;
-        }
-
-        .success-message{
-            background:rgba(37,211,102,.15);border-left:4px solid #25D366;color:#b3ffb3;
-            padding:.9rem 1rem;border-radius:8px;font-size:.85rem;margin-bottom:1.5rem;
-        }
-
-        .login-link{
-            margin-top:1.5rem;color:var(--text-secondary);font-size:.9rem;
-        }
-        .login-link a{
-            color:var(--primary);text-decoration:none;font-weight:500;
-        }
-        .login-link a:hover{text-decoration:underline}
-
-        @media(max-width:480px){
-            .register-container{padding:2.5rem 1.5rem}
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body>
-    <div class="register-container">
-        <div class="logo">📝</div>
-        <h1>Create Account</h1>
-        <p class="subtitle">Join WhatsApp Webhook API</p>
+<body class="bg-gradient-to-br from-indigo-600 via-purple-700 to-pink-800 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-lg w-full glass-container rounded-[2.5rem] shadow-2xl overflow-hidden p-8 sm:p-12 fade-in">
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-indigo-500/30">
+                <i class="ri-user-add-line text-white text-4xl"></i>
+            </div>
+            <h1 class="text-3xl font-black text-gray-900 tracking-tight">Buat Akun</h1>
+            <p class="text-gray-500 mt-2 font-medium">Mulai gunakan layanan WhatsApp Webhook</p>
+        </div>
 
         <% if (error) { %>
-            <div class="error-message"><%= error %></div>
+            <div class="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl flex items-center space-x-3 text-sm font-medium">
+                <i class="ri-error-warning-fill text-xl"></i>
+                <span><%= error %></span>
+            </div>
         <% } %>
 
         <% if (success) { %>
-            <div class="success-message"><%= success %></div>
+            <div class="mb-6 p-4 bg-green-50 border border-green-100 text-green-600 rounded-2xl flex items-center space-x-3 text-sm font-medium">
+                <i class="ri-checkbox-circle-fill text-xl"></i>
+                <span><%= success %></span>
+            </div>
         <% } %>
 
-        <form action="/register" method="POST">
-            <div class="input-group">
-                <label for="name">Full Name</label>
-                <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+        <form action="/register" method="POST" class="space-y-5">
+            <div class="space-y-2">
+                <label class="text-sm font-bold text-gray-700 ml-1">Nama Lengkap</label>
+                <div class="relative group">
+                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-indigo-500 transition-colors">
+                        <i class="ri-user-line"></i>
+                    </span>
+                    <input type="text" name="name" required 
+                           class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium" 
+                           placeholder="Nama Anda">
+                </div>
             </div>
-            <div class="input-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+
+            <div class="space-y-2">
+                <label class="text-sm font-bold text-gray-700 ml-1">Email</label>
+                <div class="relative group">
+                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-indigo-500 transition-colors">
+                        <i class="ri-mail-line"></i>
+                    </span>
+                    <input type="email" name="email" required 
+                           class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium" 
+                           placeholder="nama@email.com">
+                </div>
             </div>
-            <div class="input-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                <button type="button" class="toggle-pass" onclick="togglePass('password')"><i class="fa fa-eye"></i></button>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-gray-700 ml-1">Kata Sandi</label>
+                    <div class="relative group">
+                        <input type="password" name="password" id="password" required 
+                               class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium" 
+                               placeholder="••••••••">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-gray-700 ml-1">Konfirmasi</label>
+                    <div class="relative group">
+                        <input type="password" name="confirmPassword" id="confirmPassword" required 
+                               class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium" 
+                               placeholder="••••••••">
+                    </div>
+                </div>
             </div>
-            <div class="input-group">
-                <label for="confirmPassword">Confirm Password</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
-                <button type="button" class="toggle-pass" onclick="togglePass('confirmPassword')"><i class="fa fa-eye"></i></button>
-            </div>
-            <button type="submit" class="btn">Create Account</button>
+
+            <button type="submit" class="w-full py-4 mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-500/20 transition-all transform hover:-translate-y-1 active:scale-[0.98]">
+                Daftar Akun Baru
+            </button>
         </form>
 
-        <div class="login-link">
-            Already have an account? <a href="/login">Login here</a>
+        <div class="mt-8 text-center border-t border-gray-100 pt-8">
+            <p class="text-gray-500 font-medium">Sudah punya akun? <a href="/login" class="text-indigo-600 font-bold hover:underline">Masuk disini</a></p>
         </div>
     </div>
+
     <script>
-        function togglePass(inputId){
-            const input=document.getElementById(inputId);
-            const icon=event.currentTarget.querySelector('i');
-            if(input.type==='password'){
-                input.type='text';
-                icon.classList.replace('fa-eye','fa-eye-slash');
-            }else{
-                input.type='password';
-                icon.classList.replace('fa-eye-slash','fa-eye');
+        // Password confirmation validation
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+
+        function validatePassword() {
+            if (password.value !== confirmPassword.value) {
+                confirmPassword.setCustomValidity("Kata sandi tidak cocok");
+            } else {
+                confirmPassword.setCustomValidity("");
             }
         }
 
-        // Password confirmation validation
-        document.getElementById('confirmPassword').addEventListener('input', function() {
-            const password = document.getElementById('password').value;
-            const confirmPassword = this.value;
-            
-            if (password !== confirmPassword) {
-                this.setCustomValidity('Passwords do not match');
-            } else {
-                this.setCustomValidity('');
-            }
-        });
-
-        document.getElementById('password').addEventListener('input', function() {
-            const confirmPassword = document.getElementById('confirmPassword');
-            if (confirmPassword.value) {
-                if (this.value !== confirmPassword.value) {
-                    confirmPassword.setCustomValidity('Passwords do not match');
-                } else {
-                    confirmPassword.setCustomValidity('');
-                }
-            }
-        });
+        password.onchange = validatePassword;
+        confirmPassword.onkeyup = validatePassword;
     </script>
 </body>
-</html> 
+</html>

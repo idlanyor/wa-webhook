@@ -3,95 +3,171 @@
 <head>
     <%- include('partials/head', { title: 'Kunci API' }) %>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
     <div class="flex min-h-screen">
         <%- include('partials/sidebar') %>
-        <div class="flex-1 flex flex-col">
+        <div class="flex-1 flex flex-col lg:ml-0">
             <%- include('partials/navbar', { title: 'Kunci API' }) %>
-            <main class="flex-1 p-6">
-                <div class="max-w-7xl mx-auto space-y-6">
-                    <div class="card col-span-full">
-                        <div class="card-header">
-                            <div>
-                                <h3 class="card-title">Kunci API Saya</h3>
-                                <p class="card-description">Gunakan kunci ini untuk mengakses endpoint REST tanpa cookie sesi.</p>
-                            </div>
-                            <form action="/api-keys/generate" method="POST">
-                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                                    <i class="ri-key-line mr-2"></i>
-                                    Buat Baru
-                                </button>
-                            </form>
-                        </div>
-                        <div class="card-content">
-                            <% if (error) { %>
-                                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-                                    <%= error %>
-                                </div>
-                            <% } %>
-                            <% if (success) { %>
-                                <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-4">
-                                    <%= success %>
-                                </div>
-                            <% } %>
+            <main class="flex-1 p-4 sm:p-6 lg:p-8">
+                <div class="max-w-7xl mx-auto">
+                    <!-- Welcome Section -->
+                    <div class="mb-8 fade-in">
+                        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Manajemen Kunci API</h1>
+                        <p class="text-lg text-gray-600">Amankan akses ke layanan Anda melalui integrasi API</p>
+                    </div>
 
-                            <div class="overflow-x-auto mt-4">
-                                <table class="w-full border-collapse">
-                                    <thead>
-                                        <tr class="border-b border-gray-200">
-                                            <th class="text-left py-3 px-4 font-medium text-gray-700">#</th>
-                                            <th class="text-left py-3 px-4 font-medium text-gray-700">Kunci</th>
-                                            <th class="text-left py-3 px-4 font-medium text-gray-700">Dibuat Pada</th>
-                                            <th class="text-left py-3 px-4 font-medium text-gray-700">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <% if (keys && keys.length > 0) { %>
-                                            <% keys.forEach((k, index) => { %>
-                                                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                                    <td class="py-3 px-4"><%= index + 1 %></td>
-                                                    <td class="py-3 px-4">
-                                                        <% if (k.raw) { %>
-                                                            <code class="bg-gray-100 px-2 py-1 rounded font-mono text-sm"><%= k.raw %></code>
-                                                        <% } else { %>
-                                                            <span class="text-gray-500 italic">Tersembunyi</span>
-                                                        <% } %>
-                                                    </td>
-                                                    <td class="py-3 px-4 text-sm text-gray-600"><%= new Date(k.created_at).toLocaleString() %></td>
-                                                    <td class="py-3 px-4">
-                                                        <% if (k.id) { %>
-                                                            <form action="/api-keys/delete/<%= k.id %>" method="POST" data-confirm="Cabut kunci ini?" class="inline">
-                                                                <button class="inline-flex items-center p-1 text-red-600 hover:bg-red-50 rounded">
+                    <div class="grid grid-cols-1 gap-6">
+                        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden fade-in">
+                            <div class="p-6 sm:p-8 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50/50">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                                        <i class="ri-key-2-fill text-white text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-800">Kunci API Aktif</h3>
+                                        <p class="text-sm text-gray-500">Gunakan kunci ini untuk otentikasi eksternal</p>
+                                    </div>
+                                </div>
+                                <form action="/api-keys/generate" method="POST">
+                                    <button type="submit" class="group flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl font-bold transition-all shadow-md hover:shadow-lg hover:-translate-y-1">
+                                        <i class="ri-add-line group-hover:rotate-90 transition-transform duration-300"></i>
+                                        <span>Buat Kunci Baru</span>
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div class="p-6 sm:p-8">
+                                <!-- Alerts -->
+                                <% if (error) { %>
+                                    <div class="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl flex items-center space-x-3">
+                                        <i class="ri-error-warning-fill text-xl"></i>
+                                        <span class="font-medium"><%= error %></span>
+                                    </div>
+                                <% } %>
+                                <% if (success) { %>
+                                    <div class="mb-6 p-4 bg-blue-50 border border-blue-100 text-blue-600 rounded-2xl flex items-center space-x-3">
+                                        <i class="ri-information-fill text-xl"></i>
+                                        <span class="font-medium"><%= success %></span>
+                                    </div>
+                                <% } %>
+
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr class="text-left text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                                                <th class="pb-4 px-4">Urutan</th>
+                                                <th class="pb-4 px-4">Kunci API</th>
+                                                <th class="pb-4 px-4">Tanggal Dibuat</th>
+                                                <th class="pb-4 px-4 text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-50">
+                                            <% if (keys && keys.length > 0) { %>
+                                                <% keys.forEach((k, index) => { %>
+                                                    <tr class="group hover:bg-gray-50/50 transition-colors">
+                                                        <td class="py-5 px-4 text-sm font-bold text-gray-400">
+                                                            <%= String(index + 1).padStart(2, '0') %>
+                                                        </td>
+                                                        <td class="py-5 px-4">
+                                                            <% if (k.raw) { %>
+                                                                <div class="flex items-center space-x-2">
+                                                                    <code class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg font-mono text-sm border border-indigo-100">
+                                                                        <%= k.raw %>
+                                                                    </code>
+                                                                    <button onclick="copyToClipboard('<%= k.raw %>')" class="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" title="Salin Kunci">
+                                                                        <i class="ri-file-copy-line"></i>
+                                                                    </button>
+                                                                </div>
+                                                            <% } else { %>
+                                                                <div class="flex items-center space-x-2 text-gray-300">
+                                                                    <i class="ri-eye-off-line"></i>
+                                                                    <span class="text-sm font-medium italic">Kunci disembunyikan untuk keamanan</span>
+                                                                </div>
+                                                            <% } %>
+                                                        </td>
+                                                        <td class="py-5 px-4">
+                                                            <div class="flex flex-col">
+                                                                <span class="text-sm font-semibold text-gray-700">
+                                                                    <%= new Date(k.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+                                                                </span>
+                                                                <span class="text-xs text-gray-400">
+                                                                    <%= new Date(k.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) %> WIB
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td class="py-5 px-4 text-center">
+                                                            <form action="/api-keys/delete/<%= k.id %>" method="POST" data-confirm="Apakah Anda yakin ingin mencabut (menghapus) kunci API ini? Akses menggunakan kunci ini akan segera terhenti." class="inline">
+                                                                <button type="submit" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" title="Hapus Kunci">
                                                                     <i class="ri-delete-bin-line text-lg"></i>
                                                                 </button>
                                                             </form>
-                                                        <% } %>
+                                                        </td>
+                                                    </tr>
+                                                <% }) %>
+                                            <% } else { %>
+                                                <tr>
+                                                    <td colspan="4" class="py-16 text-center">
+                                                        <div class="flex flex-col items-center">
+                                                            <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                                                                <i class="ri-key-line text-4xl text-gray-200"></i>
+                                                            </div>
+                                                            <p class="text-lg font-bold text-gray-400">Belum ada kunci API</p>
+                                                            <p class="text-sm text-gray-500 mt-1">Buat kunci pertama Anda untuk mulai berintegrasi.</p>
+                                                        </div>
                                                     </td>
                                                 </tr>
-                                            <% }) %>
-                                        <% } else { %>
-                                            <tr>
-                                                <td colspan="4" class="py-8 px-4 text-center text-gray-500">Belum ada kunci.</td>
-                                            </tr>
-                                        <% } %>
-                                    </tbody>
-                                </table>
-                            </div>
+                                            <% } %>
+                                        </tbody>
+                                    </table>
+                                </div>
 
-                            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-                                <p class="text-sm text-gray-700">
-                                    <strong>Cara pakai:</strong> tambahkan header <code class="bg-white px-1 py-0.5 rounded text-xs">X-API-KEY: &lt;kunci_anda&gt;</code> atau parameter query <code class="bg-white px-1 py-0.5 rounded text-xs">?api_key=&lt;kunci_anda&gt;</code>.
-                                </p>
+                                <!-- Usage Info -->
+                                <div class="mt-10 p-6 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl border border-indigo-100/50">
+                                    <h4 class="text-indigo-900 font-bold mb-3 flex items-center">
+                                        <i class="ri-lightbulb-line mr-2 text-xl"></i>
+                                        Cara Menggunakan Kunci API
+                                    </h4>
+                                    <div class="space-y-4 text-sm text-indigo-700/80 leading-relaxed">
+                                        <p>Untuk mengautentikasi permintaan API Anda, sertakan kunci dalam header HTTP atau sebagai parameter URL:</p>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div class="bg-white/60 p-4 rounded-xl border border-white">
+                                                <p class="font-bold text-indigo-900 mb-2">HTTP Header (Rekomendasi)</p>
+                                                <code class="text-xs bg-indigo-900 text-indigo-100 p-2 rounded block">X-API-KEY: your_api_key_here</code>
+                                            </div>
+                                            <div class="bg-white/60 p-4 rounded-xl border border-white">
+                                                <p class="font-bold text-indigo-900 mb-2">Query Parameter</p>
+                                                <code class="text-xs bg-indigo-900 text-indigo-100 p-2 rounded block">?api_key=your_api_key_here</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </main>
+        </div>
     </div>
-    </div>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil disalin!',
+                    text: 'Kunci API telah disalin ke papan klip.',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            });
+        }
+    </script>
+
     <!-- Mobile menu overlay -->
     <div id="mobileMenuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
 
     <%- include('partials/simple-scripts') %>
 </body>
-</html> 
+</html>

@@ -1,70 +1,46 @@
-import { createClient } from '@supabase/supabase-js';
+import mongoose from 'mongoose';
 import { config } from './index.js';
-import { bunUtils } from './bun.js';
+import { info, error as _error } from '../utils/logger.js';
 
-let supabase = null;
+let isConnected = false;
 
-function initializeDatabase() {
-    if (!config.supabase.url || !config.supabase.serviceKey) {
-        throw new Error('Supabase URL and Service Key are required. Please check your .env file.');
+async function initializeDatabase() {
+    if (isConnected) return;
+
+    try {
+        const db = await mongoose.connect(config.mongodb.uri);
+        isConnected = !!db.connections[0].readyState;
+        
+        info('🚀 MongoDB connected successfully');
+        
+        // Handle connection errors after initial connection
+        mongoose.connection.on('error', (err) => {
+            _error('MongoDB connection error:', err);
+        });
+
+        mongoose.connection.on('disconnected', () => {
+            info('MongoDB disconnected');
+            isConnected = false;
+        });
+
+    } catch (err) {
+        _error('Failed to connect to MongoDB:', err);
+        throw err;
     }
-
-    // Bun-specific optimizations for database client
-    const clientOptions = {
-        auth: {
-            autoRefreshToken: false,
-            persistSession: false
-        }
-    };
-
-    // Add Bun-specific optimizations if available
-    if (config.runtime.isBun && config.performance.useNativeModules) {
-        clientOptions.db = {
-            schema: 'public'
-        };
-        clientOptions.global = {
-            headers: {
-                'X-Runtime': 'bun'
-            }
-        };
-    }
-
-    supabase = createClient(config.supabase.url, config.supabase.serviceKey, clientOptions);
-
-    // Log database initialization with runtime info
-    if (config.runtime.isBun) {
-        console.log('⚡ Database client initialized with Bun optimizations');
-    } else {
-        console.log('🔧 Database client initialized with Node.js');
-    }
-
-    return supabase;
 }
 
 function getDatabase() {
-    if (!supabase) {
-        return initializeDatabase();
-    }
-    return supabase;
+    return mongoose.connection;
 }
 
-// Optimized query wrapper for Bun
+// Mock optimizedQuery for compatibility with existing code
 function optimizedQuery(queryFn) {
-    if (config.runtime.isBun && config.performance.optimizedJSON) {
-        return bunUtils.measurePerformance('Database Query', queryFn);
-    }
     return queryFn();
 }
 
-export { initializeDatabase, getDatabase, optimizedQuery };
-
-// Create a scoped client with Authorization header for per-request RLS context
-function createScopedClient(accessToken) {
-    return createClient(config.supabase.url, config.supabase.serviceKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
-        global: { headers: { Authorization: `Bearer ${accessToken}` } }
-    });
+// Mock createScopedClient for compatibility (not needed for MongoDB/Mongoose)
+function createScopedClient() {
+    return null;
 }
 
-const _createScopedClient = createScopedClient;
-export { _createScopedClient as createScopedClient };
+export { initializeDatabase, getDatabase, optimizedQuery, createScopedClient };

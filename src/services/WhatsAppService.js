@@ -3,7 +3,10 @@ import { existsSync, rmSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { config } from '../config/index.js';
-import { getDatabase } from '../config/database.js';
+import Setting from '../models/Setting.js';
+import AutoReply from '../models/AutoReply.js';
+import Message from '../models/Message.js';
+import MessageService from './MessageService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -26,14 +29,8 @@ class WhatsAppService {
      */
     async loadSettings() {
         try {
-            const supabase = getDatabase();
-            
             // Load app settings
-            const { data: settingsData, error: settingsError } = await supabase
-                .from('settings')
-                .select('*');
-            
-            if (settingsError) throw settingsError;
+            const settingsData = await Setting.find({});
             
             this.appSettings = settingsData.reduce((acc, row) => {
                 acc[row.key] = row.value;
@@ -41,11 +38,7 @@ class WhatsAppService {
             }, {});
 
             // Load auto-replies
-            const { data: repliesData, error: repliesError } = await supabase
-                .from('auto_replies')
-                .select('*');
-            
-            if (repliesError) throw repliesError;
+            const repliesData = await AutoReply.find({});
             this.autoReplies = repliesData;
 
             console.log('App settings and auto-replies loaded from database.');
@@ -58,18 +51,20 @@ class WhatsAppService {
      * Get session for user, create if doesn't exist
      */
     async ensureSession(userId, phoneNumber = null) {
-        if (this.sessions.has(userId)) {
-            return this.sessions.get(userId);
+        const userIdStr = String(userId);
+        if (this.sessions.has(userIdStr)) {
+            return this.sessions.get(userIdStr);
         }
 
-        return await this.createSession(userId, phoneNumber);
+        return await this.createSession(userIdStr, phoneNumber);
     }
 
     /**
      * Create a new WhatsApp session for a user
      */
     async createSession(userId, phoneNumber = null) {
-        const authDir = join(__dirname, '../../auth_info_baileys', userId);
+        const userIdStr = String(userId);
+        const authDir = join(__dirname, '../../auth_info_baileys', userIdStr);
         const { state, saveCreds } = await useMultiFileAuthState(authDir);
 
         const session = {
@@ -89,8 +84,8 @@ class WhatsAppService {
         });
 
         session.sock = sock;
-        this.setupSessionHandlers(session, userId, saveCreds, authDir);
-        this.sessions.set(userId, session);
+        this.setupSessionHandlers(session, userIdStr, saveCreds, authDir);
+        this.sessions.set(userIdStr, session);
 
         return session;
     }
@@ -209,19 +204,15 @@ class WhatsAppService {
                 quotedSender = contextInfo.participant;
                 
                 // Find the original message ID in database
-                const supabase = getDatabase();
-                const { data: repliedToMsg } = await supabase
-                    .from('messages')
-                    .select('id')
-                    .eq('stanza_id', contextInfo.stanzaId)
-                    .eq('user_id', userId)
-                    .maybeSingle() || {};
+                const repliedToMsg = await Message.findOne({
+                    stanzaId: contextInfo.stanzaId,
+                    userId: userId
+                });
                 
-                if (repliedToMsg) replyToId = repliedToMsg.id;
+                if (repliedToMsg) replyToId = repliedToMsg._id;
             }
 
             // Record incoming message
-            const MessageService = require('./MessageService').default;
             const recordedMessage = await MessageService.recordMessage({
                 userId,
                 chatJid: message.key.remoteJid,
@@ -238,14 +229,18 @@ class WhatsAppService {
             });
 
             if (recordedMessage) {
-                this.io.to(userId).emit('new_message', recordedMessage);
+                this.io.to(userId).emit('new_message', {
+                    ...recordedMessage.toObject(),
+                    id: recordedMessage._id,
+                    chat_jid: recordedMessage.chatJid
+                });
                 if (this.webhookService) {
                     this.webhookService.send('message.in', {
                         userId,
-                        id: recordedMessage.id,
-                        chatJid: recordedMessage.chat_jid,
+                        id: recordedMessage._id,
+                        chatJid: recordedMessage.chatJid,
                         sender: recordedMessage.sender,
-                        text: recordedMessage.text,
+                        text: recordedMessage.message,
                         timestamp: recordedMessage.timestamp
                     });
                 }
@@ -274,7 +269,6 @@ class WhatsAppService {
                     const result = await sock.sendMessage(message.key.remoteJid, { text: rule.reply });
                     
                     // Record auto-reply message
-                    const MessageService = require('./MessageService').default;
                     const recordedReply = await MessageService.recordMessage({
                         userId,
                         chatJid: message.key.remoteJid,
@@ -291,7 +285,11 @@ class WhatsAppService {
                     });
                     
                     if (recordedReply) {
-                        this.io.to(userId).emit('new_message', recordedReply);
+                        this.io.to(userId).emit('new_message', {
+                            ...recordedReply.toObject(),
+                            id: recordedReply._id,
+                            chat_jid: recordedReply.chatJid
+                        });
                     }
                 } catch (error) {
                     console.error('Auto-reply error:', error);
@@ -316,24 +314,21 @@ class WhatsAppService {
         let quotedDbRecord = null;
         
         if (replyToId) {
-            const supabase = getDatabase();
-            const { data } = await supabase
-                .from('messages')
-                .select('*')
-                .eq('id', replyToId)
-                .eq('user_id', userId)
-                .single();
+            const data = await Message.findOne({
+                _id: replyToId,
+                userId: userId
+            });
                 
             if (data) {
                 quotedDbRecord = data;
                 quotedInfo = {
                     key: {
-                        remoteJid: data.chat_jid,
-                        id: data.stanza_id,
+                        remoteJid: data.chatJid,
+                        id: data.stanzaId,
                         fromMe: data.direction === 'out',
-                        participant: data.sender_jid,
+                        participant: data.senderJid,
                     },
-                    message: data.raw_message
+                    message: data.rawMessage
                 };
             }
         }
@@ -341,7 +336,6 @@ class WhatsAppService {
         const result = await session.sock.sendMessage(phone, { text: message }, { quoted: quotedInfo });
         
         // Record outgoing message
-        const MessageService = require('./MessageService').default;
         const recordedOutgoing = await MessageService.recordMessage({
             userId,
             chatJid: phone,
@@ -358,14 +352,18 @@ class WhatsAppService {
         });
 
         if (recordedOutgoing) {
-            this.io.to(userId).emit('new_message', recordedOutgoing);
+            this.io.to(userId).emit('new_message', {
+                ...recordedOutgoing.toObject(),
+                id: recordedOutgoing._id,
+                chat_jid: recordedOutgoing.chatJid
+            });
             if (this.webhookService) {
                 this.webhookService.send('message.out', {
                     userId,
-                    id: recordedOutgoing.id,
-                    chatJid: recordedOutgoing.chat_jid,
+                    id: recordedOutgoing._id,
+                    chatJid: recordedOutgoing.chatJid,
                     sender: recordedOutgoing.sender,
-                    text: recordedOutgoing.text,
+                    text: recordedOutgoing.message,
                     timestamp: recordedOutgoing.timestamp
                 });
             }
@@ -378,7 +376,8 @@ class WhatsAppService {
      * Logout user from WhatsApp
      */
     async logout(userId) {
-        const session = this.sessions.get(userId);
+        const userIdStr = String(userId);
+        const session = this.sessions.get(userIdStr);
         if (!session) return;
 
         try {
@@ -390,9 +389,9 @@ class WhatsAppService {
         if (session.keepAliveTimer) {
             clearInterval(session.keepAliveTimer);
         }
-        this.sessions.delete(userId);
+        this.sessions.delete(userIdStr);
 
-        const authDir = join(__dirname, '../../auth_info_baileys', userId);
+        const authDir = join(__dirname, '../../auth_info_baileys', userIdStr);
         try {
             if (existsSync(authDir)) {
                 rmSync(authDir, { recursive: true, force: true });
@@ -406,7 +405,7 @@ class WhatsAppService {
      * Get session status for a user
      */
     getSessionStatus(userId) {
-        const session = this.sessions.get(userId);
+        const session = this.sessions.get(String(userId));
         if (!session) {
             return { status: 'disconnected', connected: false, qr: null };
         }

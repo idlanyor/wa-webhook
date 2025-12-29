@@ -30,13 +30,10 @@ router.get('/', isAuthenticated, async (req, res) => {
 router.post('/generate', isAuthenticated, async (req, res) => {
     try {
         const apiKey = await generateApiKey(req.user.id);
+        const keys = await getUserApiKeys(req.user.id);
         
         res.render('api-keys', { 
-            keys: [{ 
-                ...apiKey, 
-                raw: apiKey.raw_key, 
-                created_at: new Date() 
-            }], 
+            keys: keys.map(k => k.id.toString() === apiKey.id.toString() ? { ...k, raw: apiKey.raw_key } : k), 
             success: 'API key generated. Copy it now, it will not be shown again!', 
             page: 'api-keys', 
             error: null 

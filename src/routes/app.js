@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { isAuthenticated } from '../middleware/auth.js';
+import WhatsAppService from '../services/WhatsAppService.js';
 
 const router = Router();
 
@@ -12,7 +13,6 @@ router.get('/', (req, res) => {
 router.get('/dashboard', isAuthenticated, async (req, res) => {
     try {
         // Ensure user has a WhatsApp session
-        const WhatsAppService = require('../services/WhatsAppService').default;
         const whatsappService = req.app.get('whatsappService');
         await whatsappService.ensureSession(req.user.id);
         
@@ -34,14 +34,6 @@ router.get('/dashboard', isAuthenticated, async (req, res) => {
 router.get('/chat', isAuthenticated, (req, res) => {
     res.render('chat', { 
         page: 'chat', 
-        userId: req.user.id 
-    });
-});
-
-// Blaster interface
-router.get('/blaster', isAuthenticated, (req, res) => {
-    res.render('blaster', { 
-        page: 'blaster', 
         userId: req.user.id 
     });
 });

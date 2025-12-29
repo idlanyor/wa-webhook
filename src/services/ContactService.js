@@ -2,42 +2,29 @@ import vcf from 'vcf';
 const { parse } = vcf;
 import csv from 'csv-parser';
 import { Readable } from 'stream';
-import { getDatabase } from '../config/database.js';
 import { config } from '../config/index.js';
+import Contact from '../models/Contact.js';
 
 class ContactService {
     /**
      * Get paginated contacts for a user
      */
-    static async getContacts(userId, page = 1, supabaseClient = null) {
+    static async getContacts(userId, page = 1) {
         try {
-            const supabase = supabaseClient || getDatabase();
             const pageSize = config.pagination.defaultPageSize;
-            const offset = (page - 1) * pageSize;
+            const skip = (page - 1) * pageSize;
 
-            // Get total count
-            const { count, error: countError } = await supabase
-                .from('contacts')
-                .select('*', { count: 'exact', head: true })
-                .eq('user_id', userId);
-
-            if (countError) throw countError;
-
-            // Get contacts for current page
-            const { data, error } = await supabase
-                .from('contacts')
-                .select('*')
-                .eq('user_id', userId)
-                .order('name', { ascending: true })
-                .range(offset, offset + pageSize - 1);
-
-            if (error) throw error;
+            const total = await Contact.countDocuments({ userId });
+            const contacts = await Contact.find({ userId })
+                .sort({ name: 1 })
+                .skip(skip)
+                .limit(pageSize);
 
             return {
-                contacts: data || [],
-                totalPages: Math.ceil(count / pageSize),
+                contacts: contacts || [],
+                totalPages: Math.ceil(total / pageSize),
                 currentPage: page,
-                total: count
+                total: total
             };
         } catch (error) {
             console.error('Error fetching contacts:', error);
@@ -50,12 +37,14 @@ class ContactService {
      */
     static async addContact(userId, name, phone, tags = '') {
         try {
-            const supabase = getDatabase();
-            const { data, error } = await supabase
-                .rpc('insert_contact_secure', { p_user: userId, p_name: name, p_phone: phone, p_tags: tags || '' });
-
-            if (error) throw error;
-            return data;
+            const contact = new Contact({
+                userId,
+                name,
+                phone,
+                tags: tags || ''
+            });
+            await contact.save();
+            return contact;
         } catch (error) {
             console.error('Error adding contact:', error);
             throw error;
@@ -67,13 +56,7 @@ class ContactService {
      */
     static async deleteContact(userId, contactId) {
         try {
-            const supabase = getDatabase();
-            const { error } = await supabase
-                .from('contacts')
-                .delete()
-                .match({ id: contactId, user_id: userId });
-
-            if (error) throw error;
+            await Contact.findOneAndDelete({ _id: contactId, userId });
             return true;
         } catch (error) {
             console.error('Error deleting contact:', error);
@@ -82,11 +65,16 @@ class ContactService {
     }
 
     static async updateTags(userId, contactId, tags) {
-            const supabase = getDatabase();
-            const { error } = await supabase
-                .rpc('update_contact_tags_secure', { p_user: userId, p_id: contactId, p_tags: tags || '' });
-        if (error) throw error;
-        return true;
+        try {
+            await Contact.findOneAndUpdate(
+                { _id: contactId, userId },
+                { tags: tags || '' }
+            );
+            return true;
+        } catch (error) {
+            console.error('Error updating tags:', error);
+            throw error;
+        }
     }
 
     /**
@@ -109,13 +97,13 @@ class ContactService {
                 if (!name || !phone) return null;
                 
                 return { 
-                    user_id: userId, 
+                    userId: userId, 
                     name: name.valueOf(), 
                     phone: phone 
                 };
             }).filter(Boolean);
 
-            return await this.insertUniqueContacts(userId, parsedContacts);
+            return await ContactService.insertUniqueContacts(userId, parsedContacts);
         } catch (error) {
             console.error('Error importing VCF:', error);
             throw error;
@@ -148,7 +136,7 @@ class ContactService {
                     
                     if (name && phone) {
                         parsedContacts.push({
-                            user_id: userId,
+                            userId: userId,
                             name: name,
                             phone: phone.replace(/\D/g, '')
                         });
@@ -160,7 +148,7 @@ class ContactService {
                             throw new Error('No valid contacts found in the CSV file');
                         }
                         
-                        const result = await this.insertUniqueContacts(userId, parsedContacts);
+                        const result = await ContactService.insertUniqueContacts(userId, parsedContacts);
                         resolve(result);
                     } catch (error) {
                         reject(error);
@@ -175,17 +163,10 @@ class ContactService {
      */
     static async insertUniqueContacts(userId, contacts) {
         try {
-            const supabase = getDatabase();
-            
-            // Get existing contacts
-            const { data: existingContacts, error: fetchError } = await supabase
-                .from('contacts')
-                .select('phone')
-                .eq('user_id', userId);
-
-            if (fetchError) throw fetchError;
-
+            // Get existing contacts' phones
+            const existingContacts = await Contact.find({ userId }, 'phone');
             const existingPhones = new Set(existingContacts.map(c => c.phone));
+            
             const uniqueNewContacts = [];
             const phonesInThisBatch = new Set();
 
@@ -199,11 +180,7 @@ class ContactService {
             const duplicateCount = contacts.length - uniqueNewContacts.length;
 
             if (uniqueNewContacts.length > 0) {
-                const { error } = await supabase
-                    .from('contacts')
-                    .insert(uniqueNewContacts);
-                    
-                if (error) throw error;
+                await Contact.insertMany(uniqueNewContacts);
             }
 
             return {
@@ -220,17 +197,10 @@ class ContactService {
     /**
      * Get all contacts for API response
      */
-    static async getAllContacts(userId, supabaseClient = null) {
+    static async getAllContacts(userId) {
         try {
-            const supabase = supabaseClient || getDatabase();
-            const { data, error } = await supabase
-                .from('contacts')
-                .select('*')
-                .eq('user_id', userId)
-                .order('name', { ascending: true });
-
-            if (error) throw error;
-            return data;
+            const contacts = await Contact.find({ userId }).sort({ name: 1 });
+            return contacts;
         } catch (error) {
             console.error('Error fetching all contacts:', error);
             throw error;
@@ -246,3 +216,4 @@ export const importFromCSV = ContactService.importFromCSV;
 export const deleteContact = ContactService.deleteContact;
 export const getAllContacts = ContactService.getAllContacts;
 export const updateTags = ContactService.updateTags;
+export const addContact = ContactService.addContact;

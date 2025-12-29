@@ -9,51 +9,128 @@
         <div class="flex-1 flex flex-col lg:ml-0">
             <%- include('partials/navbar', { title: 'Pengaturan' }) %>
             <main class="flex-1 p-4 sm:p-6 lg:p-8">
-                <div class="max-w-5xl mx-auto space-y-6">
-                    <% if (error) { %>
-                        <div class="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl"><%= error %></div>
+                <div class="max-w-4xl mx-auto">
+                    <!-- Welcome Section -->
+                    <div class="mb-8 fade-in">
+                        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Pengaturan Sistem</h1>
+                        <p class="text-lg text-gray-600">Konfigurasi integrasi webhook dan preferensi aplikasi</p>
+                    </div>
+
+                    <!-- Alerts -->
+                    <% if (locals.error) { %>
+                        <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-center space-x-3 fade-in">
+                            <i class="ri-error-warning-fill text-xl"></i>
+                            <span class="font-medium"><%= error %></span>
+                        </div>
                     <% } %>
-                    <% if (success) { %>
-                        <div class="p-3 bg-green-50 border border-green-200 text-green-700 rounded-xl"><%= success %></div>
+                    <% if (locals.success) { %>
+                        <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-2xl flex items-center space-x-3 fade-in">
+                            <i class="ri-checkbox-circle-fill text-xl"></i>
+                            <span class="font-medium"><%= success %></span>
+                        </div>
                     <% } %>
 
-                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Webhook</h3>
-                        <form action="/settings/webhook" method="POST" class="space-y-3">
-                            <div>
-                                <label class="block text-sm text-gray-700 mb-1">Webhook URL</label>
-                                <input name="webhook_url" value="<%= webhookUrl %>" placeholder="https://example.com/webhook" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                    <!-- Webhook Settings Card -->
+                    <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden fade-in">
+                        <div class="p-6 sm:p-8 border-b border-gray-100 bg-gray-50/50 flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center">
+                                <i class="ri-webhook-line text-indigo-600 text-2xl"></i>
                             </div>
                             <div>
-                                <label class="block text-sm text-gray-700 mb-1">Webhook Secret (HMAC)</label>
-                                <input name="webhook_secret" value="<%= webhookSecret %>" placeholder="opsional" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                                <h3 class="text-xl font-bold text-gray-800">Konfigurasi Webhook</h3>
+                                <p class="text-sm text-gray-500">Terima notifikasi real-time ke server Anda</p>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <label class="inline-flex items-center space-x-2">
-                                    <input type="checkbox" name="webhook_toggle_connection" <%= webhookToggleConnection ? 'checked' : '' %> />
-                                    <span>Status Koneksi</span>
-                                </label>
-                                <label class="inline-flex items-center space-x-2">
-                                    <input type="checkbox" name="webhook_toggle_message_in" <%= webhookToggleMessageIn ? 'checked' : '' %> />
-                                    <span>Pesan Masuk</span>
-                                </label>
-                                <label class="inline-flex items-center space-x-2">
-                                    <input type="checkbox" name="webhook_toggle_message_out" <%= webhookToggleMessageOut ? 'checked' : '' %> />
-                                    <span>Pesan Keluar</span>
-                                </label>
-                            </div>
-                            <div class="flex justify-end space-x-2">
-                                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">Simpan</button>
-                                <form action="/settings/webhook/test" method="POST" class="inline">
-                                    <button type="submit" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg">Kirim Uji</button>
+                        </div>
+
+                        <div class="p-6 sm:p-8">
+                            <form action="/settings/webhook" method="POST" class="space-y-6">
+                                <div class="grid grid-cols-1 gap-6">
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-semibold text-gray-700">Webhook URL</label>
+                                        <input type="url" name="webhook_url" value="<%= webhookUrl %>" 
+                                               placeholder="https://domain-anda.com/webhook" 
+                                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all outline-none" />
+                                        <p class="text-xs text-gray-400">URL ini akan menerima request POST setiap ada event baru.</p>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-semibold text-gray-700">Webhook Secret (HMAC)</label>
+                                        <input type="text" name="webhook_secret" value="<%= webhookSecret %>" 
+                                               placeholder="Opsional: Kunci untuk verifikasi tanda tangan" 
+                                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all outline-none" />
+                                    </div>
+
+                                    <div class="space-y-4">
+                                        <label class="block text-sm font-semibold text-gray-700 mb-3">Event yang Dipantau</label>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <label class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors">
+                                                <input type="checkbox" name="webhook_toggle_connection" <%= webhookToggleConnection ? 'checked' : '' %> 
+                                                       class="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
+                                                <span class="ml-3 text-sm font-medium text-gray-700">Status Koneksi</span>
+                                            </label>
+                                            <label class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors">
+                                                <input type="checkbox" name="webhook_toggle_message_in" <%= webhookToggleMessageIn ? 'checked' : '' %> 
+                                                       class="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
+                                                <span class="ml-3 text-sm font-medium text-gray-700">Pesan Masuk</span>
+                                            </label>
+                                            <label class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors">
+                                                <input type="checkbox" name="webhook_toggle_message_out" <%= webhookToggleMessageOut ? 'checked' : '' %> 
+                                                       class="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
+                                                <span class="ml-3 text-sm font-medium text-gray-700">Pesan Keluar</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pt-6 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                                    <div class="flex items-center space-x-2">
+                                        <button type="submit" class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-indigo-200">
+                                            Simpan Perubahan
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                            
+                            <div class="mt-4 flex justify-end">
+                                <form action="/settings/webhook/test" method="POST">
+                                    <button type="submit" class="px-6 py-3 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl font-bold transition-all">
+                                        <i class="ri-send-plane-line mr-2"></i>
+                                        Kirim Webhook Uji
+                                    </button>
                                 </form>
                             </div>
-                        </form>
+                        </div>
+                    </div>
+
+                    <!-- Usage Stats / Info -->
+                    <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
+                        <div class="p-6 bg-white rounded-3xl border border-gray-100 shadow-sm fade-in" style="animation-delay: 0.1s">
+                            <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                <i class="ri-shield-check-line mr-2 text-green-500"></i>
+                                Keamanan Webhook
+                            </h4>
+                            <p class="text-sm text-gray-500 leading-relaxed">
+                                Jika Webhook Secret diisi, setiap request akan menyertakan header <code>X-Signature</code> berisi HMAC SHA256 dari body request menggunakan secret tersebut.
+                            </p>
+                        </div>
+                        <div class="p-6 bg-white rounded-3xl border border-gray-100 shadow-sm fade-in" style="animation-delay: 0.2s">
+                            <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                <i class="ri-refresh-line mr-2 text-blue-500"></i>
+                                Retrying Mechanism
+                            </h4>
+                            <p class="text-sm text-gray-500 leading-relaxed">
+                                Sistem kami akan mencoba mengirim ulang webhook hingga 3 kali jika server Anda gagal merespons dengan status 200 OK.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </main>
         </div>
     </div>
+    
+    <!-- Mobile menu overlay -->
+    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+
     <%- include('partials/simple-scripts') %>
 </body>
 </html>

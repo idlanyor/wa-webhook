@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { isAuthenticated, isAuthenticatedOrApiKey, getEffectiveUserId } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
-import { getContacts, importFromVCF, importFromCSV, deleteContact, getAllContacts, updateTags } from '../services/ContactService.js';
+import { getContacts, importFromVCF, importFromCSV, deleteContact, getAllContacts, updateTags, addContact } from '../services/ContactService.js';
 
 const router = Router();
 
@@ -9,9 +9,7 @@ const router = Router();
 router.get('/', isAuthenticated, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const { createScopedClient } = require('../config/database');
-        const scoped = createScopedClient(req.userAccessToken);
-        const result = await getContacts(req.user.id, page, scoped);
+        const result = await getContacts(req.user.id, page);
         
         res.render('contacts', { 
             ...result,
@@ -37,11 +35,7 @@ router.post('/add', isAuthenticated, async (req, res) => {
     const { name, phone, tags } = req.body;
     
     try {
-        // Use scoped client with user's access token for RLS context
-        const { createScopedClient } = require('../config/database');
-        const scoped = createScopedClient(req.userAccessToken);
-        const { error } = await scoped.rpc('insert_contact_secure', { p_user: req.user.id, p_name: name, p_phone: phone, p_tags: tags || '' });
-        if (error) throw error;
+        await addContact(req.user.id, name, phone, tags || '');
         res.redirect('/contacts?success=' + encodeURIComponent('Contact added successfully.'));
     } catch (error) {
         console.error('Error adding contact:', error);
@@ -110,9 +104,7 @@ router.post('/delete/:id', isAuthenticated, async (req, res) => {
 router.get('/api', isAuthenticatedOrApiKey, async (req, res) => {
     try {
         const userId = getEffectiveUserId(req);
-        const { createScopedClient } = require('../config/database');
-        const scoped = createScopedClient(req.userAccessToken || req.headers['x-access-token'] || '');
-        const contacts = await getAllContacts(userId, scoped);
+        const contacts = await getAllContacts(userId);
         res.json(contacts);
     } catch (error) {
         console.error('Error fetching contacts API:', error);
@@ -120,7 +112,6 @@ router.get('/api', isAuthenticatedOrApiKey, async (req, res) => {
     }
 });
 
-export default router;
 // Update tags
 router.post('/tags/:id', isAuthenticated, async (req, res) => {
     try {
@@ -131,3 +122,5 @@ router.post('/tags/:id', isAuthenticated, async (req, res) => {
         res.redirect('/contacts?error=' + encodeURIComponent('Failed to update tags.'));
     }
 });
+
+export default router;

@@ -24,7 +24,6 @@ const runtime = {
 // Import services
 import WhatsAppService from './src/services/WhatsAppService.js';
 import WebhookService from './src/services/WebhookService.js';
-import CampaignService from './src/services/CampaignService.js';
 import { getMany } from './src/services/SettingsService.js';
 
 // Import routes
@@ -36,7 +35,6 @@ import autoReplyRoutes from './src/routes/autoReply.js';
 import apiKeyRoutes from './src/routes/apiKeys.js';
 import chatRoutes from './src/routes/chat.js';
 import templateRoutes from './src/routes/templates.js';
-import campaignRoutes from './src/routes/campaigns.js'; 
 import settingsRoutes from './src/routes/settings.js';
 
 // Import utilities
@@ -60,7 +58,7 @@ class Application {
             info(`Configuration validated successfully - Runtime: ${runtime.name}`);
 
             // Initialize database
-            initializeDatabase();
+            await initializeDatabase();
             info('Database initialized successfully');
 
             // Setup Express app
@@ -94,8 +92,8 @@ class Application {
         this.app.set('views', join(__dirname, 'views'));
 
         // Middleware
-        const puki = expressStatic(join(__dirname, 'public'));
-        this.app.use(puki);
+        const publicDir = expressStatic(join(__dirname, 'public'));
+        this.app.use(publicDir);
         this.app.use(cors());
         
         // Custom JSON parser with better error handling
@@ -179,20 +177,6 @@ class Application {
         this.whatsappService.setWebhookService(this.webhookService);
 
         info('WhatsApp service configured');
-
-        // Simple scheduler for campaigns
-        setInterval(async () => {
-            try {
-                const due = await CampaignService.dueCampaigns(new Date());
-                for (const c of due) {
-                    // Avoid double run: set running immediately
-                    await CampaignService.updateStatus(c.id, 'running');
-                    CampaignService.processCampaign(this.app, c).catch(()=>{});
-                }
-            } catch (e) {
-                _error('Scheduler error', e);
-            }
-        }, 15000);
     }
 
     /**
@@ -222,9 +206,6 @@ class Application {
 
         // Message templates routes
         this.app.use('/templates', templateRoutes);
-
-        // Campaigns routes
-        this.app.use('/campaigns', campaignRoutes);
 
         // Settings routes
         this.app.use('/settings', settingsRoutes);
@@ -337,11 +318,6 @@ class Application {
     async shutdown() {
         info('Shutting down server...');
         
-        // Close all WhatsApp sessions
-        if (this.whatsappService) {
-            // Implementation for closing all sessions would go here
-        }
-
         // Close server
         this.server.close(() => {
             info('Server shut down successfully');
@@ -350,36 +326,24 @@ class Application {
     }
 }
 
-// For testing environment
-if (process.env.JEST_WORKER_ID) {
-    const mockApp = express();
-    const mockServer = createServer(mockApp);
-    
-    // Export mock objects for testing
-    module.exports = { 
-        app: mockApp, 
-        server: mockServer, 
-        ensureSession: async () => ({
-            isConnected: true,
-            state: 'connected',
-            qr: null,
-            sock: {
-                sendMessage: async () => ({ key: { id: 'test-id' }, message: {} }),
-                user: { id: 'bot@s.whatsapp.net' }
-            }
-        })
-    };
-} else {
-    // Production/Development startup
-    const app = new Application();
-    
+// Instantiate application
+const appInstance = new Application();
+
+// For production/development startup
+if (!process.env.JEST_WORKER_ID) {
     // Handle graceful shutdown
-    process.on('SIGTERM', () => app.shutdown());
-    process.on('SIGINT', () => app.shutdown());
+    process.on('SIGTERM', () => appInstance.shutdown());
+    process.on('SIGINT', () => appInstance.shutdown());
     
     // Start the application
-    app.start().catch(error => {
+    appInstance.start().catch(error => {
         console.error('Failed to start application:', error);
         process.exit(1);
     });
 }
+
+// Export app and server for testing
+export const app = appInstance.app;
+export const server = appInstance.server;
+export const application = appInstance;
+export default appInstance;

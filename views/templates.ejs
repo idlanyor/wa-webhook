@@ -3,62 +3,114 @@
 <head>
     <%- include('partials/head', { title: 'Template Pesan' }) %>
     <style>
-        textarea { min-height: 160px; }
+        textarea { min-height: 180px; }
     </style>
-    </head>
+</head>
 <body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
     <div class="flex min-h-screen">
         <%- include('partials/sidebar') %>
         <div class="flex-1 flex flex-col lg:ml-0">
             <%- include('partials/navbar', { title: 'Template Pesan' }) %>
             <main class="flex-1 p-4 sm:p-6 lg:p-8">
-                <div class="max-w-6xl mx-auto space-y-6">
-                    <% if (error) { %>
-                        <div class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl"><%= error %></div>
-                    <% } %>
-                    <% if (success) { %>
-                        <div class="p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl"><%= success %></div>
-                    <% } %>
+                <div class="max-w-7xl mx-auto">
+                    <!-- Welcome Section -->
+                    <div class="mb-8 fade-in">
+                        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Template Pesan</h1>
+                        <p class="text-lg text-gray-600">Kelola draf pesan untuk pengiriman yang lebih cepat</p>
+                    </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Buat Template Baru</h3>
-                            <form action="/templates/create" method="POST" class="space-y-3">
-                                <div>
-                                    <label class="block text-sm text-gray-700 mb-1">Nama Template</label>
-                                    <input name="name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Contoh: Promo Lebaran"/>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <!-- Create/Edit Form -->
+                        <div class="lg:col-span-4">
+                            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sticky top-8 fade-in">
+                                <div class="flex items-center space-x-3 mb-6">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                                        <i class="ri-edit-box-line text-blue-600 text-xl"></i>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-gray-800" id="formTitle">Buat Template Baru</h3>
                                 </div>
-                                <div>
-                                    <label class="block text-sm text-gray-700 mb-1">Isi Pesan</label>
-                                    <textarea name="content" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Halo {name}, kami punya penawaran khusus untuk Anda."></textarea>
-                                    <p class="text-xs text-gray-500 mt-2">Variabel yang didukung: {name}, {phone}</p>
-                                </div>
-                                <div class="flex justify-end">
-                                    <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Simpan</button>
-                                </div>
-                            </form>
+                                
+                                <form action="/templates/create" method="POST" id="templateForm" class="space-y-5">
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-semibold text-gray-700">Nama Template</label>
+                                        <input type="text" name="name" id="templateName" required 
+                                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
+                                               placeholder="Contoh: Ucapan Selamat Datang"/>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-semibold text-gray-700">Isi Pesan</label>
+                                        <textarea name="content" id="templateContent" required 
+                                                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
+                                                  placeholder="Halo {name}, selamat bergabung!"></textarea>
+                                        <div class="flex flex-wrap gap-2 mt-2">
+                                            <span class="px-2 py-1 bg-gray-100 text-gray-600 text-[10px] font-bold rounded uppercase cursor-pointer hover:bg-gray-200" onclick="insertVar('{name}')">{name}</span>
+                                            <span class="px-2 py-1 bg-gray-100 text-gray-600 text-[10px] font-bold rounded uppercase cursor-pointer hover:bg-gray-200" onclick="insertVar('{phone}')">{phone}</span>
+                                        </div>
+                                    </div>
+                                    <div class="pt-4 flex flex-col space-y-3">
+                                        <button type="submit" class="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-bold transition-all shadow-md hover:shadow-lg">
+                                            <i class="ri-save-line"></i>
+                                            <span id="submitBtnText">Simpan Template</span>
+                                        </button>
+                                        <button type="button" id="cancelBtn" onclick="resetForm()" class="hidden w-full px-6 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-all">
+                                            Batal Ubah
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
 
-                        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Daftar Template</h3>
-                            <div class="space-y-3">
+                        <!-- Templates List -->
+                        <div class="lg:col-span-8 space-y-6">
+                            <!-- Alerts -->
+                            <% if (locals.error) { %>
+                                <div class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center space-x-2 fade-in">
+                                    <i class="ri-error-warning-line"></i>
+                                    <span><%= error %></span>
+                                </div>
+                            <% } %>
+                            <% if (locals.success) { %>
+                                <div class="p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-center space-x-2 fade-in">
+                                    <i class="ri-checkbox-circle-line"></i>
+                                    <span><%= success %></span>
+                                </div>
+                            <% } %>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <% if (templates.length === 0) { %>
-                                    <div class="text-gray-500">Belum ada template.</div>
+                                    <div class="col-span-full py-20 bg-white rounded-3xl border border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 fade-in">
+                                        <i class="ri-file-list-line text-6xl mb-4 opacity-20"></i>
+                                        <p class="text-xl font-medium">Belum ada template</p>
+                                        <p class="text-sm mt-1">Gunakan formulir di samping untuk membuat template pertama Anda.</p>
+                                    </div>
                                 <% } %>
-                                <% templates.forEach(t => { %>
-                                    <div class="border border-gray-200 rounded-xl p-4">
-                                        <div class="flex items-center justify-between">
-                                            <div>
-                                                <div class="font-semibold text-gray-800"><%= t.name %></div>
-                                                <div class="text-sm text-gray-600 whitespace-pre-wrap mt-1"><%= t.content %></div>
+                                
+                                <% templates.forEach((t, index) => { %>
+                                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col justify-between card-hover transition-all duration-300 fade-in" style="animation-delay: <%= index * 0.05 %>s">
+                                        <div>
+                                            <div class="flex items-start justify-between mb-3">
+                                                <h4 class="font-bold text-gray-800 truncate pr-4"><%= t.name %></h4>
+                                                <span class="flex-shrink-0 text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold uppercase">ID: <%= String(t.id).substring(String(t.id).length - 6) %></span>
                                             </div>
-                                            <div class="flex items-center space-x-2">
-                                                <button class="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200" onclick="prefillTemplate(<%- JSON.stringify(t.id) %>, <%- JSON.stringify(t.name) %>, <%- JSON.stringify(t.content) %>)" type="button">Ubah</button>
-                                                <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700" type="button" onclick="useInBlaster(<%- JSON.stringify(t.id) %>)">Gunakan di Blaster</button>
-                                                <form action="/templates/delete/<%= t.id %>" method="POST" data-confirm="Hapus template ini?" class="inline">
-                                                    <button class="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600" type="submit">Hapus</button>
-                                                </form>
+                                            <div class="bg-gray-50 rounded-xl p-4 text-sm text-gray-600 whitespace-pre-wrap line-clamp-4 min-h-[100px] italic border border-gray-100">
+                                                <%= t.content %>
                                             </div>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-end space-x-2 mt-5 pt-4 border-t border-gray-50">
+                                            <button onclick="prefillTemplate(<%- JSON.stringify(t.id) %>, <%- JSON.stringify(t.name) %>, <%- JSON.stringify(t.content) %>)" 
+                                                    class="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Ubah">
+                                                <i class="ri-edit-line text-lg"></i>
+                                            </button>
+                                            <form action="/templates/delete/<%= t.id %>" method="POST" 
+                                                  data-confirm="Apakah Anda yakin ingin menghapus template ini?" 
+                                                  class="inline">
+                                                <button type="submit" 
+                                                        class="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                                        title="Hapus">
+                                                    <i class="ri-delete-bin-line text-lg"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
                                 <% }) %>
@@ -69,19 +121,58 @@
             </main>
         </div>
     </div>
+
     <script>
         function prefillTemplate(id, name, content){
-            const form = document.querySelector('form[action="/templates/create"]');
+            const form = document.getElementById('templateForm');
+            const title = document.getElementById('formTitle');
+            const submitBtnText = document.getElementById('submitBtnText');
+            const cancelBtn = document.getElementById('cancelBtn');
+
             form.setAttribute('action', '/templates/update/' + id);
-            form.querySelector('[name="name"]').value = name;
-            form.querySelector('[name="content"]').value = content;
+            document.getElementById('templateName').value = name;
+            document.getElementById('templateContent').value = content;
+            
+            title.innerText = 'Ubah Template';
+            submitBtnText.innerText = 'Perbarui Template';
+            cancelBtn.classList.remove('hidden');
+            
+            // Scroll form into view on mobile
+            if (window.innerWidth < 1024) {
+                form.scrollIntoView({ behavior: 'smooth' });
+            }
         }
 
-        function useInBlaster(id){
-            try { localStorage.setItem('selectedTemplateId', id); } catch {}
-            window.location.href = '/blaster';
+        function resetForm() {
+            const form = document.getElementById('templateForm');
+            const title = document.getElementById('formTitle');
+            const submitBtnText = document.getElementById('submitBtnText');
+            const cancelBtn = document.getElementById('cancelBtn');
+
+            form.setAttribute('action', '/templates/create');
+            form.reset();
+            
+            title.innerText = 'Buat Template Baru';
+            submitBtnText.innerText = 'Simpan Template';
+            cancelBtn.classList.add('hidden');
+        }
+
+        function insertVar(val) {
+            const textarea = document.getElementById('templateContent');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const before = text.substring(0, start);
+            const after  = text.substring(end, text.length);
+            textarea.value = (before + val + after);
+            textarea.selectionStart = textarea.selectionEnd = start + val.length;
+            textarea.focus();
         }
     </script>
+    
+    <!-- Mobile menu overlay -->
+    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+
     <%- include('partials/simple-scripts') %>
 </body>
 </html>

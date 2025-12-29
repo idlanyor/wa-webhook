@@ -13,9 +13,14 @@
         <div class="flex items-center space-x-4">
             <!-- User info (if available) -->
             <% if (typeof user !== 'undefined' && user) { %>
-                <div class="hidden sm:flex items-center space-x-2 text-sm text-gray-600">
-                    <i class="ri-user-3-line"></i>
-                    <span><%= user.username || user.email %></span>
+                <div class="hidden sm:flex items-center space-x-3 pr-4 border-r border-gray-200">
+                    <div class="text-right">
+                        <p class="text-xs font-bold text-gray-900 leading-none mb-1"><%= user.name || 'User' %></p>
+                        <p class="text-[10px] text-gray-400 leading-none"><%= user.email %></p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-100">
+                        <span class="font-bold text-sm"><%= (user.name || 'U').substring(0, 1).toUpperCase() %></span>
+                    </div>
                 </div>
             <% } %>
 

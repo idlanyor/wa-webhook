@@ -1,31 +1,37 @@
 import { createHash } from 'crypto';
-import { getDatabase } from '../config/database.js';
+import jwt from 'jsonwebtoken';
+import { config } from '../config/index.js';
+import User from '../models/User.js';
+import ApiKey from '../models/ApiKey.js';
 
 /**
  * Middleware to check if user is authenticated via session cookie
  */
 async function isAuthenticated(req, res, next) {
-    const token = req.cookies['supabase-auth-token'];
+    const token = req.cookies['auth-token'];
     if (!token) {
         return res.redirect('/login');
     }
     
     try {
-        const supabase = getDatabase();
-        const { data: { user }, error } = await supabase.auth.getUser(JSON.parse(token).access_token);
+        const decoded = jwt.verify(token, config.session.secret);
+        const user = await User.findById(decoded.userId);
 
-        if (error || !user) {
-            // Clear the invalid cookie
-            res.clearCookie('supabase-auth-token');
+        if (!user) {
+            res.clearCookie('auth-token');
             return res.redirect('/login');
         }
         
-        req.user = user;
-        req.userAccessToken = JSON.parse(token).access_token;
+        req.user = {
+            id: user._id,
+            email: user.email,
+            name: user.name,
+            role: user.role
+        };
         next();
     } catch (error) {
         console.error('Authentication error:', error);
-        res.clearCookie('supabase-auth-token');
+        res.clearCookie('auth-token');
         return res.redirect('/login');
     }
 }
@@ -36,15 +42,10 @@ async function isAuthenticated(req, res, next) {
 async function verifyApiKey(key) {
     try {
         const keyHash = createHash('sha256').update(key).digest('hex');
-        const supabase = getDatabase();
-        const { data, error } = await supabase
-            .from('api_keys')
-            .select('user_id')
-            .eq('key_hash', keyHash)
-            .single();
+        const apiKey = await ApiKey.findOne({ keyHash });
         
-        if (error || !data) return null;
-        return data.user_id;
+        if (!apiKey) return null;
+        return apiKey.userId;
     } catch (err) {
         console.error('API key verification failed:', err);
         return null;

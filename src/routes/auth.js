@@ -1,6 +1,7 @@
 import { Router } from 'express';
+import jwt from 'jsonwebtoken';
 import { config } from '../config/index.js';
-import { getDatabase } from '../config/database.js';
+import User from '../models/User.js';
 
 const router = Router();
 
@@ -41,51 +42,37 @@ router.post('/register', async (req, res) => {
     }
     
     try {
-        const supabase = getDatabase();
-        
-        // Attempt to sign up the user
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                data: { full_name: name }
-            }
-        });
-        
-        if (signUpError) {
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
             return res.render('register', { 
-                error: signUpError.message, 
+                error: 'Email already registered', 
                 success: null 
             });
         }
 
-        // If Supabase did NOT return a session, attempt to sign in
-        let session = signUpData.session;
-        if (!session) {
-            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ 
-                email, 
-                password 
-            });
-            if (!signInError) {
-                session = signInData.session;
-            }
-        }
-
-        // If we have a session, log the user in immediately
-        if (session) {
-            res.cookie('supabase-auth-token', JSON.stringify(session), {
-                httpOnly: true,
-                secure: config.node_env === 'production',
-                maxAge: session.expires_in * 1000,
-            });
-            return res.redirect('/dashboard');
-        }
-
-        // Fallback: ask user to confirm email
-        return res.render('register', {
-            error: null,
-            success: 'Registration successful! Please check your email to confirm your account before logging in.'
+        // Create new user
+        const user = new User({
+            name,
+            email,
+            password
         });
+        await user.save();
+
+        // Generate token
+        const token = jwt.sign(
+            { userId: user._id },
+            config.session.secret,
+            { expiresIn: '24h' }
+        );
+
+        res.cookie('auth-token', token, {
+            httpOnly: true,
+            secure: config.node_env === 'production',
+            maxAge: config.session.maxAge,
+        });
+
+        return res.redirect('/dashboard');
 
     } catch (err) {
         console.error('Registration error:', err);
@@ -101,20 +88,27 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     
     try {
-        const supabase = getDatabase();
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
-
-        if (error) {
-            return res.render('login', { error: error.message });
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.render('login', { error: 'Invalid email or password' });
         }
 
-        res.cookie('supabase-auth-token', JSON.stringify(data.session), {
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.render('login', { error: 'Invalid email or password' });
+        }
+
+        // Generate token
+        const token = jwt.sign(
+            { userId: user._id },
+            config.session.secret,
+            { expiresIn: '24h' }
+        );
+
+        res.cookie('auth-token', token, {
             httpOnly: true,
             secure: config.node_env === 'production',
-            maxAge: data.session.expires_in * 1000,
+            maxAge: config.session.maxAge,
         });
 
         res.redirect('/dashboard');
@@ -125,15 +119,8 @@ router.post('/login', async (req, res) => {
 });
 
 // Handle logout
-router.post('/logout-user', async (req, res) => {
-    try {
-        const supabase = getDatabase();
-        await supabase.auth.signOut();
-    } catch (error) {
-        console.error('Logout error:', error);
-    }
-    
-    res.clearCookie('supabase-auth-token');
+router.post('/logout-user', (req, res) => {
+    res.clearCookie('auth-token');
     res.redirect('/login');
 });
 

@@ -1,94 +1,107 @@
-import { getDatabase } from '../config/database.js';
+import Setting from '../models/Setting.js';
+import AutoReply from '../models/AutoReply.js';
 
 class SettingsService {
     static async get(key) {
-        const supabase = getDatabase();
-        const { data, error } = await supabase
-            .from('settings')
-            .select('value')
-            .eq('key', key)
-            .maybeSingle();
-        if (error) throw error;
-        return data ? data.value : null;
+        try {
+            const setting = await Setting.findOne({ key });
+            return setting ? setting.value : null;
+        } catch (error) {
+            console.error('Error fetching setting:', error);
+            throw error;
+        }
     }
 
     static async getMany(keys) {
-        const supabase = getDatabase();
-        const { data, error } = await supabase
-            .from('settings')
-            .select('key,value')
-            .in('key', keys);
-        if (error) throw error;
-        const map = new Map();
-        (data || []).forEach(r => map.set(r.key, r.value));
-        return map;
+        try {
+            const settings = await Setting.find({ key: { $in: keys } });
+            const map = new Map();
+            settings.forEach(r => map.set(r.key, r.value));
+            return map;
+        } catch (error) {
+            console.error('Error fetching settings:', error);
+            throw error;
+        }
     }
+
     static async set(key, value, description = null) {
-        const supabase = getDatabase();
-        const { error } = await supabase
-            .from('settings')
-            .upsert({ key, value, description }, { onConflict: 'key' });
-        if (error) throw error;
+        try {
+            await Setting.findOneAndUpdate(
+                { key },
+                { value, description },
+                { upsert: true, new: true }
+            );
+        } catch (error) {
+            console.error('Error setting setting:', error);
+            throw error;
+        }
     }
 
     // Fetch all settings as an object
     static async getSettings() {
-        const supabase = getDatabase();
-        const { data, error } = await supabase
-            .from('settings')
-            .select('key,value');
-        if (error) throw error;
-        const obj = {};
-        (data || []).forEach(r => { obj[r.key] = r.value; });
-        return obj;
+        try {
+            const settings = await Setting.find({});
+            const obj = {};
+            settings.forEach(r => { obj[r.key] = r.value; });
+            return obj;
+        } catch (error) {
+            console.error('Error fetching all settings:', error);
+            throw error;
+        }
     }
 
     static async updateSetting(key, value, description = null) {
-        return this.set(key, value, description);
+        return SettingsService.set(key, value, description);
     }
 
     // Auto-replies (global table)
     static async getAutoReplies() {
-        const supabase = getDatabase();
-        const { data, error } = await supabase
-            .from('auto_replies')
-            .select('*')
-            .order('created_at', { ascending: false });
-        if (error) throw error;
-        return data || [];
+        try {
+            const replies = await AutoReply.find({}).sort({ createdAt: -1 });
+            return replies.map(r => ({
+                id: r._id,
+                keyword: r.keyword,
+                reply: r.reply,
+                enabled: r.enabled,
+                created_at: r.createdAt,
+                updated_at: r.updatedAt
+            }));
+        } catch (error) {
+            console.error('Error fetching auto replies:', error);
+            throw error;
+        }
     }
 
     static async addAutoReply(keyword, reply) {
-        const supabase = getDatabase();
-        const { error } = await supabase
-            .from('auto_replies')
-            .insert({ keyword, reply, enabled: true });
-        if (error) throw error;
+        try {
+            const autoReply = new AutoReply({ keyword, reply, enabled: true });
+            await autoReply.save();
+        } catch (error) {
+            console.error('Error adding auto reply:', error);
+            throw error;
+        }
     }
 
     static async deleteAutoReply(id) {
-        const supabase = getDatabase();
-        const { error } = await supabase
-            .from('auto_replies')
-            .delete()
-            .eq('id', id);
-        if (error) throw error;
+        try {
+            await AutoReply.findByIdAndDelete(id);
+        } catch (error) {
+            console.error('Error deleting auto reply:', error);
+            throw error;
+        }
     }
 
     static async toggleAutoReply(id) {
-        const supabase = getDatabase();
-        const { data, error } = await supabase
-            .from('auto_replies')
-            .select('enabled')
-            .eq('id', id)
-            .maybeSingle();
-        if (error) throw error;
-        const current = data?.enabled === true;
-        const { error: upErr } = await supabase
-            .from('auto_replies')
-            .update({ enabled: !current })
-            .eq('id', id);
-        if (upErr) throw upErr;
+        try {
+            const autoReply = await AutoReply.findById(id);
+            if (autoReply) {
+                autoReply.enabled = !autoReply.enabled;
+                await autoReply.save();
+            }
+        } catch (error) {
+            console.error('Error toggling auto reply:', error);
+            throw error;
+        }
     }
 }
 

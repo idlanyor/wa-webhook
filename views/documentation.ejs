@@ -35,7 +35,7 @@
                                 <h4 class="font-semibold text-blue-800 mb-2">Metode Autentikasi</h4>
                                 <p class="text-blue-700 mb-3">Semua endpoint API dilindungi. Tersedia <strong>dua</strong> cara untuk autentikasi:</p>
                                 <ol class="list-decimal list-inside space-y-2 text-blue-700">
-                                    <li><strong>Cookie Sesi</strong> – Masuk melalui dasbor web, lalu salin cookie <code class="bg-blue-200 px-2 py-1 rounded text-sm">supabase-auth-token</code> dari browser dan sertakan pada setiap request.</li>
+                                    <li><strong>Cookie Sesi</strong> – Masuk melalui dasbor web, lalu salin cookie <code class="bg-blue-200 px-2 py-1 rounded text-sm">auth-token</code> dari browser dan sertakan pada setiap request.</li>
                                     <li><strong>Kunci API</strong> – Buat kunci di halaman <em>Kunci API</em>. Kirim lewat header <code class="bg-blue-200 px-2 py-1 rounded text-sm">X-API-KEY</code> atau parameter query <code class="bg-blue-200 px-2 py-1 rounded text-sm">?api_key=</code>.</li>
                                 </ol>
                             </div>
@@ -144,7 +144,7 @@
                                 <div class="bg-gray-900 text-gray-100 rounded-xl p-4 overflow-x-auto">
                                     <pre class="text-sm font-mono"><code>$ curl -X POST \
   -H "Content-Type: application/json" \
-  -H "Cookie: supabase-auth-token=YOUR_COOKIE_HERE" \
+  -H "Cookie: auth-token=YOUR_COOKIE_HERE" \
   -d '{"to":"6281234567890","message":"Hello via cookie!"}' \
   http://localhost:3000/send-message</code></pre>
                                 </div>
