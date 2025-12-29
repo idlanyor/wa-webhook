@@ -9,6 +9,7 @@ Dokumentasi ini memberikan panduan teknis mendalam tentang cara berinteraksi den
 2. [REST API Endpoints](#2-rest-api-endpoints)
 3. [Integrasi Webhook](#3-integrasi-webhook)
 4. [Balas Otomatis (Auto-Reply)](#4-balas-otomatis-auto-reply)
+5. [Manajemen User](#5-manajemen-user)
 
 ---
 
@@ -126,6 +127,16 @@ Fitur ini memungkinkan bot menjawab pesan secara otomatis berdasarkan kata kunci
   - Kata kunci bersifat *case-insensitive*.
   - Mendukung pencocokan sebagian atau kata kunci yang persis.
   - Setiap aturan dapat diaktifkan/dinonaktifkan secara individu.
+
+---
+
+## 5. Manajemen User
+
+Sistem ini mendukung multi-user dengan pembagian peran (role):
+- **Admin**: Memiliki akses penuh ke semua fitur, termasuk manajemen user, pengaturan global, dan kunci API.
+- **User**: Hanya dapat mengelola sesi WhatsApp dan aturan balas otomatis mereka sendiri.
+
+*Catatan: User pertama yang mendaftar ke sistem secara otomatis akan mendapatkan peran **Admin**.*
 
 ---
 

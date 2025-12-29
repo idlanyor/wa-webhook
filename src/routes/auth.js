@@ -51,11 +51,16 @@ router.post('/register', async (req, res) => {
             });
         }
 
+        // Check if this is the first user
+        const userCount = await User.countDocuments();
+        const role = userCount === 0 ? 'admin' : 'user';
+
         // Create new user
         const user = new User({
             name,
             email,
-            password
+            password,
+            role
         });
         await user.save();
 

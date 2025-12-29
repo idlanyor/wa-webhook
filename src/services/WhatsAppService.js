@@ -131,7 +131,7 @@ class WhatsAppService {
             session.qr = qr;
             session.state = 'qr_ready';
             this.io.to(userId).emit('qr', qr);
-            if (this.webhookService) {
+            if (this.webhookService && this.appSettings.webhook_toggle_connection !== 'false') {
                 this.webhookService.send('connection_status', { userId, status: 'qr_ready' });
             }
         }
@@ -142,7 +142,7 @@ class WhatsAppService {
             session.qr = null;
             this.io.to(userId).emit('connection_status', { status: 'connected' });
             console.log(`WhatsApp connected for user: ${userId}`);
-            if (this.webhookService) {
+            if (this.webhookService && this.appSettings.webhook_toggle_connection !== 'false') {
                 this.webhookService.send('connection_status', { userId, status: 'connected' });
             }
         }
@@ -151,7 +151,7 @@ class WhatsAppService {
             session.isConnected = false;
             session.state = 'disconnected';
             this.io.to(userId).emit('connection_status', { status: 'disconnected' });
-            if (this.webhookService) {
+            if (this.webhookService && this.appSettings.webhook_toggle_connection !== 'false') {
                 this.webhookService.send('connection_status', { userId, status: 'disconnected' });
             }
 
@@ -234,7 +234,7 @@ class WhatsAppService {
                     id: recordedMessage._id,
                     chat_jid: recordedMessage.chatJid
                 });
-                if (this.webhookService) {
+                if (this.webhookService && this.appSettings.webhook_toggle_message_in !== 'false') {
                     this.webhookService.send('message.in', {
                         userId,
                         id: recordedMessage._id,
@@ -357,7 +357,7 @@ class WhatsAppService {
                 id: recordedOutgoing._id,
                 chat_jid: recordedOutgoing.chatJid
             });
-            if (this.webhookService) {
+            if (this.webhookService && this.appSettings.webhook_toggle_message_out !== 'false') {
                 this.webhookService.send('message.out', {
                     userId,
                     id: recordedOutgoing._id,

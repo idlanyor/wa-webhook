@@ -6,7 +6,7 @@
 <body class="bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen overflow-x-hidden">
     <div class="flex min-h-screen w-full overflow-x-hidden">
         <%- include('partials/sidebar') %>
-        <div class="flex-1 flex flex-col min-w-0">
+        <div class="flex-1 flex flex-col min-w-0 lg:ml-64">
             <%- include('partials/navbar', { title: 'Dokumentasi API' }) %>
             <main class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto overflow-x-hidden">
                 <div class="max-w-5xl mx-auto w-full">
@@ -147,7 +147,15 @@
                                 <p class="text-orange-700 text-xs md:text-sm leading-relaxed">Bot berbasis kata kunci dengan aktif/nonaktif per aturan dan sakelar global.</p>
                             </div>
 
-                            <div class="p-4 bg-indigo-50 rounded-xl border border-indigo-200 md:col-span-2">
+                            <div class="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <i class="ri-group-line text-purple-500 text-xl"></i>
+                                    <h4 class="font-semibold text-purple-500 text-sm md:text-base">Manajemen User</h4>
+                                </div>
+                                <p class="text-purple-700 text-xs md:text-sm leading-relaxed">Kelola pengguna sistem, buat akun baru, dan atur peran (Admin/User).</p>
+                            </div>
+
+                            <div class="p-4 bg-indigo-50 rounded-xl border border-indigo-200 md:col-span-1">
                                 <div class="flex items-center space-x-3 mb-2">
                                     <i class="ri-key-line text-indigo-500 text-xl"></i>
                                     <h4 class="font-semibold text-indigo-500 text-sm md:text-base">Kunci API</h4>

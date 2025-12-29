@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { isAuthenticated } from '../middleware/auth.js';
+import { isAuthenticated, isAdmin } from '../middleware/auth.js';
 import { getMany, set } from '../services/SettingsService.js';
 
 const router = Router();
 
-router.get('/', isAuthenticated, async (req, res) => {
+router.get('/', isAuthenticated, isAdmin, async (req, res) => {
     try {
         const map = await getMany(['webhook_url', 'webhook_secret', 'webhook_toggle_connection', 'webhook_toggle_message_in', 'webhook_toggle_message_out']);
         const webhookUrl = map.get('webhook_url') || '';
@@ -20,14 +20,15 @@ router.get('/', isAuthenticated, async (req, res) => {
             webhookToggleMessageIn,
             webhookToggleMessageOut,
             success: req.query.success,
-            error: req.query.error
+            error: req.query.error,
+            user: req.user
         });
     } catch (e) {
-        res.render('settings', { page: 'settings', webhookUrl: '', webhookSecret: '', error: 'Gagal memuat pengaturan', success: null });
+        res.render('settings', { page: 'settings', webhookUrl: '', webhookSecret: '', error: 'Gagal memuat pengaturan', success: null, user: req.user });
     }
 });
 
-router.post('/webhook', isAuthenticated, async (req, res) => {
+router.post('/webhook', isAuthenticated, isAdmin, async (req, res) => {
     const { webhook_url, webhook_secret, webhook_toggle_connection, webhook_toggle_message_in, webhook_toggle_message_out } = req.body;
     try {
         await set('webhook_url', webhook_url || '', 'Webhook endpoint URL');
@@ -35,13 +36,18 @@ router.post('/webhook', isAuthenticated, async (req, res) => {
         await set('webhook_toggle_connection', webhook_toggle_connection ? 'true' : 'false', 'Toggle connection status webhook');
         await set('webhook_toggle_message_in', webhook_toggle_message_in ? 'true' : 'false', 'Toggle incoming message webhook');
         await set('webhook_toggle_message_out', webhook_toggle_message_out ? 'true' : 'false', 'Toggle outgoing message webhook');
+        
+        // Reload settings in WhatsApp service
+        const whatsappService = req.app.get('whatsappService');
+        await whatsappService.loadSettings();
+
         res.redirect('/settings?success=' + encodeURIComponent('Pengaturan webhook disimpan.'));
     } catch (e) {
         res.redirect('/settings?error=' + encodeURIComponent(e.message));
     }
 });
 
-router.post('/webhook/test', isAuthenticated, async (req, res) => {
+router.post('/webhook/test', isAuthenticated, isAdmin, async (req, res) => {
     try {
         const webhookService = req.app.get('webhookService');
         await webhookService.send('test', { message: 'Webhook uji', userId: req.user.id });

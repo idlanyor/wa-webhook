@@ -13,7 +13,8 @@ router.get('/', isAuthenticated, async (req, res) => {
             keys, 
             error: null, 
             success: req.query.success, 
-            page: 'api-keys' 
+            page: 'api-keys',
+            user: req.user 
         });
     } catch (error) {
         console.error('Error loading API keys page:', error);
@@ -21,7 +22,8 @@ router.get('/', isAuthenticated, async (req, res) => {
             keys: [], 
             error: 'Failed to load API keys.', 
             success: null, 
-            page: 'api-keys' 
+            page: 'api-keys',
+            user: req.user 
         });
     }
 });
@@ -36,7 +38,8 @@ router.post('/generate', isAuthenticated, async (req, res) => {
             keys: keys.map(k => k.id.toString() === apiKey.id.toString() ? { ...k, raw: apiKey.raw_key } : k), 
             success: 'API key generated. Copy it now, it will not be shown again!', 
             page: 'api-keys', 
-            error: null 
+            error: null,
+            user: req.user 
         });
     } catch (error) {
         console.error('Failed to generate API key:', error);
@@ -44,7 +47,8 @@ router.post('/generate', isAuthenticated, async (req, res) => {
             keys: [], 
             error: 'Failed to generate API key', 
             page: 'api-keys',
-            success: null
+            success: null,
+            user: req.user
         });
     }
 });

@@ -18,13 +18,15 @@ router.get('/dashboard', isAuthenticated, async (req, res) => {
         
         res.render('dashboard', { 
             page: 'dashboard', 
-            userId: req.user.id 
+            userId: req.user.id,
+            user: req.user
         });
     } catch (error) {
         console.error('Dashboard error:', error);
         res.render('dashboard', { 
             page: 'dashboard', 
             userId: req.user.id,
+            user: req.user,
             error: 'Failed to initialize WhatsApp session'
         });
     }
@@ -33,7 +35,8 @@ router.get('/dashboard', isAuthenticated, async (req, res) => {
 // Documentation
 router.get('/documentation', isAuthenticated, (req, res) => {
     res.render('documentation', { 
-        page: 'documentation' 
+        page: 'documentation',
+        user: req.user
     });
 });
 

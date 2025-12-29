@@ -34,6 +34,7 @@ import contactRoutes from './src/routes/contacts.js';
 import autoReplyRoutes from './src/routes/autoReply.js';
 import apiKeyRoutes from './src/routes/apiKeys.js';
 import settingsRoutes from './src/routes/settings.js';
+import userRoutes from './src/routes/users.js';
 
 // Import utilities
 import { info, error as _error, warn } from './src/utils/logger.js';
@@ -201,6 +202,9 @@ class Application {
         
         // Settings routes
         this.app.use('/settings', settingsRoutes);
+        
+        // User management routes
+        this.app.use('/users', userRoutes);
 
         info('Routes configured');
     }

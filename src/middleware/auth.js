@@ -77,9 +77,24 @@ function getEffectiveUserId(req) {
     return req.user?.id || req.apiUserId;
 }
 
+/**
+ * Middleware to check if user has admin role
+ */
+function isAdmin(req, res, next) {
+    if (req.user && req.user.role === 'admin') {
+        return next();
+    }
+    
+    res.status(403).render('error', {
+        error: 'Forbidden',
+        message: 'You do not have permission to access this page.'
+    });
+}
+
 export {
     isAuthenticated,
     isAuthenticatedOrApiKey,
     verifyApiKey,
-    getEffectiveUserId
+    getEffectiveUserId,
+    isAdmin
 };

@@ -17,7 +17,8 @@ router.get('/', isAuthenticated, async (req, res) => {
             replies, 
             error: null, 
             success: req.query.success, 
-            page: 'auto-reply' 
+            page: 'auto-reply',
+            user: req.user
         });
     } catch (error) {
         console.error('Error loading auto-reply page:', error);
@@ -26,7 +27,8 @@ router.get('/', isAuthenticated, async (req, res) => {
             replies: [], 
             error: 'Failed to load auto-reply settings.', 
             success: null, 
-            page: 'auto-reply' 
+            page: 'auto-reply',
+            user: req.user
         });
     }
 });
