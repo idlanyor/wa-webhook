@@ -1,4 +1,8 @@
-import { default as makeWASocket, DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
+import { default as makeWASocket, DisconnectReason, useMultiFileAuthState, generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const buttonsWarpper = require('buttons-warpper');
+const initFunction = buttonsWarpper.default || buttonsWarpper;
 import { existsSync, rmSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -31,7 +35,7 @@ class WhatsAppService {
         try {
             // Load app settings
             const settingsData = await Setting.find({});
-            
+
             this.appSettings = settingsData.reduce((acc, row) => {
                 acc[row.key] = row.value;
                 return acc;
@@ -78,10 +82,13 @@ class WhatsAppService {
         const sock = makeWASocket({
             auth: state,
             printQRInTerminal: false,
-            browser: ['WhatsApp API', 'Chrome', '1.0.0'],
+            browser: ['Ubuntu', 'Chrome', '20.0.04'],
             keepAliveIntervalMs: config.whatsapp.keepAliveIntervalMs,
             markOnlineOnConnect: config.whatsapp.markOnlineOnConnect
         });
+
+        /* Initialize buttons-warpper for enhanced interactive buttons */
+        await initFunction(sock);
 
         session.sock = sock;
         this.setupSessionHandlers(session, userIdStr, saveCreds, authDir);
@@ -162,7 +169,7 @@ class WhatsAppService {
 
             const code = lastDisconnect?.error?.output?.statusCode;
             const loggedOut = code === DisconnectReason.loggedOut;
-            
+
             if (loggedOut) {
                 try {
                     if (existsSync(authDir)) {
@@ -187,28 +194,28 @@ class WhatsAppService {
      */
     async handleIncomingMessage(messageUpdate, userId, sock) {
         const message = messageUpdate.messages[0];
-        
+
         if (!message.key.fromMe && messageUpdate.type === 'notify') {
-            const messageText = message.message?.conversation || 
-                             message.message?.extendedTextMessage?.text || '';
-            
+            const messageText = message.message?.conversation ||
+                message.message?.extendedTextMessage?.text || '';
+
             // Handle quoted messages
             const contextInfo = message.message?.extendedTextMessage?.contextInfo;
             let quotedText = null;
             let quotedSender = null;
             let replyToId = null;
-            
+
             if (contextInfo?.quotedMessage) {
-                quotedText = contextInfo.quotedMessage.conversation || 
-                           contextInfo.quotedMessage.extendedTextMessage?.text || '...';
+                quotedText = contextInfo.quotedMessage.conversation ||
+                    contextInfo.quotedMessage.extendedTextMessage?.text || '...';
                 quotedSender = contextInfo.participant;
-                
+
                 // Find the original message ID in database
                 const repliedToMsg = await Message.findOne({
                     stanzaId: contextInfo.stanzaId,
                     userId: userId
                 });
-                
+
                 if (repliedToMsg) replyToId = repliedToMsg._id;
             }
 
@@ -256,18 +263,18 @@ class WhatsAppService {
      */
     async handleAutoReply(messageText, message, userId, sock, replyToId, quotedText, quotedSender) {
         const autoReplyEnabled = this.appSettings.auto_reply_enabled !== 'false';
-        
+
         if (autoReplyEnabled && !message.key.remoteJid.endsWith('@g.us') && messageText) {
             const lowerText = messageText.trim().toLowerCase();
-            const rule = this.autoReplies.find(r => 
-                r.enabled && 
+            const rule = this.autoReplies.find(r =>
+                r.enabled &&
                 lowerText.includes(String(r.keyword || '').toLowerCase().trim())
             );
-            
+
             if (rule) {
                 try {
                     const result = await sock.sendMessage(message.key.remoteJid, { text: rule.reply });
-                    
+
                     // Record auto-reply message
                     const recordedReply = await MessageService.recordMessage({
                         userId,
@@ -283,7 +290,7 @@ class WhatsAppService {
                         quotedSender: quotedSender,
                         senderJid: sock.user.id.replace(/:.*$/, '@s.whatsapp.net')
                     });
-                    
+
                     if (recordedReply) {
                         this.io.to(userId).emit('new_message', {
                             ...recordedReply.toObject(),
@@ -303,22 +310,22 @@ class WhatsAppService {
      */
     async sendMessage(userId, to, message, replyToId = null) {
         const session = await this.ensureSession(userId);
-        
+
         if (!session.isConnected) {
             throw new Error('WhatsApp not connected');
         }
 
         const phone = to.includes('@') ? to : `${to}@s.whatsapp.net`;
-        
+
         let quotedInfo = undefined;
         let quotedDbRecord = null;
-        
+
         if (replyToId) {
             const data = await Message.findOne({
                 _id: replyToId,
                 userId: userId
             });
-                
+
             if (data) {
                 quotedDbRecord = data;
                 quotedInfo = {
@@ -334,7 +341,7 @@ class WhatsAppService {
         }
 
         const result = await session.sock.sendMessage(phone, { text: message }, { quoted: quotedInfo });
-        
+
         // Record outgoing message
         const recordedOutgoing = await MessageService.recordMessage({
             userId,
@@ -409,7 +416,7 @@ class WhatsAppService {
         if (!session) {
             return { status: 'disconnected', connected: false, qr: null };
         }
-        
+
         return {
             status: session.state,
             connected: session.isConnected,
@@ -435,6 +442,61 @@ class WhatsAppService {
             }
         } catch (error) {
             console.error('Error during WhatsApp session preload:', error);
+        }
+    }
+    async requestPairingCode(userId, phoneNumber) {
+        const session = await this.ensureSession(userId);
+        if (session.isConnected) {
+            throw new Error('WhatsApp already connected');
+        }
+
+        if (!session.sock) {
+            throw new Error('Session not initialized');
+        }
+
+        // Wait for connection to be ready
+        let attempts = 0;
+        while (attempts < 20) {
+            if (session.sock.ws && session.sock.ws.isOpen) {
+                break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 500));
+            attempts++;
+        }
+
+        if (!session.sock.ws || !session.sock.ws.isOpen) {
+            throw new Error('Connection to WhatsApp server failed, please try again');
+        }
+
+        const code = await session.sock.requestPairingCode(phoneNumber);
+        return code;
+    }
+
+    async sendInteractiveMessage(userId, to, content) {
+        console.log(`[WhatsAppService] sendInteractiveMessage start for user: ${userId}`);
+        const session = await this.ensureSession(userId);
+        if (!session.isConnected) {
+            throw new Error('WhatsApp not connected');
+        }
+
+        const phone = to.includes('@') ? to : `${to}@s.whatsapp.net`;
+        console.log(`[WhatsAppService] Target JID: ${phone}`);
+
+        /* Use buttons-warpper enhanced method for better compatibility */
+        console.log(`[WhatsAppService] Using buttons-warpper sendInteractiveMessage...`);
+        try {
+            const msg = await session.sock.sendInteractiveMessage(phone, {
+                text: content.text || '',
+                footer: content.footer || '',
+                title: content.title || '',
+                subtitle: content.subtitle || '',
+                interactiveButtons: content.interactiveButtons || []
+            });
+            console.log(`[WhatsAppService] Message sent successfully via buttons-warpper`);
+            return msg;
+        } catch (err) {
+            console.error(`[WhatsAppService] Failed to send via buttons-warpper:`, err);
+            throw err;
         }
     }
 }

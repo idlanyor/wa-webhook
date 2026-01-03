@@ -4,24 +4,33 @@
             <h3 class="text-lg font-semibold text-gray-800">Aksi Cepat</h3>
             <p class="text-sm text-gray-600 mt-1">Kendalikan layanan WhatsApp Anda</p>
         </div>
-        <div class="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center shadow-inner">
+        <div
+            class="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center shadow-inner">
             <i class="ri-gamepad-line text-purple-600 text-2xl"></i>
         </div>
     </div>
     <div class="space-y-3">
-        <button class="w-full group flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1" id="resetSessionBtn">
+        <button
+            class="w-full group flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1"
+            id="resetSessionBtn">
             <i class="ri-refresh-line text-lg group-hover:scale-110 transition-transform"></i>
             <span>Reset Sesi</span>
         </button>
-        <button class="w-full group flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1" id="refreshBtn" onclick="refreshStatus()">
+        <button
+            class="w-full group flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1"
+            id="refreshBtn" onclick="refreshStatus()">
             <i class="ri-refresh-line text-lg group-hover:scale-110 transition-transform"></i>
             <span id="refreshText">Segarkan Status</span>
         </button>
-        <button class="w-full group flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md" id="testBtn" onclick="testMessage()" disabled>
+        <button
+            class="w-full group flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md"
+            id="testBtn" onclick="testMessage()" disabled>
             <i class="ri-send-plane-line text-lg group-hover:scale-110 transition-transform"></i>
             <span>Kirim Pesan Uji</span>
         </button>
-        <button class="w-full group flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md" id="waLogoutBtn" onclick="waLogout()" disabled>
+        <button
+            class="w-full group flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md"
+            id="waLogoutBtn" onclick="waLogout()" disabled>
             <i class="ri-logout-circle-r-line text-lg group-hover:scale-110 transition-transform"></i>
             <span>Keluar WhatsApp</span>
         </button>

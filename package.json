@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "node app.js",
+    "start:local": "node start_local.js",
     "dev": "nodemon app.js",
     "test": "jest",
     "build": "npm run build:css",
@@ -23,6 +24,8 @@
   "dependencies": {
     "@hapi/boom": "^10.0.1",
     "@whiskeysockets/baileys": "latest",
+    "baileys-shard": "^0.0.7",
+    "buttons-warpper": "^1.2.0",
     "bcryptjs": "^3.0.3",
     "body-parser": "^1.20.3",
     "cookie-parser": "^1.4.7",
@@ -35,6 +38,7 @@
     "j": "^1.0.0",
     "jimp": "^1.6.0",
     "jsonwebtoken": "^9.0.3",
+    "mongodb-memory-server": "^11.0.1",
     "mongoose": "^9.0.2",
     "multer": "^1.4.5-lts.2",
     "qrcode": "^1.5.4",
