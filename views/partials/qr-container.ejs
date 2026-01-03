@@ -9,18 +9,52 @@
         </div>
     </div>
     
-    <div class="space-y-6">
+
         <!-- Connection Method Selection -->
         <div id="connectionMethods" class="border-b border-gray-200">
             <div class="flex space-x-1 mb-4">
-                <button class="flex items-center space-x-2 px-4 py-2 bg-blue-50 text-blue-700 border-b-2 border-blue-500 rounded-t-lg font-medium transition-colors" data-method="qr" id="qrTab">
+                <button class="flex items-center space-x-2 px-4 py-2 bg-blue-50 text-blue-700 border-b-2 border-blue-500 rounded-t-lg font-medium transition-colors cursor-pointer" onclick="switchMethod('qr')" id="qrTab">
                     <i class="ri-qr-code-line"></i>
                     <span>Kode QR</span>
+                </button>
+                <button class="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:bg-gray-50 border-b-2 border-transparent hover:border-gray-200 rounded-t-lg font-medium transition-colors cursor-pointer" onclick="switchMethod('pairing')" id="pairingTab">
+                    <i class="ri-keyboard-box-line"></i>
+                    <span>Pairing Code</span>
                 </button>
             </div>
         </div>
 
-        <!-- Pairing Code Method removed -->
+        <!-- Pairing Code Method -->
+        <div id="pairingMethod" class="space-y-4 hidden">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nomor WhatsApp</label>
+                    <div class="flex">
+                        <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                            +62
+                        </span>
+                        <input type="text" id="phoneNumber" class="focus:ring-blue-500 focus:border-blue-500 flex-1 block w-full rounded-none rounded-r-md sm:text-sm border-gray-300 p-2 border" placeholder="81234567890">
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Masukkan nomor tanpa awalan 0 atau 62</p>
+                </div>
+                
+                <button onclick="requestPairingCode()" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Dapatkan Kode Pairing
+                </button>
+
+                <div id="pairingCodeResult" class="hidden">
+                    <div class="bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
+                        <p class="text-sm text-gray-600 mb-2">Kode Pairing Anda:</p>
+                        <div class="text-3xl font-mono font-bold tracking-widest text-gray-800" id="pairingCodeDisplay"></div>
+                    </div>
+                    <div class="text-sm text-gray-600 text-left space-y-1 mt-4">
+                        <p class="font-medium text-gray-800 mb-2">Langkah selanjutnya:</p>
+                        <p>1. Buka notifikasi pairing di WhatsApp</p>
+                        <p>2. Masukkan kode di atas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- QR Code Method -->
         <div id="qrMethod" class="text-center space-y-4">
@@ -39,3 +73,49 @@
         </div>
     </div>
 </div>
+
+<script>
+    function switchMethod(method) {
+        const qrTab = document.getElementById('qrTab');
+        const pairingTab = document.getElementById('pairingTab');
+        const qrMethod = document.getElementById('qrMethod');
+        const pairingMethod = document.getElementById('pairingMethod');
+
+        if (method === 'qr') {
+            qrTab.className = "flex items-center space-x-2 px-4 py-2 bg-blue-50 text-blue-700 border-b-2 border-blue-500 rounded-t-lg font-medium transition-colors cursor-pointer";
+            pairingTab.className = "flex items-center space-x-2 px-4 py-2 text-gray-600 hover:bg-gray-50 border-b-2 border-transparent hover:border-gray-200 rounded-t-lg font-medium transition-colors cursor-pointer";
+            qrMethod.classList.remove('hidden');
+            pairingMethod.classList.add('hidden');
+        } else {
+            pairingTab.className = "flex items-center space-x-2 px-4 py-2 bg-blue-50 text-blue-700 border-b-2 border-blue-500 rounded-t-lg font-medium transition-colors cursor-pointer";
+            qrTab.className = "flex items-center space-x-2 px-4 py-2 text-gray-600 hover:bg-gray-50 border-b-2 border-transparent hover:border-gray-200 rounded-t-lg font-medium transition-colors cursor-pointer";
+            pairingMethod.classList.remove('hidden');
+            qrMethod.classList.add('hidden');
+        }
+    }
+
+    async function requestPairingCode() {
+        const phone = document.getElementById('phoneNumber').value;
+        if (!phone) return alert('Silakan masukkan nomor telepon');
+
+        const fullPhone = '62' + phone.replace(/^0+/, '');
+        
+        try {
+            const response = await fetch('/api/whatsapp/pairing-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phoneNumber: fullPhone })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                document.getElementById('pairingCodeResult').classList.remove('hidden');
+                document.getElementById('pairingCodeDisplay').textContent = data.pairingCode.match(/.{1,4}/g).join('-');
+            } else {
+                alert('Gagal: ' + data.message);
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan');
+        }
+    }
+</script>

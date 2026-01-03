@@ -23,6 +23,36 @@ router.get('/status', isAuthenticatedOrApiKey, async (req, res) => {
     }
 });
 
+// Request pairing code
+router.post('/pairing-code', isAuthenticatedOrApiKey, async (req, res) => {
+    const { phoneNumber } = req.body;
+
+    if (!phoneNumber) {
+        return res.status(400).json({
+            error: 'Missing phone number',
+            message: 'Phone number is required'
+        });
+    }
+
+    try {
+        const userId = getEffectiveUserId(req);
+        const whatsappService = req.app.get('whatsappService');
+
+        const code = await whatsappService.requestPairingCode(userId, phoneNumber);
+
+        res.json({
+            success: true,
+            pairingCode: code
+        });
+    } catch (error) {
+        console.error('Pairing code error:', error);
+        res.status(500).json({
+            error: 'Failed to request pairing code',
+            details: error.message
+        });
+    }
+});
+
 // Send a single message
 router.post('/send-message', isAuthenticatedOrApiKey, async (req, res) => {
     const { to, message, reply_to_id } = req.body;

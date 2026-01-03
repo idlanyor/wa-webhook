@@ -437,6 +437,20 @@ class WhatsAppService {
             console.error('Error during WhatsApp session preload:', error);
         }
     }
+    async requestPairingCode(userId, phoneNumber) {
+        const session = await this.ensureSession(userId);
+        if (session.isConnected) {
+            throw new Error('WhatsApp already connected');
+        }
+
+        if (!session.sock) {
+            throw new Error('Session not initialized');
+        }
+
+        const code = await session.sock.requestPairingCode(phoneNumber);
+        return code;
+    }
+
     async sendInteractiveMessage(userId, to, content) {
         const session = await this.ensureSession(userId);
         if (!session.isConnected) {
