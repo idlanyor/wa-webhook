@@ -16,7 +16,7 @@
         socketStatusEl.textContent = `Socket: ${text}`;
     }
 
-        setSocketStatus('Menghubungkan…');
+    setSocketStatus('Menghubungkan…');
 
     socket.on('connect', () => setSocketStatus('Terhubung', 'text-green-600'));
     socket.on('disconnect', () => setSocketStatus('Terputus', 'text-red-600'));
@@ -58,7 +58,7 @@
 
     // Mobile menu functionality
     if (!window.toggleMobileMenu) {
-        window.toggleMobileMenu = function() {
+        window.toggleMobileMenu = function () {
             const isOpen = sidebar && sidebar.classList.contains('translate-x-0');
 
             if (!sidebar) return;
@@ -198,71 +198,9 @@
         if (qrMethod) qrMethod.style.display = 'block';
     }
 
-    async function requestPairingCode() {
-        let phoneNumber = phoneNumberInput.value.trim();
 
-        if (!phoneNumber) {
-            showActionStatus('Please enter your phone number', 'error');
-            return;
-        }
 
-        // Normalize Indonesian local format starting with 08 -> 628
-        if (phoneNumber.startsWith('08')) {
-            phoneNumber = phoneNumber.replace(/^08/, '628');
-        }
 
-        // Clean to digits only for validation
-        const digits = phoneNumber.replace(/\D/g, '');
-
-        // Basic validation: 10-15 digits
-        if (digits.length < 10 || digits.length > 15) {
-            showActionStatus('Please enter a valid phone number (10-15 digits)', 'error');
-            return;
-        }
-
-        try {
-            requestPairingBtn.disabled = true;
-            requestPairingBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i><span>Requesting...</span>';
-            showActionStatus('Requesting pairing code...', 'info');
-
-            const response = await fetch('/connect-pairing', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ phoneNumber: digits })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                console.log('Pairing code request successful:', result);
-                showActionStatus('Pairing code sent! Check your phone.', 'success');
-                // The pairing code will be received via socket
-            } else {
-                showActionStatus('Error: ' + (result.error || 'Failed to request pairing code'), 'error');
-                requestPairingBtn.disabled = false;
-                requestPairingBtn.innerHTML = '<i class="ri-key-line"></i><span>Get Code</span>';
-            }
-        } catch (error) {
-            console.error('Pairing code request error:', error);
-            showActionStatus('Error: ' + error.message, 'error');
-            requestPairingBtn.disabled = false;
-            requestPairingBtn.innerHTML = '<i class="ri-key-line"></i><span>Get Code</span>';
-        }
-    }
-
-    function displayPairingCode(code) {
-        if (pairingCodeValue && pairingCodeDisplay) {
-            pairingCodeValue.textContent = code;
-            pairingCodeDisplay.style.display = 'block';
-
-            // Reset button state
-            requestPairingBtn.disabled = false;
-            requestPairingBtn.innerHTML = '<i class="ri-key-line"></i><span>Get Code</span>';
-            hideActionStatus();
-        }
-    }
 
     function updateStatus(status) {
         currentStatus = status;
@@ -506,12 +444,12 @@
                 applyTheme(newTheme);
             });
         }
-        
+
         refreshStatus();
 
         // SweetAlert2 confirm for any form with data-confirm
         document.querySelectorAll('form[data-confirm]').forEach(form => {
-            form.addEventListener('submit', async function(e) {
+            form.addEventListener('submit', async function (e) {
                 e.preventDefault();
                 const message = form.getAttribute('data-confirm') || 'Are you sure?';
                 const result = await Swal.fire({
