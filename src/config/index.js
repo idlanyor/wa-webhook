@@ -12,7 +12,7 @@ export const config = {
     port: process.env.PORT || 8181,
     node_env: process.env.NODE_ENV || 'development',
     mongodb: {
-        uri: "mongodb+srv://Vercel-Admin-database-didiwww:60zqjCetLtkWGgcf@database-didiwww.6bg22pr.mongodb.net/?retryWrites=true&w=majority" || 'mongodb+srv://Vercel-Admin-database-didiwww:60zqjCetLtkWGgcf@database-didiwww.6bg22pr.mongodb.net/?retryWrites=true&w=majority',
+        uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/whatsapp-webhook',
     },
     session: {
         secret: process.env.SESSION_SECRET || 'default-secret',
@@ -68,4 +68,3 @@ export function validateConfig() {
         console.log('⚡ Bun optimizations enabled');
     }
 }
-
