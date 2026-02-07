@@ -12,7 +12,7 @@ export const config = {
     port: process.env.PORT || 8181,
     node_env: process.env.NODE_ENV || 'development',
     mongodb: {
-        uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/whatsapp-webhook',
+        uri: process.env.MONGODB_URI || 'mongodb+srv://Vercel-Admin-database-didiwww:60zqjCetLtkWGgcf@database-didiwww.6bg22pr.mongodb.net/?retryWrites=true&w=majority',
     },
     session: {
         secret: process.env.SESSION_SECRET || 'default-secret',
