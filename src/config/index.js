@@ -68,4 +68,3 @@ export function validateConfig() {
         console.log('⚡ Bun optimizations enabled');
     }
 }
-
