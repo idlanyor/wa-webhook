@@ -1,4 +1,4 @@
-import { default as makeWASocket, DisconnectReason, useMultiFileAuthState, generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
+import { default as makeWASocket, DisconnectReason, useMultiFileAuthState, fetchLatestBaileysVersion, Browsers, generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const buttonsWarpper = require('buttons-warpper');
@@ -71,6 +71,9 @@ class WhatsAppService {
         const authDir = join(__dirname, '../../auth_info_baileys', userIdStr);
         const { state, saveCreds } = await useMultiFileAuthState(authDir);
 
+        const { version, isLatest } = await fetchLatestBaileysVersion();
+        console.log(`using WA v${version.join('.')}, isLatest: ${isLatest}`);
+
         const session = {
             sock: null,
             isConnected: false,
@@ -80,9 +83,10 @@ class WhatsAppService {
         };
 
         const sock = makeWASocket({
+            version,
             auth: state,
             printQRInTerminal: false,
-            browser: ['Mac OS', 'Safari', '17.2.1'],
+            browser: Browsers.ubuntu('Chrome'),
             keepAliveIntervalMs: config.whatsapp.keepAliveIntervalMs,
             markOnlineOnConnect: config.whatsapp.markOnlineOnConnect,
             // Add some timeout settings
@@ -174,10 +178,11 @@ class WhatsAppService {
             }
             this.sessions.delete(userId);
 
-            const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+            const shouldReconnect = statusCode !== DisconnectReason.loggedOut && statusCode !== 405;
 
-            if (statusCode === DisconnectReason.loggedOut) {
-                console.log(`Intentional logout detected for user ${userId}; clearing session.`);
+            if (statusCode === DisconnectReason.loggedOut || statusCode === 405) {
+                const reasonText = statusCode === 405 ? 'Connection Failure (405)' : 'Intentional logout';
+                console.log(`${reasonText} detected for user ${userId}; clearing session.`);
                 try {
                     if (existsSync(authDir)) {
                         rmSync(authDir, { recursive: true, force: true });
@@ -187,11 +192,15 @@ class WhatsAppService {
                 }
             }
 
-            // Reconnect if not a logout
+            // Reconnect if not a logout or 405
             if (shouldReconnect) {
                 const delay = statusCode === DisconnectReason.restartRequired ? 0 : 3000;
                 console.log(`Reconnecting for user ${userId} in ${delay}ms...`);
                 setTimeout(() => this.createSession(userId), delay);
+            } else if (statusCode === 405) {
+                // If it was a 405, we cleared the session, so we SHOULD reconnect to let them scan QR again
+                console.log(`Session cleared for user ${userId} due to 405 error. Re-initializing for fresh QR...`);
+                setTimeout(() => this.createSession(userId), 5000);
             } else {
                 console.log(`Skipping reconnect for user ${userId} due to intentional logout.`);
             }
