@@ -37,6 +37,7 @@ import apiKeyRoutes from './src/routes/apiKeys.js';
 import settingsRoutes from './src/routes/settings.js';
 import userRoutes from './src/routes/users.js';
 import scheduledMessagesRoutes from './src/routes/scheduledMessages.js';
+import productRoutes from './src/routes/products.js';
 
 // Import utilities
 import { info, error as _error, warn } from './src/utils/logger.js';
@@ -98,8 +99,9 @@ class Application {
         this.app.use(publicDir);
         this.app.use(cors());
         
-        // Custom JSON parser with better error handling
+        // Custom JSON parser with better error handling and size limit
         this.app.use(json({
+            limit: '10mb',
             verify: (req, res, buf, encoding) => {
                 try {
                     // Store raw body for potential fixing
@@ -110,7 +112,7 @@ class Application {
             }
         }));
         
-        this.app.use(urlencoded({ extended: true }));
+        this.app.use(urlencoded({ extended: true, limit: '10mb' }));
         this.app.use(cookieParser(config.session.secret));
 
         // Request logging middleware
@@ -213,6 +215,9 @@ class Application {
         
         // User management routes
         this.app.use('/users', userRoutes);
+        
+        // Product / Knowledge Base routes
+        this.app.use('/products', productRoutes);
         
         // Scheduled messages routes
         this.app.use('/scheduled-messages', scheduledMessagesRoutes);

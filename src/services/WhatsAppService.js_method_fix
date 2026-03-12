@@ -1,0 +1,116 @@
+    async handleIncomingMessage(messageUpdate, userId, sock) {
+        const message = messageUpdate.messages[0];
+        if (!message.message) return;
+
+        // DEEP LOG MESSAGE OBJECT FOR JID INVESTIGATION
+        console.log('--- FULL BAILEYS MESSAGE OBJECT ---');
+        console.log(JSON.stringify(message, null, 2));
+        console.log('------------------------------------');
+
+        const isNotify = messageUpdate.type === 'notify';
+        const fromMe = message.key.fromMe;
+
+        // Extract message text
+        const messageText = message.message?.conversation ||
+            message.message?.extendedTextMessage?.text || '';
+
+        if (messageText) {
+            // Normalize owner number (keep only digits)
+            const rawOwnerNum = this.appSettings.owner_number || '';
+            const ownerNum = rawOwnerNum.replace(/\D/g, '');
+            
+            // Normalize sender number
+            const senderJid = message.key.participant || message.key.remoteJid;
+            const senderNum = senderJid.replace(/\D/g, '');
+
+            // Bot's own number
+            const botNum = sock.user?.id ? sock.user.id.replace(/\D/g, '') : '';
+
+            // Check if owner:
+            // 1. message.key.fromMe is true (Self-chat or bot sending)
+            // 2. Sender number matches ownerNum in settings
+            // 3. Sender number matches bot's own number
+            const isOwner = message.key.fromMe || 
+                            (ownerNum && senderNum.includes(ownerNum)) || 
+                            (botNum && senderNum.includes(botNum));
+            
+            // DEBUG LOG
+            console.log('--- DEBUG MESSAGE IN ---');
+            console.log('Bot User ID:', sock.user?.id);
+            console.log('Bot Normalized Num:', botNum);
+            console.log('Raw Owner Num in Settings:', rawOwnerNum);
+            console.log('Normalized Owner Num:', ownerNum);
+            console.log('Raw Sender JID:', senderJid);
+            console.log('Normalized Sender Num:', senderNum);
+            console.log('Is From Me:', message.key.fromMe);
+            console.log('Is Owner Detected:', isOwner);
+            console.log('Message Text:', messageText);
+            console.log('------------------------');
+
+            // 1. Check if sender is Owner for Admin Commands
+            if (isOwner && messageText.trim().startsWith('#')) {
+                return await this.handleOwnerCommand(messageText.trim(), message, userId, sock);
+            }
+        }
+
+        if (!fromMe && isNotify) {
+            // Handle quoted messages
+            const contextInfo = message.message?.extendedTextMessage?.contextInfo;
+            let quotedText = null;
+            let quotedSender = null;
+            let replyToId = null;
+
+            if (contextInfo?.quotedMessage) {
+                quotedText = contextInfo.quotedMessage.conversation ||
+                    contextInfo.quotedMessage.extendedTextMessage?.text || '...';
+                quotedSender = contextInfo.participant;
+
+                // Find the original message ID in database - Use .lean() for optimization
+                const repliedToMsg = await Message.findOne({
+                    stanzaId: contextInfo.stanzaId,
+                    userId: userId
+                }).select('_id').lean();
+
+                if (repliedToMsg) replyToId = repliedToMsg._id;
+            }
+
+            // Record incoming message
+            const recordedMessage = await MessageService.recordMessage({
+                userId,
+                chatJid: message.key.remoteJid,
+                sender: message.pushName || message.key.participant || message.key.remoteJid,
+                senderJid: message.key.participant || message.key.remoteJid,
+                text: messageText,
+                direction: 'in',
+                timestamp: (message.messageTimestamp || Date.now()) * 1000,
+                stanzaId: message.key.id,
+                rawMessage: message.message,
+                replyToId: replyToId,
+                quotedText: quotedText,
+                quotedSender: quotedSender
+            });
+
+            if (recordedMessage) {
+                // If recordedMessage is a Mongoose document, convert to object
+                const msgData = recordedMessage.toObject ? recordedMessage.toObject() : recordedMessage;
+                this.io.to(userId).emit('new_message', {
+                    ...msgData,
+                    id: msgData._id,
+                    chat_jid: msgData.chatJid
+                });
+                if (this.webhookService && this.appSettings.webhook_toggle_message_in !== 'false') {
+                    this.webhookService.send('message.in', {
+                        userId,
+                        id: msgData._id,
+                        chatJid: msgData.chatJid,
+                        sender: msgData.sender,
+                        text: msgData.message,
+                        timestamp: msgData.timestamp
+                    });
+                }
+            }
+
+            // Handle auto-reply or Gemini fallback
+            await this.handleAutoReply(messageText, message, userId, sock, replyToId, quotedText, quotedSender);
+        }
+    }

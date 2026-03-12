@@ -1,0 +1,21 @@
+
+> whatsapp-webhook-api@1.0.0 start
+> node app.js
+
+🚀 Running on node runtime
+[INFO] Configuration validated successfully - Runtime: node 
+[INFO] 🚀 MongoDB connected successfully 
+[INFO] Database initialized successfully 
+[INFO] Express application configured 
+[INFO] Socket.IO configured 
+App settings and auto-replies loaded from database.
+[INFO] Starting message scheduler... 
+[INFO] Message scheduler started 
+[INFO] WhatsApp service configured 
+[INFO] Routes configured 
+[INFO] Error handling configured 
+[INFO] Application initialized successfully 
+Preloading WhatsApp session for user: 6952358d7a91fa7af36ddc2c (1/1)
+[INFO] WhatsApp service running on port 8181 
+[INFO] Server started successfully on node runtime { port: '8181', runtime: 'node', optimizations: 'disabled' }
+🚀 Server running on http://localhost:8181 (node)

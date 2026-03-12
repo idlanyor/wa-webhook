@@ -162,7 +162,8 @@ class SchedulerService {
 
         return await ScheduledMessage.find(query)
             .sort({ scheduledAt: -1 })
-            .limit(filters.limit || 100);
+            .limit(filters.limit || 100)
+            .lean();
     }
 
     /**

@@ -102,6 +102,62 @@
                         </div>
                     </div>
 
+                    <!-- Gemini AI Settings Card -->
+                    <div class="mt-8 bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden fade-in">
+                        <div class="p-6 sm:p-8 border-b border-gray-100 bg-gray-50/50 flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
+                                <i class="ri-openai-line text-purple-600 text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Gemini AI Customer Service</h3>
+                                <p class="text-sm text-gray-500">Otomatisasi balasan menggunakan Google Gemini</p>
+                            </div>
+                        </div>
+
+                        <div class="p-6 sm:p-8">
+                            <form action="/settings/gemini" method="POST" class="space-y-6">
+                                <div class="grid grid-cols-1 gap-6">
+                                    <div class="space-y-2">
+                                        <label class="flex items-center space-x-3 cursor-pointer">
+                                            <input type="checkbox" name="gemini_enabled" value="true" <%= locals.geminiEnabled === 'true' ? 'checked' : '' %> class="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500">
+                                            <span class="text-sm font-bold text-gray-700">Aktifkan Fitur AI</span>
+                                        </label>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-semibold text-gray-700">Gemini API Key</label>
+                                        <input type="password" name="gemini_api_key" value="<%= locals.geminiApiKey || '' %>" 
+                                               placeholder="AIza..." 
+                                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 transition-all outline-none" />
+                                        <p class="text-xs text-gray-400">Dapatkan API Key di <a href="https://aistudio.google.com/" target="_blank" class="text-purple-600 hover:underline">Google AI Studio</a>.</p>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-semibold text-gray-700">Nomor WhatsApp Owner (Untuk Notifikasi Order)</label>
+                                        <input type="text" name="owner_number" value="<%= locals.ownerNumber || '' %>" 
+                                               placeholder="628123456789" 
+                                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 transition-all outline-none" />
+                                        <p class="text-xs text-gray-400">Gunakan format internasional tanpa simbol (contoh: 628123456789).</p>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-semibold text-gray-700">System Instruction (Persona)</label>
+                                        <textarea name="gemini_system_instruction" rows="4" 
+                                                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 transition-all outline-none"
+                                                  placeholder="Kamu adalah CS toko yang ramah..."><%= locals.geminiSystemInstruction || '' %></textarea>
+                                        <p class="text-xs text-gray-400">Instruksi dasar untuk AI. Data produk akan ditambahkan secara otomatis sebagai konteks.</p>
+                                    </div>
+                                </div>
+
+                                <div class="pt-6 border-t border-gray-100">
+                                    <button type="submit" class="px-8 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-purple-200">
+                                        Simpan Pengaturan AI
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                     <!-- Usage Stats / Info -->
                     <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
                         <div class="p-6 bg-white rounded-3xl border border-gray-100 shadow-sm fade-in" style="animation-delay: 0.1s">

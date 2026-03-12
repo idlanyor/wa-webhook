@@ -27,8 +27,9 @@ class MessageService {
                 quotedSender
             });
 
-            await message.save();
-            return message;
+            const saved = await message.save();
+            // Optimization: return a plain object instead of a Mongoose document
+            return saved.toObject();
         } catch (err) {
             console.error('Failed to record message:', err);
             return null;
@@ -52,11 +53,9 @@ class MessageService {
                 },
                 { $replaceRoot: { newRoot: '$lastMessage' } },
                 { $sort: { timestamp: -1 } }
-            ]);
+            ]).allowDiskUse(true); // Allow disk use for large aggregations
             
-            // Map to match expected format (chat_jid instead of chatJid if views expect that)
-            // Actually, let's keep the model field names and check views later if needed.
-            // SQL used chat_jid, message, timestamp, sender
+            // Map to match expected format
             return chats.map(c => ({
                 id: c._id,
                 chat_jid: c.chatJid,
@@ -75,8 +74,10 @@ class MessageService {
      */
     static async getChatMessages(userId, chatJid) {
         try {
+            // Optimization: use .lean() to get plain JS objects
             const messages = await Message.find({ userId, chatJid })
-                .sort({ timestamp: 1 });
+                .sort({ timestamp: 1 })
+                .lean();
             
             return messages;
         } catch (error) {

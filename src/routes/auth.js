@@ -20,78 +20,14 @@ router.get('/login', redirectIfAuthenticated, (req, res) => {
     res.render('login', { error: null });
 });
 
-// Register page
+// Register page (Disabled)
 router.get('/register', redirectIfAuthenticated, (req, res) => {
-    res.render('register', { error: null, success: null });
+    res.redirect('/login');
 });
 
-// Handle registration
-router.post('/register', redirectIfAuthenticated, async (req, res) => {
-    const { name, email, password, confirmPassword } = req.body;
-    
-    // Validation
-    if (!name || !email || !password || !confirmPassword) {
-        return res.render('register', { 
-            error: 'All fields are required', 
-            success: null 
-        });
-    }
-    
-    if (password !== confirmPassword) {
-        return res.render('register', { 
-            error: 'Passwords do not match', 
-            success: null 
-        });
-    }
-    
-    if (password.length < 6) {
-        return res.render('register', { 
-            error: 'Password must be at least 6 characters long', 
-            success: null 
-        });
-    }
-    
-    try {
-        // Check if user already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.render('register', { 
-                error: 'Email already registered', 
-                success: null 
-            });
-        }
-
-        // Check if this is the first user
-        const userCount = await User.countDocuments();
-        const role = userCount === 0 ? 'admin' : 'user';
-
-        // Create new user
-        const user = new User({
-            name,
-            email,
-            password,
-            role
-        });
-        await user.save();
-
-        // Generate token
-        const token = jwt.sign(
-            { userId: user._id },
-            config.session.secret,
-            { expiresIn: '24h' }
-        );
-
-        res.cookie('auth-token', token, cookieOptions);
-
-        return res.redirect('/dashboard');
-
-    } catch (err) {
-        console.error('Registration error:', err);
-        return res.render('register', {
-            error: 'An unexpected error occurred. Please try again.',
-            success: null
-        });
-    }
+// Handle registration (Disabled)
+router.post('/register', redirectIfAuthenticated, (req, res) => {
+    res.redirect('/login');
 });
 
 // Handle login
