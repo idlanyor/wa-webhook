@@ -3,50 +3,84 @@
 <head>
     <%- include('partials/head') %>
 </head>
-<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
-    <div class="flex min-h-screen">
-        <%- include('partials/sidebar') %>
-        <div class="flex-1 flex flex-col lg:ml-64">
-            <%- include('partials/navbar') %>
-            <main class="flex-1 p-4 sm:p-6 lg:p-8">
-                <div class="max-w-7xl mx-auto">
-                    
-                    <!-- Top Status Bar (Seberis Memanjang) -->
-                    <div class="fade-in">
-                        <%- include('partials/status-card') %>
-                    </div>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
 
-                    <!-- Grid: QR + Actions (Berjejeran) -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                        <!-- Left: QR Container -->
+    <%- include('partials/navbar') %>
+    <%- include('partials/sidebar') %>
+
+    <!-- Content Wrapper -->
+    <div class="content-wrapper">
+        <!-- Content Header -->
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0">Dasbor</h1>
+                    </div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item active">Dasbor</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+
+                <!-- Status Info Boxes -->
+                <%- include('partials/status-card') %>
+
+                <div class="row">
+                    <!-- Left Column: 2/3 -->
+                    <div class="col-lg-8">
+
+                        <!-- QR / Connection Card -->
                         <div class="fade-in">
                             <%- include('partials/qr-container') %>
                         </div>
 
-                        <!-- Right: Quick Actions -->
+                        <!-- Live Messages -->
+                        <div class="fade-in">
+                            <%- include('partials/messages') %>
+                        </div>
+
+                    </div>
+
+                    <!-- Right Column: 1/3 -->
+                    <div class="col-lg-4">
+
+                        <!-- Quick Actions -->
                         <div class="fade-in">
                             <%- include('partials/actions') %>
                         </div>
-                    </div>
 
-                    <!-- Recent Messages (Optional, can be added below) -->
-                    <div id="messagesCard" class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 fade-in" style="display: none;">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-lg font-semibold text-gray-800">Pesan Terbaru</h3>
-                            <i class="ri-history-line text-blue-500 text-xl"></i>
+                        <!-- API Info -->
+                        <div class="fade-in">
+                            <%- include('partials/api-info') %>
                         </div>
-                        <div id="messagesList" class="space-y-4">
-                            <!-- Messages will appear here -->
-                        </div>
-                    </div>
 
+                    </div>
                 </div>
-            </main>
-        </div>
+
+            </div>
+        </section>
     </div>
 
-    <%- include('partials/bottom-nav') %>
+    <!-- Footer -->
+    <footer class="main-footer">
+        <strong>WhatsApp Webhook</strong> &copy; 2024.
+        <div class="float-right d-none d-sm-inline-block">
+            <b>Version</b> 1.0.0
+        </div>
+    </footer>
 
-    <%- include('partials/scripts') %>
+</div>
+
+<%- include('partials/bottom-nav') %>
+<%- include('partials/scripts') %>
 </body>
 </html>

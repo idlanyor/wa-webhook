@@ -139,6 +139,53 @@ Mengirim pesan interaktif dengan tombol untuk memudahkan pengguna berinteraksi.
 - Button ID (`id` dalam buttonParamsJson) digunakan untuk tracking respon pada webhook
 - Untuk list message, gunakan `name: "single_select"` dengan sections dan rows dalam buttonParamsJson
 
+### 2.4 Kirim Dokumen / Attachment
+Mengirim file dokumen ke satu nomor tujuan. Sumber dokumen dapat berupa URL publik atau string base64.
+Endpoint ini juga menerima `multipart/form-data` dengan field file `document` atau `file`.
+
+- **URL**: `POST /send-document`
+- **Body**:
+  ```json
+  {
+    "to": "6281234567890",
+    "url": "https://example.com/invoice.pdf",
+    "fileName": "invoice.pdf",
+    "mimetype": "application/pdf",
+    "caption": "Invoice bulan ini",
+    "reply_to_id": "optional_message_id"
+  }
+  ```
+
+  Untuk upload file:
+  ```bash
+  curl -X POST http://localhost:8181/send-document \
+    -H "X-API-KEY: <kunci_api_anda>" \
+    -F "to=6281234567890" \
+    -F "caption=Dokumen terlampir" \
+    -F "document=@/path/invoice.pdf"
+  ```
+
+  Untuk base64:
+  ```json
+  {
+    "to": "6281234567890",
+    "base64": "JVBERi0xLjQKJ...",
+    "fileName": "invoice.pdf",
+    "mimetype": "application/pdf"
+  }
+  ```
+
+- **Response**:
+  ```json
+  {
+    "success": true,
+    "messageId": "ABC789XYZ",
+    "to": "6281234567890",
+    "type": "document",
+    "fileName": "invoice.pdf"
+  }
+  ```
+
 ---
 
 ## 3. Integrasi Webhook
@@ -161,6 +208,7 @@ Data dikirimkan menggunakan metode `POST` dengan format:
 ### 3.3 Jenis Event
 - `message.in`: Pesan teks masuk.
 - `message.out`: Pesan terkirim dari sistem atau perangkat.
+- Untuk pesan dokumen/media, payload `message.in` dan `message.out` menyertakan `messageType` dan `attachment`.
 - `interaction.button`: Pengguna menekan tombol pada pesan interaktif.
 - `interaction.list`: Pengguna memilih opsi dari list message.
 - `connection.update`: Perubahan status koneksi (connected, disconnected).

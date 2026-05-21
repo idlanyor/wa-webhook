@@ -2,6 +2,7 @@ import express, { static as expressStatic, json, urlencoded } from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import compression from 'compression';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import cookieParser from 'cookie-parser';
@@ -37,6 +38,9 @@ import apiKeyRoutes from './src/routes/apiKeys.js';
 import settingsRoutes from './src/routes/settings.js';
 import userRoutes from './src/routes/users.js';
 import scheduledMessagesRoutes from './src/routes/scheduledMessages.js';
+
+// Import middleware
+import { generalLimiter, sendMessageLimiter, authLimiter } from './src/middleware/rateLimit.js';
 
 // Import utilities
 import { info, error as _error, warn } from './src/utils/logger.js';
@@ -92,6 +96,10 @@ class Application {
         // View engine setup
         this.app.set('view engine', 'ejs');
         this.app.set('views', join(__dirname, 'views'));
+        this.app.set('trust proxy', 1);
+
+        // Compression middleware (gzip/deflate)
+        this.app.use(compression());
 
         // Middleware
         const publicDir = expressStatic(join(__dirname, 'public'));
@@ -113,13 +121,24 @@ class Application {
         this.app.use(urlencoded({ extended: true }));
         this.app.use(cookieParser(config.session.secret));
 
-        // Request logging middleware
+        // Rate limiting
+        this.app.use('/login', authLimiter);
+        this.app.use('/send-message', sendMessageLimiter);
+        this.app.use('/send-bulk', sendMessageLimiter);
+        this.app.use('/send-document', sendMessageLimiter);
+        this.app.use('/send-interactive', sendMessageLimiter);
+        this.app.use(generalLimiter);
+
+        // Request logging middleware — skip static file extensions
+        const STATIC_EXT = /\.(css|js|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|map)$/i;
         this.app.use((req, res, next) => {
-            info(`${req.method} ${req.path}`, {
-                ip: req.ip,
-                userAgent: req.get('User-Agent'),
-                runtime: runtime.name
-            });
+            if (!STATIC_EXT.test(req.path)) {
+                info(`${req.method} ${req.path}`, {
+                    ip: req.ip,
+                    userAgent: req.get('User-Agent'),
+                    runtime: runtime.name
+                });
+            }
             next();
         });
 

@@ -1,9 +1,16 @@
 import { Router } from 'express';
+import multer, { memoryStorage } from 'multer';
 import { isAuthenticatedOrApiKey, getEffectiveUserId, isAuthenticated } from '../middleware/auth.js';
 import ContactService from '../services/ContactService.js';
 import MessageService from '../services/MessageService.js';
 
 const router = Router();
+const documentUpload = multer({
+    storage: memoryStorage(),
+    limits: {
+        fileSize: 25 * 1024 * 1024
+    }
+});
 
 // Get WhatsApp connection status
 router.get('/status', isAuthenticatedOrApiKey, async (req, res) => {
@@ -85,7 +92,59 @@ router.post('/send-message', isAuthenticatedOrApiKey, async (req, res) => {
     }
 });
 
+// Send a document attachment
+router.post('/send-document', isAuthenticatedOrApiKey, documentUpload.fields([
+    { name: 'document', maxCount: 1 },
+    { name: 'file', maxCount: 1 }
+]), async (req, res) => {
+    const {
+        to,
+        url,
+        base64,
+        caption,
+        fileName,
+        filename,
+        mimetype,
+        reply_to_id
+    } = req.body;
+    const uploadedFile = req.files?.document?.[0] || req.files?.file?.[0] || null;
 
+    if (!to || (!url && !base64 && !uploadedFile)) {
+        return res.status(400).json({
+            error: 'Missing required fields',
+            message: '"to" and one of "url", "base64", or multipart file field "document" are required'
+        });
+    }
+
+    try {
+        const userId = getEffectiveUserId(req);
+        const whatsappService = req.app.get('whatsappService');
+
+        const result = await whatsappService.sendDocumentMessage(userId, to, {
+            url,
+            base64,
+            buffer: uploadedFile?.buffer,
+            caption,
+            fileName: fileName || uploadedFile?.originalname,
+            filename,
+            mimetype: mimetype || uploadedFile?.mimetype
+        }, reply_to_id);
+
+        res.json({
+            success: true,
+            messageId: result.key.id,
+            to,
+            type: 'document',
+            fileName: fileName || filename || uploadedFile?.originalname || 'document'
+        });
+    } catch (error) {
+        console.error('Error sending document:', error);
+        res.status(500).json({
+            error: 'Failed to send document',
+            details: error.message
+        });
+    }
+});
 
 // Send interactive message
 router.post('/send-interactive', isAuthenticatedOrApiKey, async (req, res) => {

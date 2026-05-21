@@ -3,105 +3,142 @@
 <head>
     <%- include('partials/head', { title: 'Dokumentasi API' }) %>
 </head>
-<body class="bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen overflow-x-hidden">
-    <div class="flex min-h-screen w-full overflow-x-hidden">
-        <%- include('partials/sidebar') %>
-        <div class="flex-1 flex flex-col min-w-0 lg:ml-64">
-            <%- include('partials/navbar', { title: 'Dokumentasi API' }) %>
-            <main class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto overflow-x-hidden">
-                <div class="max-w-5xl mx-auto w-full">
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+
+    <%- include('partials/navbar') %>
+    <%- include('partials/sidebar') %>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0">Dokumentasi API</h1>
+                    </div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/dashboard">Dasbor</a></li>
+                            <li class="breadcrumb-item active">Dokumentasi</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
                     <!-- Introduction Card -->
-                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-4 md:p-6 mb-8 fade-in break-words">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-800 p-4 md:p-6 mb-8 fade-in break-words">
                         <div class="flex items-center justify-between mb-4 md:mb-6">
                             <div class="pr-2">
-                                <h3 class="text-lg md:text-xl font-semibold text-gray-800">Pendahuluan</h3>
-                                <p class="text-xs md:text-sm text-gray-600 mt-1">Memulai dengan WhatsApp API</p>
+                                <h3 class="text-lg md:text-xl font-semibold text-gray-800 dark:text-slate-100">Pendahuluan</h3>
+                                <p class="text-xs md:text-sm text-gray-600 dark:text-slate-400 mt-1">Memulai dengan WhatsApp API</p>
                             </div>
-                            <div class="w-10 h-10 md:w-14 md:h-14 bg-linear-to-br from-blue-100 to-blue-200 rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner flex-shrink-0">
-                                <i class="ri-book-2-line text-blue-600 text-lg md:text-2xl"></i>
+                            <div class="w-10 h-10 md:w-14 md:h-14 bg-linear-to-br from-blue-100/10 to-blue-200/20 dark:from-blue-950/40 dark:to-blue-900/30 rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner flex-shrink-0">
+                                <i class="ri-book-2-line text-blue-600 dark:text-blue-400 text-lg md:text-2xl"></i>
                             </div>
                         </div>
 
                         <div class="prose max-w-none break-words">
-                            <p class="text-gray-700 mb-4">Halaman ini menjelaskan cara berinteraksi secara programatis dengan layanan WhatsApp Webhook dan memberikan gambaran fitur yang tersedia di dasbor.</p>
+                            <p class="text-gray-700 dark:text-slate-300 mb-4">Halaman ini menjelaskan cara berinteraksi secara programatis dengan layanan WhatsApp Webhook dan memberikan gambaran fitur yang tersedia di dasbor.</p>
 
-                            <div class=" rounded-xl p-4 border-l-4 border-blue-500 mb-4 ">
-                                <h4 class="font-semibold text-blue-800 mb-2">Metode Autentikasi</h4>
-                                <p class="text-blue-700 mb-3 text-sm">Semua endpoint API dilindungi. Tersedia <strong class="text-blue-500">dua</strong> cara untuk autentikasi:</p>
-                                <ol class="list-decimal list-outside ml-5 space-y-2 text-blue-700 text-sm">
-                                    <li><strong class="text-blue-500">Cookie Sesi</strong> – Masuk melalui dasbor web, lalu salin cookie <code class="bg-white text-blue-500 px-2 py-1 rounded text-xs break-all">auth-token</code> dari browser dan sertakan pada setiap request.</li>
-                                    <li><strong class="text-blue-500">Kunci API</strong> – Buat kunci di halaman <em>Kunci API</em>. Kirim lewat header <code class="bg-white text-blue-500 px-2 py-1 rounded text-xs break-all">X-API-KEY</code> atau parameter query <code class="bg-white text-blue-500 px-2 py-1 rounded text-xs break-all">?api_key=</code>.</li>
+                            <div class="bg-blue-50/50 dark:bg-blue-950/20 rounded-xl p-4 border-l-4 border-blue-500 mb-4">
+                                <h4 class="font-semibold text-blue-800 dark:text-blue-300 mb-2">Metode Autentikasi</h4>
+                                <p class="text-blue-700 dark:text-blue-400 mb-3 text-sm">Semua endpoint API dilindungi. Tersedia <strong class="text-blue-500 dark:text-blue-400">dua</strong> cara untuk autentikasi:</p>
+                                <ol class="list-decimal list-outside ml-5 space-y-2 text-blue-700 dark:text-blue-400 text-sm">
+                                    <li><strong class="text-blue-500 dark:text-blue-400">Cookie Sesi</strong> – Masuk melalui dasbor web, lalu salin cookie <code class="bg-white dark:bg-slate-950 text-blue-500 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30 px-2 py-1 rounded text-xs break-all">auth-token</code> dari browser dan sertakan pada setiap request.</li>
+                                    <li><strong class="text-blue-500 dark:text-blue-400">Kunci API</strong> – Buat kunci di halaman <em>Kunci API</em>. Kirim lewat header <code class="bg-white dark:bg-slate-950 text-blue-500 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30 px-2 py-1 rounded text-xs break-all">X-API-KEY</code> atau parameter query <code class="bg-white dark:bg-slate-950 text-blue-500 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30 px-2 py-1 rounded text-xs break-all">?api_key=</code>.</li>
                                 </ol>
                             </div>
                         </div>
                     </div>
 
                     <!-- REST API Endpoints Card -->
-                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-4 md:p-6 mb-8 fade-in overflow-hidden">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-800 p-4 md:p-6 mb-8 fade-in overflow-hidden">
                         <div class="flex items-center justify-between mb-4 md:mb-6">
                             <div class="pr-2">
-                                <h3 class="text-lg md:text-xl font-semibold text-gray-800">Endpoint REST API</h3>
-                                <p class="text-xs md:text-sm text-gray-600 mt-1">Endpoint yang tersedia untuk integrasi API</p>
+                                <h3 class="text-lg md:text-xl font-semibold text-gray-800 dark:text-slate-100">Endpoint REST API</h3>
+                                <p class="text-xs md:text-sm text-gray-600 dark:text-slate-400 mt-1">Endpoint yang tersedia untuk integrasi API</p>
                             </div>
-                            <div class="w-10 h-10 md:w-14 md:h-14 bg-linear-to-br from-green-100 to-green-200 rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner flex-shrink-0">
-                                <i class="ri-code-s-slash-line text-green-600 text-lg md:text-2xl"></i>
+                            <div class="w-10 h-10 md:w-14 md:h-14 bg-linear-to-br from-green-100/10 to-green-200/20 dark:from-green-950/40 dark:to-green-900/30 rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner flex-shrink-0">
+                                <i class="ri-code-s-slash-line text-green-600 dark:text-green-400 text-lg md:text-2xl"></i>
                             </div>
                         </div>
 
                         <div class="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
                             <table class="w-full min-w-[500px]">
                                 <thead>
-                                    <tr class="border-b-2 border-gray-200">
-                                        <th class="text-left py-3 px-4 font-semibold text-gray-800 text-sm">Metode</th>
-                                        <th class="text-left py-3 px-4 font-semibold text-gray-800 text-sm">Endpoint</th>
-                                        <th class="text-left py-3 px-4 font-semibold text-gray-800 text-sm">Deskripsi</th>
+                                    <tr class="border-b-2 border-gray-200 dark:border-slate-800">
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-800 dark:text-slate-200 text-sm">Metode</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-800 dark:text-slate-200 text-sm">Endpoint</th>
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-800 dark:text-slate-200 text-sm">Deskripsi</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-100">
-                                    <tr class="hover:bg-gray-50 transition-colors">
+                                <tbody class="divide-y divide-gray-100 dark:divide-slate-800">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors">
                                         <td class="py-4 px-4">
-                                            <span class="inline-block px-2 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-lg">GET</span>
+                                            <span class="inline-block px-2 py-1 bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 text-[10px] font-bold rounded-lg">GET</span>
                                         </td>
                                         <td class="py-4 px-4">
-                                            <code class="bg-gray-100 text-black px-2 py-1 rounded text-xs font-mono">/status</code>
+                                            <code class="bg-gray-100 dark:bg-slate-950 text-black dark:text-slate-200 border border-gray-250 dark:border-slate-850 px-2 py-1 rounded text-xs font-mono">/status</code>
                                         </td>
-                                        <td class="py-4 px-4 text-gray-700">
+                                        <td class="py-4 px-4 text-gray-700 dark:text-slate-300">
                                             <div class="text-xs mb-1">Cek status koneksi dan QR code</div>
-                                            <div class="text-[10px] text-gray-500 uppercase font-medium">Auth: Cookie/API Key</div>
+                                            <div class="text-[10px] text-gray-500 dark:text-slate-500 uppercase font-medium">Auth: Cookie/API Key</div>
                                         </td>
                                     </tr>
-                                    <tr class="hover:bg-gray-50 transition-colors">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors">
                                         <td class="py-4 px-4">
-                                            <span class="inline-block px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-lg">POST</span>
+                                            <span class="inline-block px-2 py-1 bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-400 text-[10px] font-bold rounded-lg">POST</span>
                                         </td>
                                         <td class="py-4 px-4">
-                                            <code class="bg-gray-100 text-black px-2 py-1 rounded text-xs font-mono">/send-message</code>
+                                            <code class="bg-gray-100 dark:bg-slate-950 text-black dark:text-slate-200 border border-gray-250 dark:border-slate-850 px-2 py-1 rounded text-xs font-mono">/send-message</code>
                                         </td>
-                                        <td class="py-4 px-4 text-gray-700">
+                                        <td class="py-4 px-4 text-gray-700 dark:text-slate-300">
                                             <div class="text-xs mb-2">Kirim satu pesan WhatsApp</div>
-                                            <div class="text-[10px] text-gray-500 uppercase font-medium mb-1">Body Parameters:</div>
+                                            <div class="text-[10px] text-gray-500 dark:text-slate-500 uppercase font-medium mb-1">Body Parameters:</div>
                                             <div class="space-y-1">
-                                                <div class="text-[10px] font-mono bg-gray-50 p-1 rounded"><span class="text-blue-600">to</span> (number)</div>
-                                                <div class="text-[10px] font-mono bg-gray-50 p-1 rounded"><span class="text-blue-600">message</span> (text)</div>
-                                                <div class="text-[10px] font-mono bg-gray-50 p-1 rounded"><span class="text-blue-600">reply_to_id</span> (optional)</div>
+                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">to</span> (number)</div>
+                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">message</span> (text)</div>
+                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">reply_to_id</span> (optional)</div>
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr class="hover:bg-gray-50 transition-colors">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors">
                                         <td class="py-4 px-4">
-                                            <span class="inline-block px-2 py-1 bg-purple-100 text-purple-700 text-[10px] font-bold rounded-lg">POST</span>
+                                            <span class="inline-block px-2 py-1 bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 text-[10px] font-bold rounded-lg">POST</span>
                                         </td>
                                         <td class="py-4 px-4">
-                                            <code class="bg-gray-100 text-black px-2 py-1 rounded text-xs font-mono">/send-interactive</code>
+                                            <code class="bg-gray-100 dark:bg-slate-950 text-black dark:text-slate-200 border border-gray-250 dark:border-slate-850 px-2 py-1 rounded text-xs font-mono">/send-document</code>
                                         </td>
-                                        <td class="py-4 px-4 text-gray-700">
-                                            <div class="text-xs mb-2">Kirim pesan interaktif dengan tombol atau list</div>
-                                            <div class="text-[10px] text-gray-500 uppercase font-medium mb-1">Body Parameters:</div>
+                                        <td class="py-4 px-4 text-gray-700 dark:text-slate-300">
+                                            <div class="text-xs mb-2">Kirim dokumen atau attachment</div>
+                                            <div class="text-[10px] text-gray-500 dark:text-slate-500 uppercase font-medium mb-1">Body Parameters:</div>
                                             <div class="space-y-1">
-                                                <div class="text-[10px] font-mono bg-gray-50 p-1 rounded"><span class="text-blue-600">to</span> (number)</div>
-                                                <div class="text-[10px] font-mono bg-gray-50 p-1 rounded"><span class="text-blue-600">text</span> (message)</div>
-                                                <div class="text-[10px] font-mono bg-gray-50 p-1 rounded"><span class="text-blue-600">footer</span> (optional)</div>
-                                                <div class="text-[10px] font-mono bg-gray-50 p-1 rounded"><span class="text-blue-600">interactiveButtons</span> (array)</div>
+                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">to</span> (number)</div>
+                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">url</span> / <span class="text-blue-600 dark:text-blue-450">base64</span> / <span class="text-blue-600 dark:text-blue-450">document</span> (file)</div>
+                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">fileName</span> (optional)</div>
+                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">mimetype</span> (optional)</div>
+                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">caption</span> (optional)</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors">
+                                        <td class="py-4 px-4">
+                                            <span class="inline-block px-2 py-1 bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400 text-[10px] font-bold rounded-lg">POST</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <code class="bg-gray-100 dark:bg-slate-950 text-black dark:text-slate-200 border border-gray-250 dark:border-slate-850 px-2 py-1 rounded text-xs font-mono">/send-interactive</code>
+                                        </td>
+                                        <td class="py-4 px-4 text-gray-700 dark:text-slate-300">
+                                            <div class="text-xs mb-2">Kirim pesan interaktif dengan tombol atau list</div>
+                                            <div class="text-[10px] text-gray-500 dark:text-slate-500 uppercase font-medium mb-1">Body Parameters:</div>
+                                            <div class="space-y-1">
+                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">to</span> (number)</div>
+                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">text</span> (message)</div>
+                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">footer</span> (optional)</div>
+                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">interactiveButtons</span> (array)</div>
                                             </div>
                                         </td>
                                     </tr>
@@ -112,8 +149,8 @@
                         <!-- Code Examples -->
                         <div class="mt-8 space-y-6">
                             <div>
-                                <h4 class="text-base md:text-lg font-semibold text-gray-800 mb-3">Example with API Key:</h4>
-                                <div class="bg-gray-900 text-gray-100 rounded-xl p-4 overflow-x-auto">
+                                <h4 class="text-base md:text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3">Example with API Key:</h4>
+                                <div class="bg-gray-950 text-slate-100 rounded-xl p-4 overflow-x-auto border border-slate-900">
                                     <pre class="text-xs md:text-sm font-mono whitespace-pre-wrap break-all"><code>$ curl -X POST \
   -H "Content-Type: application/json" \
   -H "X-API-KEY: YOUR_API_KEY" \
@@ -123,8 +160,8 @@
                             </div>
 
                             <div>
-                                <h4 class="text-base md:text-lg font-semibold text-gray-800 mb-3">Example with Cookie:</h4>
-                                <div class="bg-gray-900 text-gray-100 rounded-xl p-4 overflow-x-auto">
+                                <h4 class="text-base md:text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3">Example with Cookie:</h4>
+                                <div class="bg-gray-950 text-slate-100 rounded-xl p-4 overflow-x-auto border border-slate-900">
                                     <pre class="text-xs md:text-sm font-mono whitespace-pre-wrap break-all"><code>$ curl -X POST \
   -H "Content-Type: application/json" \
   -H "Cookie: auth-token=YOUR_COOKIE_HERE" \
@@ -133,10 +170,23 @@
                                 </div>
                             </div>
 
+                            <!-- Document Example -->
+                            <div class="border-t border-gray-200 dark:border-slate-800 pt-6 mt-6">
+                                <h4 class="text-base md:text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3">Document Attachment Example:</h4>
+                                <div class="bg-gray-950 text-slate-100 rounded-xl p-4 overflow-x-auto border border-slate-900">
+                                    <pre class="text-xs md:text-sm font-mono whitespace-pre-wrap break-all"><code>$ curl -X POST \
+  -H "X-API-KEY: YOUR_API_KEY" \
+  -F "to=6281234567890" \
+  -F "caption=Dokumen terlampir" \
+  -F "document=@/path/file.pdf" \
+  http://localhost:3000/send-document</code></pre>
+                                </div>
+                            </div>
+
                             <!-- Interactive Button Example -->
-                            <div class="border-t border-gray-200 pt-6 mt-6">
-                                <h4 class="text-base md:text-lg font-semibold text-gray-800 mb-3">Interactive Buttons Example:</h4>
-                                <div class="bg-gray-900 text-gray-100 rounded-xl p-4 overflow-x-auto">
+                            <div class="border-t border-gray-200 dark:border-slate-800 pt-6 mt-6">
+                                <h4 class="text-base md:text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3">Interactive Buttons Example:</h4>
+                                <div class="bg-gray-950 text-slate-100 rounded-xl p-4 overflow-x-auto border border-slate-900">
                                     <pre class="text-xs md:text-sm font-mono whitespace-pre-wrap break-all"><code>$ curl -X POST \
   -H "Content-Type: application/json" \
   -H "X-API-KEY: YOUR_API_KEY" \
@@ -155,9 +205,9 @@
                             </div>
 
                             <!-- Interactive List Example -->
-                            <div class="border-t border-gray-200 pt-6 mt-6">
-                                <h4 class="text-base md:text-lg font-semibold text-gray-800 mb-3">Interactive List Example:</h4>
-                                <div class="bg-gray-900 text-gray-100 rounded-xl p-4 overflow-x-auto">
+                            <div class="border-t border-gray-200 dark:border-slate-800 pt-6 mt-6">
+                                <h4 class="text-base md:text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3">Interactive List Example:</h4>
+                                <div class="bg-gray-950 text-slate-100 rounded-xl p-4 overflow-x-auto border border-slate-900">
                                     <pre class="text-xs md:text-sm font-mono whitespace-pre-wrap break-all"><code>$ curl -X POST \
   -H "Content-Type: application/json" \
   -H "X-API-KEY: YOUR_API_KEY" \
@@ -178,110 +228,114 @@
                     </div>
 
                     <!-- Dashboard Features Card -->
-                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-4 md:p-6 mb-8 fade-in overflow-hidden break-words">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-800 p-4 md:p-6 mb-8 fade-in overflow-hidden break-words">
                         <div class="flex items-center justify-between mb-4 md:mb-6">
                             <div class="pr-2">
-                                <h3 class="text-lg md:text-xl font-semibold text-gray-800">Dashboard Features</h3>
-                                <p class="text-xs md:text-sm text-gray-600 mt-1">Available features in the web dashboard</p>
+                                <h3 class="text-lg md:text-xl font-semibold text-gray-800 dark:text-slate-100">Dashboard Features</h3>
+                                <p class="text-xs md:text-sm text-gray-600 dark:text-slate-400 mt-1">Available features in the web dashboard</p>
                             </div>
-                            <div class="w-10 h-10 md:w-14 md:h-14 bg-linear-to-br from-purple-100 to-purple-200 rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner flex-shrink-0">
-                                <i class="ri-dashboard-3-line text-purple-600 text-lg md:text-2xl"></i>
+                            <div class="w-10 h-10 md:w-14 md:h-14 bg-linear-to-br from-purple-100/10 to-purple-200/20 dark:from-purple-950/40 dark:to-purple-900/30 rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner flex-shrink-0">
+                                <i class="ri-dashboard-3-line text-purple-600 dark:text-purple-400 text-lg md:text-2xl"></i>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                            <div class="p-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-900/30">
                                 <div class="flex items-center space-x-3 mb-2">
-                                    <i class="ri-dashboard-line text-blue-500 text-xl"></i>
-                                    <h4 class="font-semibold text-blue-500 text-sm md:text-base">Dashboard</h4>
+                                    <i class="ri-dashboard-line text-blue-600 dark:text-blue-400 text-xl"></i>
+                                    <h4 class="font-semibold text-blue-600 dark:text-blue-400 text-sm md:text-base">Dashboard</h4>
                                 </div>
-                                <p class="text-blue-700 text-xs md:text-sm leading-relaxed">Real-time connection status, QR code generation, and recent messages.</p>
+                                <p class="text-blue-700 dark:text-blue-300 text-xs md:text-sm leading-relaxed">Real-time connection status, QR code generation, and recent messages.</p>
                             </div>
 
-                            <div class="p-4 bg-green-50 rounded-xl border border-green-200">
+                            <div class="p-4 bg-green-50/50 dark:bg-green-950/20 rounded-xl border border-green-200 dark:border-green-900/30">
                                 <div class="flex items-center space-x-3 mb-2">
-                                    <i class="ri-touchpin-line text-green-500 text-xl"></i>
-                                    <h4 class="font-semibold text-green-500 text-sm md:text-base">Pesan Interaktif</h4>
+                                    <i class="ri-touchpin-line text-green-600 dark:text-green-400 text-xl"></i>
+                                    <h4 class="font-semibold text-green-600 dark:text-green-400 text-sm md:text-base">Pesan Interaktif</h4>
                                 </div>
-                                <p class="text-green-700 text-xs md:text-sm leading-relaxed">Kirim pesan dengan tombol (button) dan list untuk meningkatkan interaksi dengan pengguna.</p>
+                                <p class="text-green-700 dark:text-green-300 text-xs md:text-sm leading-relaxed">Kirim pesan dengan tombol (button) dan list untuk meningkatkan interaksi dengan pengguna.</p>
                             </div>
 
-                            <div class="p-4 bg-orange-50 rounded-xl border border-orange-200">
+                            <div class="p-4 bg-orange-50/50 dark:bg-orange-950/20 rounded-xl border border-orange-200 dark:border-orange-900/30">
                                 <div class="flex items-center space-x-3 mb-2">
-                                    <i class="ri-reply-all-line text-orange-500 text-xl"></i>
-                                    <h4 class="font-semibold text-orange-500 text-sm md:text-base">Balas Otomatis</h4>
+                                    <i class="ri-reply-all-line text-orange-600 dark:text-orange-400 text-xl"></i>
+                                    <h4 class="font-semibold text-orange-600 dark:text-orange-400 text-sm md:text-base">Balas Otomatis</h4>
                                 </div>
-                                <p class="text-orange-700 text-xs md:text-sm leading-relaxed">Bot berbasis kata kunci dengan aktif/nonaktif per aturan dan sakelar global.</p>
+                                <p class="text-orange-700 dark:text-orange-300 text-xs md:text-sm leading-relaxed">Bot berbasis kata kunci dengan aktif/nonaktif per aturan dan sakelar global.</p>
                             </div>
 
-                            <div class="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                            <div class="p-4 bg-purple-50/50 dark:bg-purple-950/20 rounded-xl border border-purple-200 dark:border-purple-900/30">
                                 <div class="flex items-center space-x-3 mb-2">
-                                    <i class="ri-group-line text-purple-500 text-xl"></i>
-                                    <h4 class="font-semibold text-purple-500 text-sm md:text-base">Manajemen User</h4>
+                                    <i class="ri-group-line text-purple-600 dark:text-purple-400 text-xl"></i>
+                                    <h4 class="font-semibold text-purple-600 dark:text-purple-400 text-sm md:text-base">Manajemen User</h4>
                                 </div>
-                                <p class="text-purple-700 text-xs md:text-sm leading-relaxed">Kelola pengguna sistem, buat akun baru, dan atur peran (Admin/User).</p>
+                                <p class="text-purple-700 dark:text-purple-300 text-xs md:text-sm leading-relaxed">Kelola pengguna sistem, buat akun baru, dan atur peran (Admin/User).</p>
                             </div>
 
-                            <div class="p-4 bg-indigo-50 rounded-xl border border-indigo-200">
+                            <div class="p-4 bg-indigo-50/50 dark:bg-indigo-950/20 rounded-xl border border-indigo-200 dark:border-indigo-900/30">
                                 <div class="flex items-center space-x-3 mb-2">
-                                    <i class="ri-key-line text-indigo-500 text-xl"></i>
-                                    <h4 class="font-semibold text-indigo-500 text-sm md:text-base">Kunci API</h4>
+                                    <i class="ri-key-line text-indigo-600 dark:text-indigo-400 text-xl"></i>
+                                    <h4 class="font-semibold text-indigo-600 dark:text-indigo-400 text-sm md:text-base">Kunci API</h4>
                                 </div>
-                                <p class="text-indigo-700 text-xs md:text-sm leading-relaxed">Buat/cabut kunci untuk akses terprogram tanpa cookie sesi.</p>
+                                <p class="text-indigo-700 dark:text-indigo-300 text-xs md:text-sm leading-relaxed">Buat/cabut kunci untuk akses terprogram tanpa cookie sesi.</p>
                             </div>
 
-                            <div class="p-4 bg-pink-50 rounded-xl border border-pink-200">
+                            <div class="p-4 bg-pink-50/50 dark:bg-pink-950/20 rounded-xl border border-pink-200 dark:border-pink-900/30">
                                 <div class="flex items-center space-x-3 mb-2">
-                                    <i class="ri-webhook-line text-pink-500 text-xl"></i>
-                                    <h4 class="font-semibold text-pink-500 text-sm md:text-base">Integrasi Webhook</h4>
+                                    <i class="ri-webhook-line text-pink-600 dark:text-pink-400 text-xl"></i>
+                                    <h4 class="font-semibold text-pink-600 dark:text-pink-400 text-sm md:text-base">Integrasi Webhook</h4>
                                 </div>
-                                <p class="text-pink-700 text-xs md:text-sm leading-relaxed"> Terima notifikasi real-time termasuk tombol yang ditekan pengguna untuk tracking interaksi.</p>
+                                <p class="text-pink-700 dark:text-pink-300 text-xs md:text-sm leading-relaxed"> Terima notifikasi real-time termasuk tombol yang ditekan pengguna untuk tracking interaksi.</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Changelog & Resources Card -->
-                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-4 md:p-6 fade-in overflow-hidden break-words">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-800 p-4 md:p-6 fade-in overflow-hidden break-words">
                         <div class="flex items-center justify-between mb-4 md:mb-6">
                             <div class="pr-2">
-                                <h3 class="text-lg md:text-xl font-semibold text-gray-800">Catatan Perubahan & Sumber</h3>
-                                <p class="text-xs md:text-sm text-gray-600 mt-1">Dokumentasi tambahan dan pembaruan</p>
+                                <h3 class="text-lg md:text-xl font-semibold text-gray-800 dark:text-slate-100">Catatan Perubahan & Sumber</h3>
+                                <p class="text-xs md:text-sm text-gray-600 dark:text-slate-400 mt-1">Dokumentasi tambahan dan pembaruan</p>
                             </div>
-                            <div class="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner flex-shrink-0">
-                                <i class="ri-file-text-line text-gray-600 text-lg md:text-2xl"></i>
+                            <div class="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 shadow-inner flex-shrink-0">
+                                <i class="ri-file-text-line text-gray-600 dark:text-slate-400 text-lg md:text-2xl"></i>
                             </div>
                         </div>
 
-                        <div class="rounded-xl p-4 md:p-6 border border-gray-200 ">
-                            <p class="text-gray-700 mb-4 text-sm leading-relaxed">Untuk penjelasan lebih dalam, lihat dokumen Markdown yang disertakan dalam proyek:</p>
+                        <div class="rounded-xl p-4 md:p-6 border border-gray-200 dark:border-slate-800">
+                            <p class="text-gray-700 dark:text-slate-350 mb-4 text-sm leading-relaxed">Untuk penjelasan lebih dalam, lihat dokumen Markdown yang disertakan dalam proyek:</p>
 
                             <div class="space-y-3">
-                                <div class="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 bg-white">
+                                <div class="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950">
                                     <i class="ri-file-text-line text-blue-500 text-lg"></i>
-                                    <code class="flex-1 text-xs font-mono px-2 py-1 rounded truncate">README.md</code>
+                                    <code class="flex-1 text-xs font-mono px-2 py-1 rounded truncate text-slate-800 dark:text-slate-200">README.md</code>
                                 </div>
-                                <div class="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 bg-white">
+                                <div class="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950">
                                     <i class="ri-book-open-line text-green-500 text-lg"></i>
-                                    <code class="flex-1 text-xs font-mono px-2 py-1 rounded truncate">Documentation.md</code>
+                                    <code class="flex-1 text-xs font-mono px-2 py-1 rounded truncate text-slate-800 dark:text-slate-200">Documentation.md</code>
                                 </div>
                             </div>
 
-                            <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div class="mt-6 p-4 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-lg">
                                 <div class="flex items-center space-x-2 mb-2">
                                     <i class="ri-information-line text-blue-600"></i>
-                                    <span class="font-medium text-blue-800 text-sm">Catatan:</span>
+                                    <span class="font-medium text-blue-800 dark:text-blue-300 text-sm">Catatan:</span>
                                 </div>
-                                <p class="text-blue-700 text-xs md:text-sm leading-relaxed">Proyek ini terus berkembang—periksa berkas-berkas ini dan halaman ini untuk pembaruan.</p>
+                                <p class="text-blue-700 dark:text-blue-400 text-xs md:text-sm leading-relaxed">Proyek ini terus berkembang—periksa berkas-berkas ini dan halaman ini untuk pembaruan.</p>
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
-        </div>
+            </div>
+        </section>
     </div>
 
-    <%- include('partials/bottom-nav') %>
+    <footer class="main-footer">
+        <strong>WhatsApp Webhook</strong> &copy; 2024.
+        <div class="float-right d-none d-sm-inline-block"><b>Version</b> 1.0.0</div>
+    </footer>
+</div>
 
-    <%- include('partials/simple-scripts') %>
+<%- include('partials/bottom-nav') %>
+<%- include('partials/simple-scripts') %>
 </body>
-</html> 
+</html>

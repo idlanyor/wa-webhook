@@ -26,15 +26,32 @@ jest.unstable_mockModule('../src/services/WhatsAppService.js', () => ({
     loadSettings() { return Promise.resolve(); }
     ensureSession() { return Promise.resolve({ isConnected: true }); }
     preloadSessions() { return Promise.resolve(); }
+    setWebhookService() {}
   }
 }));
 
-const { app } = await import('../app.js');
+const { app, application } = await import('../app.js');
 const { default: User } = await import('../src/models/User.js');
 
 describe('Authentication Routes', () => {
+  beforeAll(async () => {
+    await application.initialize();
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(async () => {
+    if (application.schedulerService) {
+      application.schedulerService.stop();
+    }
+    if (application.io) {
+      application.io.close();
+    }
+    if (application.server) {
+      await new Promise(resolve => application.server.close(resolve));
+    }
   });
 
   describe('POST /register', () => {

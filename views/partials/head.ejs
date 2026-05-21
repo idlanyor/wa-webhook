@@ -1,67 +1,19 @@
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>WhatsApp Webhook API - Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= typeof title !== 'undefined' ? title + ' • ' : '' %>WhatsApp Webhook</title>
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- RemixIcon -->
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+<!-- AdminLTE 3 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+<!-- Custom CSS -->
+<link rel="stylesheet" href="/css/custom.css">
+<!-- Socket.IO -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+<!-- QRCode.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
     integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
-<link href="/css/tailwind.css" rel="stylesheet">
-<link href="/css/dark-mode.css" rel="stylesheet">
-<script>
-    // Apply dark mode immediately to prevent flash
-    if (localStorage.getItem('theme') === 'dark') {
-        document.documentElement.classList.add('dark');
-    }
-</script>
-<!-- <link rel="stylesheet" href="/css/dashboard.css"> -->
-<link rel="stylesheet" href="/css/connection-methods.css">
+<!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<style>
-    /* Custom styles for connection status colors */
-    #connectionStatus.connected {
-        @apply text-green-600;
-    }
-    
-    #connectionStatus.disconnected {
-        @apply text-red-600;
-    }
-    
-    #connectionStatus.qr_ready {
-        @apply text-yellow-600;
-    }
-    
-    /* Loading spinner animation */
-    .loading {
-        @apply inline-block w-5 h-5 border-2 border-gray-300 border-t-green-500 rounded-full animate-spin;
-    }
-    
-    /* Message item styling */
-    .message-item {
-        @apply bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500;
-    }
-    
-    .message-from {
-        @apply font-semibold text-gray-800 mb-1;
-    }
-    
-    .message-text {
-        @apply text-gray-600;
-    }
-    
-    .message-time {
-        @apply text-xs text-gray-500 mt-2;
-    }
-
-    /* Prevent horizontal overflow globally */
-    html, body {
-        max-width: 100%;
-        overflow-x: hidden;
-        position: relative;
-    }
-    
-    * {
-        box-sizing: border-box;
-    }
-</style>

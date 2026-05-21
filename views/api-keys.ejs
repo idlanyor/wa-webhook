@@ -1,253 +1,192 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <%- include('partials/head', { title: 'Manajemen Kunci API' }) %>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
 
-<body class="bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
-    <div class="flex min-h-screen">
-        <%- include('partials/sidebar') %>
-            <div class="flex-1 flex flex-col lg:ml-64">
-                <%- include('partials/navbar', { title: 'Manajemen Kunci API' }) %>
-                    <main class="flex-1 p-4 sm:p-6 lg:p-8">
-                        <div class="max-w-7xl mx-auto">
-                            <!-- Statistics - Mini Cards -->
-                            <div class="flex flex-col md:flex-row justify-between gap-4 mb-6 fade-in">
-                                <div class="grid grid-cols-2 gap-4 w-full md:w-auto md:flex md:space-x-5">
-                                    <div
-                                        class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center space-x-3">
-                                        <div class="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center">
-                                            <i class="ri-key-line text-indigo-600"></i>
-                                        </div>
-                                        <div>
-                                            <p class="text-[10px] font-bold text-gray-400 uppercase">Total</p>
-                                            <p class="text-lg font-bold text-gray-800">
-                                                <%= keys.length %>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div
-                                        class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center space-x-3">
-                                        <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
-                                            <i class="ri-shield-check-line text-green-600"></i>
-                                        </div>
-                                        <div>
-                                            <p class="text-[10px] font-bold text-gray-400 uppercase">Status</p>
-                                            <p class="text-lg font-bold text-gray-800">Aktif</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <form action="/api-keys/generate" method="POST" class="w-full md:w-auto">
-                                    <button type="submit"
-                                        class="w-full md:w-auto inline-flex items-center justify-center space-x-2 px-4 py-3 md:py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md">
-                                        <i class="ri-add-line"></i>
-                                        <span>Generate Key</span>
-                                    </button>
-                                </form>
-                            </div>
+    <%- include('partials/navbar') %>
+    <%- include('partials/sidebar') %>
 
-                            <!-- Alerts -->
-                            <% if (locals.error) { %>
-                                <div
-                                    class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center space-x-2 text-sm fade-in">
-                                    <i class="ri-error-warning-line"></i>
-                                    <span>
-                                        <%= error %>
-                                    </span>
-                                </div>
-                                <% } %>
-                                    <% if (locals.success) { %>
-                                        <div
-                                            class="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-center space-x-2 text-sm fade-in">
-                                            <i class="ri-checkbox-circle-line"></i>
-                                            <span>
-                                                <%= success %>
-                                            </span>
-                                        </div>
-                                        <% } %>
-
-                                            <!-- Mobile Card View -->
-                                            <div class="grid grid-cols-1 gap-4 md:hidden mb-6 fade-in">
-                                                <% if (keys && keys.length > 0) { %>
-                                                    <% keys.forEach((k, index) => { %>
-                                                        <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative">
-                                                            <div class="flex justify-between items-start mb-3">
-                                                                <span class="text-xs font-bold text-gray-400">#<%= index + 1 %></span>
-                                                                <span class="text-xs text-gray-500"><%= new Date(k.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) %></span>
-                                                            </div>
-                                                            
-                                                            <div class="mb-4">
-                                                                <% if (k.raw) { %>
-                                                                    <div class="flex items-center justify-between bg-indigo-50/50 p-2 rounded-lg border border-indigo-100">
-                                                                        <code class="text-xs font-mono font-bold text-indigo-600 truncate mr-2"><%= k.raw %></code>
-                                                                        <button onclick="copyToClipboard('<%= k.raw %>')" class="p-1.5 text-indigo-600 bg-white rounded-md shadow-sm border border-indigo-100 active:scale-95 transition-transform">
-                                                                            <i class="ri-file-copy-line"></i>
-                                                                        </button>
-                                                                    </div>
-                                                                <% } else { %>
-                                                                    <div class="flex items-center space-x-2 text-gray-400 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                                                                        <i class="ri-lock-line text-xs"></i>
-                                                                        <span class="text-xs italic">Encrypted</span>
-                                                                    </div>
-                                                                <% } %>
-                                                            </div>
-
-                                                            <div class="flex justify-end pt-3 border-t border-gray-50">
-                                                                <form action="/api-keys/delete/<%= k.id %>" method="POST" data-confirm="Hapus kunci API ini?" class="w-full">
-                                                                    <button type="submit" class="w-full flex items-center justify-center space-x-2 p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors text-sm font-medium">
-                                                                        <i class="ri-delete-bin-line"></i>
-                                                                        <span>Hapus</span>
-                                                                    </button>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                                    <% }) %>
-                                                <% } else { %>
-                                                    <div class="bg-white p-8 rounded-xl border border-gray-100 text-center text-gray-400 text-sm">
-                                                        Belum ada kunci API.
-                                                    </div>
-                                                <% } %>
-                                            </div>
-
-                                            <!-- Desktop Table View -->
-                                            <div
-                                                class="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden fade-in">
-                                                <div class="overflow-x-auto">
-                                                    <table class="w-full text-left">
-                                                        <thead class="bg-gray-50/50 border-b border-gray-100">
-                                                            <tr>
-                                                                <th
-                                                                    class="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                                                    #</th>
-                                                                <th
-                                                                    class="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                                                    API Key</th>
-                                                                <th
-                                                                    class="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                                                    Dibuat</th>
-                                                                <th
-                                                                    class="px-6 py-3 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                                                    Aksi</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody class="divide-y divide-gray-50">
-                                                            <% if (keys && keys.length> 0) { %>
-                                                                <% keys.forEach((k, index)=> { %>
-                                                                    <tr class="hover:bg-gray-50/30 transition-colors">
-                                                                        <td
-                                                                            class="px-6 py-4 text-sm font-medium text-gray-400">
-                                                                            <%= index + 1 %>
-                                                                        </td>
-                                                                        <td class="px-6 py-4">
-                                                                            <% if (k.raw) { %>
-                                                                                <div
-                                                                                    class="flex items-center space-x-2">
-                                                                                    <code
-                                                                                        class="text-xs font-mono font-bold text-indigo-600 bg-indigo-50/50 px-2 py-1 rounded">
-                                                                <%= k.raw %>
-                                                            </code>
-                                                                                    <button
-                                                                                        onclick="copyToClipboard('<%= k.raw %>')"
-                                                                                        class="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-white rounded-md transition-all shadow-sm">
-                                                                                        <i
-                                                                                            class="ri-file-copy-line"></i>
-                                                                                    </button>
-                                                                                </div>
-                                                                                <% } else { %>
-                                                                                    <div
-                                                                                        class="flex items-center space-x-2 text-gray-300">
-                                                                                        <i
-                                                                                            class="ri-lock-line text-xs"></i>
-                                                                                        <span
-                                                                                            class="text-xs italic">Encrypted</span>
-                                                                                    </div>
-                                                                                    <% } %>
-                                                                        </td>
-                                                                        <td class="px-6 py-4 text-sm text-gray-500">
-                                                                            <%= new
-                                                                                Date(k.created_at).toLocaleDateString('id-ID',
-                                                                                { day: '2-digit' , month: 'short' }) %>
-                                                                        </td>
-                                                                        <td class="px-6 py-4 text-right">
-                                                                            <form action="/api-keys/delete/<%= k.id %>"
-                                                                                method="POST"
-                                                                                data-confirm="Hapus kunci API ini?"
-                                                                                class="inline">
-                                                                                <button type="submit"
-                                                                                    class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
-                                                                                    <i class="ri-delete-bin-line"></i>
-                                                                                </button>
-                                                                            </form>
-                                                                        </td>
-                                                                    </tr>
-                                                                    <% }) %>
-                                                                        <% } else { %>
-                                                                            <tr>
-                                                                                <td colspan="4"
-                                                                                    class="px-6 py-10 text-center text-gray-400 text-sm">
-                                                                                    Belum ada kunci API.
-                                                                                </td>
-                                                                            </tr>
-                                                                            <% } %>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-
-                                            <!-- Compact Documentation -->
-                                            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 fade-in">
-                                                <div class="bg-gray-900 rounded-xl p-4 text-white">
-                                                    <h4
-                                                        class="text-xs font-bold mb-3 flex items-center text-indigo-400">
-                                                        <i class="ri-code-s-slash-line mr-2"></i> Header Auth
-                                                    </h4>
-                                                    <div
-                                                        class="bg-gray-800 p-3 rounded-lg font-mono text-[10px] text-indigo-200 border border-gray-700">
-                                                        X-API-KEY: your_key_here
-                                                    </div>
-                                                </div>
-                                                <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                                                    <h4 class="text-xs font-bold mb-3 flex items-center text-gray-800">
-                                                        <i class="ri-information-line mr-2 text-blue-500"></i> Info
-                                                        Keamanan
-                                                    </h4>
-                                                    <p class="text-[11px] text-gray-500 leading-relaxed">
-                                                        Kunci API hanya ditampilkan sekali saat dibuat. Gunakan header
-                                                        <code class="bg-gray-100 px-1 rounded">X-API-KEY</code> untuk
-                                                        pengiriman pesan massal via sistem eksternal.
-                                                    </p>
-                                                </div>
-                                            </div>
-                        </div>
-                    </main>
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0">Manajemen Kunci API</h1>
+                    </div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/dashboard">Dasbor</a></li>
+                            <li class="breadcrumb-item active">API Keys</li>
+                        </ol>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+
+                <!-- Stats + Action Row -->
+                <div class="row mb-4 fade-in">
+                    <div class="col-sm-4 col-6">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-primary elevation-1">
+                                <i class="ri-key-line"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Total Keys</span>
+                                <span class="info-box-number"><%= keys.length %></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4 col-6">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-success elevation-1">
+                                <i class="ri-shield-check-line"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Status</span>
+                                <span class="info-box-number">Aktif</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4 col-12 d-flex align-items-center">
+                        <form action="/api-keys/generate" method="POST" class="w-100">
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="ri-add-line mr-1"></i> Generate Key Baru
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Alerts -->
+                <% if (locals.error) { %>
+                <div class="alert alert-danger alert-dismissible fade show fade-in" role="alert">
+                    <i class="ri-error-warning-line mr-2"></i> <%= error %>
+                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                </div>
+                <% } %>
+                <% if (locals.success) { %>
+                <div class="alert alert-success alert-dismissible fade show fade-in" role="alert">
+                    <i class="ri-checkbox-circle-line mr-2"></i> <%= success %>
+                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                </div>
+                <% } %>
+
+                <!-- API Keys Table -->
+                <div class="card card-outline card-primary fade-in">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="ri-key-line text-primary mr-2"></i>Daftar API Key</h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th width="40">#</th>
+                                        <th>API Key</th>
+                                        <th>Dibuat</th>
+                                        <th class="text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (keys && keys.length > 0) { %>
+                                        <% keys.forEach((k, index) => { %>
+                                        <tr>
+                                            <td class="text-muted"><%= index + 1 %></td>
+                                            <td>
+                                                <% if (k.raw) { %>
+                                                <div class="d-flex align-items-center">
+                                                    <code class="text-primary mr-2" style="font-size:0.8rem;"><%= k.raw %></code>
+                                                    <button onclick="copyToClipboard('<%= k.raw %>')" class="btn btn-sm btn-outline-primary py-0 px-2">
+                                                        <i class="ri-file-copy-line"></i>
+                                                    </button>
+                                                </div>
+                                                <% } else { %>
+                                                <span class="text-muted"><i class="ri-lock-line mr-1"></i><em>Encrypted</em></span>
+                                                <% } %>
+                                            </td>
+                                            <td class="text-muted"><%= new Date(k.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
+                                            <td class="text-right">
+                                                <form action="/api-keys/delete/<%= k.id %>" method="POST" data-confirm="Hapus kunci API ini?" style="display:inline;">
+                                                    <button type="submit" class="btn btn-sm btn-danger">
+                                                        <i class="ri-delete-bin-line"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        <% }) %>
+                                    <% } else { %>
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-4">
+                                            <i class="ri-key-line d-block" style="font-size:2rem;margin-bottom:8px;"></i>
+                                            Belum ada kunci API. Generate key baru di atas.
+                                        </td>
+                                    </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Usage Info -->
+                <div class="row fade-in">
+                    <div class="col-md-6">
+                        <div class="card card-dark">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="ri-code-s-slash-line mr-2"></i>Header Autentikasi</h3>
+                            </div>
+                            <div class="card-body">
+                                <pre class="text-success mb-0" style="font-size:0.82rem;background:#1a1f2e;padding:12px;border-radius:8px;">X-API-KEY: your_key_here</pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card card-outline card-info">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="ri-information-line text-info mr-2"></i>Info Keamanan</h3>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted mb-0" style="font-size:0.875rem;">
+                                    Kunci API hanya ditampilkan sekali saat dibuat. Gunakan header 
+                                    <code>X-API-KEY</code> untuk pengiriman pesan via sistem eksternal.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
     </div>
 
-    <%- include('partials/bottom-nav') %>
+    <footer class="main-footer">
+        <strong>WhatsApp Webhook</strong> &copy; 2024.
+        <div class="float-right d-none d-sm-inline-block"><b>Version</b> 1.0.0</div>
+    </footer>
+</div>
 
-    <script>
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Disalin!',
-                    text: 'Kunci API berhasil disalin.',
-                    timer: 1000,
-                    showConfirmButton: false,
-                    position: 'center',
-                    background: '#fff',
-                    color: '#1e293b',
-                    iconColor: '#4f46e5',
-                    customClass: {
-                        popup: 'rounded-xl shadow-xl border border-gray-100'
-                    }
-                });
+<%- include('partials/bottom-nav') %>
+
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Disalin!',
+                text: 'Kunci API berhasil disalin.',
+                timer: 1000,
+                showConfirmButton: false,
             });
-        }
-    </script>
-
-    <%- include('partials/simple-scripts') %>
+        });
+    }
+</script>
+<%- include('partials/simple-scripts') %>
 </body>
-
 </html>

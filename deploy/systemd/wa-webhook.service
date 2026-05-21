@@ -1,0 +1,21 @@
+[Unit]
+Description=WhatsApp Webhook API Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=roy
+Group=roy
+WorkingDirectory=/home/roy/wa-webhook
+Environment=NODE_ENV=production
+EnvironmentFile=/home/roy/wa-webhook/.env
+ExecStartPre=/usr/bin/test -f /home/roy/wa-webhook/.env
+ExecStart=/usr/bin/node /home/roy/wa-webhook/app.js
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

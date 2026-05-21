@@ -4,288 +4,131 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar • WhatsApp Webhook</title>
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
-    <link href="/css/tailwind.css" rel="stylesheet">
-    <style>
-        :root {
-            --insta-yellow: #f09433; 
-            --insta-orange: #e6683c; 
-            --insta-red: #dc2743; 
-            --insta-pink: #cc2366; 
-            --insta-purple: #bc1888;
-            --insta-gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-            --bg-color: #e0e5ec;
-            --text-main: #333;
-            --text-secondary: #666;
-        }
-
-        body {
-            background: var(--bg-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-
-        /* Skeuomorphic Card */
-        .skeuo-card {
-            background: var(--bg-color);
-            border-radius: 30px;
-            box-shadow: 
-                20px 20px 60px #bebebe, 
-                -20px -20px 60px #ffffff;
-            padding: 3rem;
-            width: 100%;
-            max-width: 450px;
-            position: relative;
-            overflow: hidden;
-            animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-
-        /* Instagram Gradient Top Border/Accent */
-        .skeuo-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 6px;
-            background: var(--insta-gradient);
-        }
-
-        /* Skeuomorphic Input Fields (Inner Shadow) */
-        .skeuo-input-group {
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-
-        .skeuo-input {
-            width: 100%;
-            padding: 16px 20px 16px 50px;
-            border: none;
-            border-radius: 15px;
-            background: var(--bg-color);
-            box-shadow: inset 6px 6px 12px #bebebe, inset -6px -6px 12px #ffffff;
-            color: var(--text-main);
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .skeuo-input:focus {
-            box-shadow: inset 3px 3px 6px #bebebe, inset -3px -3px 6px #ffffff;
-            color: #bc1888; /* Insta purple */
-        }
-
-        .skeuo-input::placeholder {
-            color: #999;
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #888;
-            font-size: 1.2rem;
-            transition: color 0.3s;
-        }
-
-        .skeuo-input:focus + .input-icon {
-            color: #bc1888;
-        }
-
-        /* Skeuomorphic Button (Raised) */
-        .skeuo-btn {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 50px;
-            background: var(--bg-color); /* Fallback */
-            background: var(--insta-gradient);
-            color: white;
-            font-size: 1.1rem;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            box-shadow: 
-                5px 5px 15px rgba(0,0,0,0.2), 
-                -5px -5px 15px rgba(255,255,255,0.8);
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-
-        .skeuo-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                8px 8px 20px rgba(0,0,0,0.25), 
-                -8px -8px 20px rgba(255,255,255,0.9);
-        }
-
-        .skeuo-btn:active {
-            transform: translateY(1px);
-            box-shadow: 
-                inset 3px 3px 8px rgba(0,0,0,0.3), 
-                inset -3px -3px 8px rgba(255,255,255,0.1);
-        }
-
-        /* Logo Area */
-        .logo-container {
-            width: 80px;
-            height: 80px;
-            border-radius: 20px;
-            background: var(--bg-color);
-            box-shadow: 
-                10px 10px 20px #bebebe, 
-                -10px -10px 20px #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 2rem auto;
-        }
-
-        .logo-icon {
-            font-size: 40px;
-            background: var(--insta-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Text Styles */
-        h1 {
-            color: var(--text-main);
-            margin-bottom: 0.5rem;
-            font-weight: 800;
-        }
-        
-        p {
-            color: var(--text-secondary);
-        }
-
-        a {
-            background: var(--insta-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 700;
-            text-decoration: none;
-        }
-
-        /* Error Alert */
-        .skeuo-alert {
-            padding: 1rem;
-            border-radius: 15px;
-            background: var(--bg-color);
-            box-shadow: inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff;
-            color: #dc2743;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 2rem;
-            border-left: 4px solid #dc2743;
-        }
-
-        /* Success Alert */
-        .skeuo-alert-success {
-            padding: 1rem;
-            border-radius: 15px;
-            background: var(--bg-color);
-            box-shadow: inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff;
-            color: #10b981;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 2rem;
-            border-left: 4px solid #10b981;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 640px) {
-            .skeuo-card {
-                padding: 2rem;
-            }
-        }
-    </style>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- RemixIcon -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- AdminLTE 3 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/custom.css">
 </head>
-<body>
+<body class="hold-transition login-page">
 
-    <div class="skeuo-card">
-        <div class="text-center mb-8">
-            <div class="logo-container">
-                <i class="ri-user-add-fill logo-icon"></i>
+<div class="login-box">
+    <!-- Logo -->
+    <div class="login-logo">
+        <div class="d-flex align-items-center justify-content-center mb-2">
+            <div class="d-flex align-items-center justify-content-center rounded-circle"
+                 style="width:52px;height:52px;background:rgba(255,255,255,0.2);">
+                <i class="ri-user-add-fill text-white" style="font-size:1.8rem;"></i>
             </div>
-            <h1 class="text-3xl tracking-tight">Buat Akun</h1>
-            <p class="text-sm">Mulai kelola bot WhatsApp Anda</p>
         </div>
-
-        <% if (error) { %>
-            <div class="skeuo-alert">
-                <i class="ri-error-warning-fill text-xl"></i>
-                <span class="text-sm font-medium"><%= error %></span>
-            </div>
-        <% } %>
-
-        <% if (success) { %>
-            <div class="skeuo-alert-success">
-                <i class="ri-checkbox-circle-fill text-xl"></i>
-                <span class="text-sm font-medium"><%= success %></span>
-            </div>
-        <% } %>
-
-        <form action="/register" method="POST">
-            <div class="skeuo-input-group">
-                <input type="text" name="name" required class="skeuo-input" placeholder="Nama Lengkap">
-                <i class="ri-user-line input-icon"></i>
-            </div>
-
-            <div class="skeuo-input-group">
-                <input type="email" name="email" required class="skeuo-input" placeholder="nama@email.com">
-                <i class="ri-mail-line input-icon"></i>
-            </div>
-
-            <div class="skeuo-input-group">
-                <input type="password" name="password" id="password" required class="skeuo-input" placeholder="Kata Sandi">
-                <i class="ri-lock-2-line input-icon"></i>
-            </div>
-
-            <div class="skeuo-input-group">
-                <input type="password" name="confirmPassword" id="confirmPassword" required class="skeuo-input" placeholder="Konfirmasi Kata Sandi">
-                <i class="ri-lock-check-line input-icon"></i>
-            </div>
-
-            <button type="submit" class="skeuo-btn mt-4">
-                Daftar Sekarang
-            </button>
-        </form>
-
-        <div class="mt-8 text-center text-sm text-gray-500">
-            Sudah punya akun? <a href="/login">Masuk disini</a>
-        </div>
+        <a href="#" style="color:#fff;font-weight:800;font-size:1.6rem;letter-spacing:-0.5px;">Buat Akun</a>
+        <p class="text-white-50 mt-1" style="font-size:0.85rem;">Mulai kelola bot WhatsApp Anda</p>
     </div>
 
-    <script>
-        const password = document.getElementById('password');
-        const confirmPassword = document.getElementById('confirmPassword');
+    <!-- Card -->
+    <div class="card">
+        <div class="card-body login-card-body">
 
-        function validatePassword() {
-            if (password.value !== confirmPassword.value) {
-                confirmPassword.setCustomValidity("Kata sandi tidak cocok");
-            } else {
-                confirmPassword.setCustomValidity("");
-            }
+            <% if (error) { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="ri-error-warning-fill mr-2"></i>
+                <%= error %>
+                <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+            </div>
+            <% } %>
+
+            <% if (success) { %>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="ri-checkbox-circle-fill mr-2"></i>
+                <%= success %>
+                <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+            </div>
+            <% } %>
+
+            <form action="/register" method="POST">
+                <div class="input-group mb-3">
+                    <input type="text" name="name" class="form-control" placeholder="Nama Lengkap" required>
+                    <div class="input-group-append">
+                        <div class="input-group-text"><i class="ri-user-line"></i></div>
+                    </div>
+                </div>
+
+                <div class="input-group mb-3">
+                    <input type="email" name="email" class="form-control" placeholder="nama@email.com" required>
+                    <div class="input-group-append">
+                        <div class="input-group-text"><i class="ri-mail-line"></i></div>
+                    </div>
+                </div>
+
+                <div class="input-group mb-3">
+                    <input type="password" name="password" id="password" class="form-control" placeholder="Kata Sandi" required>
+                    <div class="input-group-append">
+                        <button type="button" class="input-group-text btn btn-outline-secondary border-left-0" onclick="togglePassword('password', 'toggleIcon')" style="cursor:pointer;border-radius:0 4px 4px 0;">
+                            <i class="ri-eye-line" id="toggleIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="input-group mb-4">
+                    <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" placeholder="Konfirmasi Kata Sandi" required>
+                    <div class="input-group-append">
+                        <button type="button" class="input-group-text btn btn-outline-secondary border-left-0" onclick="togglePassword('confirmPassword', 'toggleIconConfirm')" style="cursor:pointer;border-radius:0 4px 4px 0;">
+                            <i class="ri-eye-line" id="toggleIconConfirm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success btn-block">
+                            <i class="ri-user-add-line mr-1"></i> Daftar Sekarang
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <p class="mb-0 mt-4 text-center" style="font-size:0.875rem;">
+                Sudah punya akun? <a href="/login" class="text-success font-weight-bold">Masuk disini</a>
+            </p>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirmPassword');
+
+    function validatePassword() {
+        if (password.value !== confirmPassword.value) {
+            confirmPassword.setCustomValidity("Kata sandi tidak cocok");
+        } else {
+            confirmPassword.setCustomValidity("");
         }
+    }
 
-        password.onchange = validatePassword;
-        confirmPassword.onkeyup = validatePassword;
-    </script>
+    password.onchange = validatePassword;
+    confirmPassword.onkeyup = validatePassword;
+
+    function togglePassword(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'ri-eye-off-line';
+        } else {
+            input.type = 'password';
+            icon.className = 'ri-eye-line';
+        }
+    }
+</script>
+
+<!-- jQuery, Bootstrap 4, AdminLTE 3 -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 </body>
 </html>

@@ -1,34 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error - <%= locals.title || 'WhatsApp Service' %></title>
-    <link href="/css/tailwind.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>Error - <%= locals.title || 'WhatsApp Webhook' %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-500 via-purple-600 to-purple-800 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 text-center max-w-md w-full transform hover:scale-105 transition-transform duration-300">
-        <div class="text-6xl text-red-500 mb-6">
-            <i class="fas fa-exclamation-triangle"></i>
-        </div>
-        <div class="text-4xl font-bold text-gray-700 mb-2">
-            <%= locals.status || '500' %>
-        </div>
-        <div class="text-gray-600 mb-8 text-lg">
-            <%= locals.message || 'Something went wrong. Please try again later.' %>
-        </div>
-        <% if (locals.error && locals.error.stack && process.env.NODE_ENV === 'development') { %>
-        <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-left mt-6 mb-6">
-            <div class="text-red-800 text-sm font-mono overflow-auto max-h-40">
-                <pre><%= error.stack %></pre>
+<body class="hold-transition" style="background: linear-gradient(135deg, #075E54 0%, #128C7E 40%, #25D366 100%); min-height:100vh;">
+
+<div class="d-flex align-items-center justify-content-center min-vh-100 p-4">
+    <div class="card shadow-lg" style="max-width:480px;width:100%;border-radius:16px;border:none;">
+        <div class="card-body text-center p-5">
+            <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto mb-4 bg-danger"
+                 style="width:70px;height:70px;opacity:0.9;">
+                <i class="ri-error-warning-line text-white" style="font-size:2rem;"></i>
             </div>
+
+            <h1 class="display-4 font-weight-bold text-dark mb-2"><%= locals.status || '500' %></h1>
+            <p class="lead text-muted mb-4"><%= locals.message || 'Something went wrong. Please try again later.' %></p>
+
+            <% if (locals.error && locals.error.stack && process.env.NODE_ENV === 'development') { %>
+            <div class="alert alert-danger text-left mb-4">
+                <pre class="mb-0" style="font-size:0.75rem;white-space:pre-wrap;word-break:break-all;max-height:160px;overflow-y:auto;"><%= error.stack %></pre>
+            </div>
+            <% } %>
+
+            <a href="/" class="btn btn-success btn-lg">
+                <i class="ri-home-4-line mr-2"></i> Kembali ke Beranda
+            </a>
         </div>
-        <% } %>
-        <a href="/" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-full hover:from-blue-600 hover:to-purple-700 transform hover:-translate-y-1 transition-all duration-200 shadow-lg hover:shadow-xl">
-            <i class="fas fa-home mr-2"></i>
-            Go Home
-        </a>
     </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

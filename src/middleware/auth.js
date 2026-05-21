@@ -1,4 +1,22 @@
 import { createHash } from 'crypto';
+
+// In-memory API key cache: keyHash => { userId, expiresAt }
+const apiKeyCache = new Map();
+const API_KEY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+function getCachedApiKey(keyHash) {
+    const cached = apiKeyCache.get(keyHash);
+    if (!cached) return undefined;
+    if (Date.now() > cached.expiresAt) {
+        apiKeyCache.delete(keyHash);
+        return undefined;
+    }
+    return cached.userId;
+}
+
+function setCachedApiKey(keyHash, userId) {
+    apiKeyCache.set(keyHash, { userId, expiresAt: Date.now() + API_KEY_CACHE_TTL_MS });
+}
 import jwt from 'jsonwebtoken';
 import { config } from '../config/index.js';
 import User from '../models/User.js';
@@ -89,10 +107,18 @@ async function redirectIfAuthenticated(req, res, next) {
 async function verifyApiKey(key) {
     try {
         const keyHash = createHash('sha256').update(key).digest('hex');
+
+        // Check cache first
+        const cached = getCachedApiKey(keyHash);
+        if (cached !== undefined) return cached;
+
         const apiKey = await ApiKey.findOne({ keyHash });
-        
-        if (!apiKey) return null;
-        return apiKey.userId;
+        const userId = apiKey?.userId || null;
+
+        // Cache the result (even null to avoid repeated DB hits for invalid keys)
+        if (userId) setCachedApiKey(keyHash, userId);
+
+        return userId;
     } catch (err) {
         console.error('API key verification failed:', err);
         return null;

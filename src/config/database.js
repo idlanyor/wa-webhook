@@ -8,7 +8,13 @@ async function initializeDatabase() {
     if (isConnected) return;
 
     try {
-        const db = await mongoose.connect(config.mongodb.uri);
+        const db = await mongoose.connect(config.mongodb.uri, {
+            maxPoolSize: 10,          // Max simultaneous connections
+            minPoolSize: 2,           // Keep at least 2 connections warm
+            socketTimeoutMS: 45000,   // Close sockets after 45s of inactivity
+            serverSelectionTimeoutMS: 5000, // Fail fast if no server found
+            heartbeatFrequencyMS: 10000,    // Check server health every 10s
+        });
         isConnected = !!db.connections[0].readyState;
         
         info('🚀 MongoDB connected successfully');
@@ -21,6 +27,11 @@ async function initializeDatabase() {
         mongoose.connection.on('disconnected', () => {
             info('MongoDB disconnected');
             isConnected = false;
+        });
+
+        mongoose.connection.on('reconnected', () => {
+            info('MongoDB reconnected');
+            isConnected = true;
         });
 
     } catch (err) {

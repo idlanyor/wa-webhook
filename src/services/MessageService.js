@@ -8,7 +8,8 @@ class MessageService {
     static async recordMessage(params) {
         const {
             userId, chatJid, sender, text, direction, timestamp,
-            stanzaId, rawMessage, replyToId, quotedText, quotedSender, senderJid
+            stanzaId, rawMessage, replyToId, quotedText, quotedSender, senderJid,
+            messageType = 'text', attachment = null
         } = params;
         
         try {
@@ -18,6 +19,8 @@ class MessageService {
                 sender,
                 senderJid,
                 message: text,
+                messageType,
+                attachment,
                 direction,
                 timestamp: new Date(timestamp),
                 stanzaId,
@@ -61,6 +64,8 @@ class MessageService {
                 id: c._id,
                 chat_jid: c.chatJid,
                 message: c.message,
+                messageType: c.messageType,
+                attachment: c.attachment,
                 timestamp: c.timestamp,
                 sender: c.sender
             }));
@@ -71,14 +76,27 @@ class MessageService {
     }
 
     /**
-     * Get messages for a specific chat
+     * Get messages for a specific chat with pagination.
+     * @param {string} userId
+     * @param {string} chatJid
+     * @param {object} [opts]
+     * @param {number} [opts.limit=100] - Max messages to return
+     * @param {Date|string} [opts.before] - Cursor: only return messages before this timestamp
      */
-    static async getChatMessages(userId, chatJid) {
+    static async getChatMessages(userId, chatJid, { limit = 100, before } = {}) {
         try {
-            const messages = await Message.find({ userId, chatJid })
-                .sort({ timestamp: 1 });
-            
-            return messages;
+            const query = { userId, chatJid };
+            if (before) {
+                query.timestamp = { $lt: new Date(before) };
+            }
+
+            const messages = await Message.find(query)
+                .sort({ timestamp: -1 })
+                .limit(limit)
+                .lean();
+
+            // Return in ascending order (oldest first) for chat display
+            return messages.reverse();
         } catch (error) {
             console.error('Fetch chat messages error:', error);
             throw error;

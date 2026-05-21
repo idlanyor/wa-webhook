@@ -4,50 +4,38 @@
             id: 'dashboard', 
             label: 'Dasbor', 
             path: '/dashboard', 
-            icon: 'ri-dashboard-line', 
-            activeClass: 'text-blue-600',
-            inactiveClass: 'text-gray-500 hover:text-gray-700'
+            icon: 'ri-dashboard-line'
         },
         { 
             id: 'auto-reply', 
             label: 'Auto Reply', 
             path: '/auto-reply', 
-            icon: 'ri-reply-all-line', 
-            activeClass: 'text-orange-600',
-            inactiveClass: 'text-gray-500 hover:text-gray-700'
+            icon: 'ri-reply-all-line'
         },
         { 
             id: 'scheduled-messages', 
             label: 'Jadwal', 
             path: '/scheduled-messages', 
-            icon: 'ri-calendar-schedule-line', 
-            activeClass: 'text-green-600',
-            inactiveClass: 'text-gray-500 hover:text-gray-700'
+            icon: 'ri-calendar-schedule-line'
         },
         { 
             id: 'api-keys', 
             label: 'API Keys', 
             path: '/api-keys', 
-            icon: 'ri-key-line', 
-            activeClass: 'text-indigo-600',
-            inactiveClass: 'text-gray-500 hover:text-gray-700'
+            icon: 'ri-key-line'
         },
         { 
             id: 'users', 
             label: 'Users', 
             path: '/users', 
-            icon: 'ri-group-line', 
-            activeClass: 'text-purple-600',
-            inactiveClass: 'text-gray-500 hover:text-gray-700',
+            icon: 'ri-group-line',
             adminOnly: true
         },
         { 
             id: 'documentation', 
             label: 'Docs', 
             path: '/documentation', 
-            icon: 'ri-file-text-line', 
-            activeClass: 'text-gray-800',
-            inactiveClass: 'text-gray-500 hover:text-gray-700',
+            icon: 'ri-file-text-line',
             hideForAdmin: true
         }
     ];
@@ -58,26 +46,29 @@
         return true;
     });
 %>
-<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 lg:hidden z-50" style="padding-bottom: env(safe-area-inset-bottom);">
-    <ul class="flex justify-around items-center h-16">
+
+<!-- Mobile Bottom Navigation (hidden on desktop) -->
+<nav class="d-lg-none fixed-bottom bg-white border-top shadow-sm" 
+     style="z-index:1030;padding-bottom:env(safe-area-inset-bottom);">
+    <div class="d-flex justify-content-around align-items-center" style="height:56px;">
         <% filteredBottomItems.forEach(item => { %>
-            <% 
-                const isActive = typeof page !== 'undefined' && page === item.id;
-            %>
-            <li class="flex-1">
-                <a href="<%= item.path %>" class="flex flex-col items-center justify-center h-full w-full space-y-1 <%= isActive ? item.activeClass : item.inactiveClass %>">
-                    <i class="<%= item.icon %> text-2xl"></i>
-                    <span class="text-[10px] font-medium"><%= item.label %></span>
-                </a>
-            </li>
+        <% const isActive = typeof page !== 'undefined' && page === item.id; %>
+        <a href="<%= item.path %>" 
+           class="d-flex flex-column align-items-center justify-content-center flex-grow-1 text-decoration-none py-2"
+           style="color: <%= isActive ? '#25D366' : '#6c757d' %>; min-width:0;">
+            <i class="<%= item.icon %>" style="font-size:1.3rem;"></i>
+            <span style="font-size:0.62rem;font-weight:<%= isActive ? '700' : '500' %>;margin-top:2px;white-space:nowrap;">
+                <%= item.label %>
+            </span>
+        </a>
         <% }); %>
-    </ul>
+    </div>
 </nav>
-<!-- Add padding to body to prevent content being hidden behind bottom nav -->
+
 <style>
-    @media (max-width: 1023px) {
-        body {
-            padding-bottom: calc(4rem + env(safe-area-inset-bottom));
-        }
+@media (max-width: 991px) {
+    .content-wrapper {
+        padding-bottom: calc(56px + env(safe-area-inset-bottom)) !important;
     }
+}
 </style>

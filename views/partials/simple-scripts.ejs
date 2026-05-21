@@ -1,55 +1,8 @@
 <script>
     // Simple JavaScript functionality for pages without socket requirements
 
-    // Mobile menu functionality
-    window.toggleMobileMenu = function() {
-        const sidebar = document.getElementById('sidebar');
-        const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
-
-        if (!sidebar) return;
-
-        const isOpen = sidebar.classList.contains('translate-x-0');
-
-        if (isOpen) {
-            sidebar.classList.remove('translate-x-0');
-            sidebar.classList.add('-translate-x-full');
-            if (mobileMenuOverlay) mobileMenuOverlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-        } else {
-            sidebar.classList.remove('-translate-x-full');
-            sidebar.classList.add('translate-x-0');
-            if (mobileMenuOverlay) mobileMenuOverlay.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-        }
-    };
-
-    // Close mobile menu when clicking overlay
     document.addEventListener('DOMContentLoaded', () => {
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        const html = document.documentElement;
-
-        const applyTheme = (theme) => {
-            if (theme === 'dark') {
-                html.classList.add('dark');
-                if (darkModeToggle) darkModeToggle.innerHTML = '<i class="ri-sun-line text-yellow-400 text-xl"></i>';
-            } else {
-                html.classList.remove('dark');
-                if (darkModeToggle) darkModeToggle.innerHTML = '<i class="ri-moon-line text-gray-600 text-xl"></i>';
-            }
-        };
-
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        applyTheme(savedTheme);
-
-        if (darkModeToggle) {
-            darkModeToggle.addEventListener('click', () => {
-                const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                localStorage.setItem('theme', newTheme);
-                applyTheme(newTheme);
-            });
-        }
-        // Intercept forms with data-confirm and show SweetAlert2
+        // SweetAlert2 confirm for forms with data-confirm
         document.querySelectorAll('form[data-confirm]').forEach(form => {
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
@@ -68,120 +21,66 @@
                 }
             });
         });
-        const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
-        if (mobileMenuOverlay) {
-            mobileMenuOverlay.addEventListener('click', toggleMobileMenu);
-        }
-
-        // Close mobile menu on window resize to desktop
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 1024) { // lg breakpoint
-                const sidebar = document.getElementById('sidebar');
-                if (sidebar) {
-                    sidebar.classList.remove('translate-x-0', '-translate-x-full');
-                    if (mobileMenuOverlay) mobileMenuOverlay.classList.add('hidden');
-                    document.body.classList.remove('overflow-hidden');
-                }
-            }
-        });
 
         // Add fade-in animation to elements
         document.querySelectorAll('.fade-in').forEach((el, index) => {
-            el.style.animationDelay = `${index * 0.1}s`;
+            el.style.animationDelay = `${index * 0.08}s`;
         });
 
-        // Form validation and enhancement
-        const forms = document.querySelectorAll('form');
-        forms.forEach(form => {
+        // Form loading state on submit
+        document.querySelectorAll('form').forEach(form => {
             form.addEventListener('submit', function(e) {
-                // Add loading state to submit buttons
                 const submitBtn = form.querySelector('button[type="submit"]');
-                if (submitBtn) {
+                if (submitBtn && !form.hasAttribute('data-confirm')) {
                     submitBtn.disabled = true;
-                    const originalText = submitBtn.innerHTML;
-                    submitBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Processing...';
-
-                    // Re-enable button after a delay (in case of client-side errors)
+                    const originalHtml = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="ri-loader-4-line spin mr-1"></i> Processing...';
                     setTimeout(() => {
                         submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalText;
+                        submitBtn.innerHTML = originalHtml;
                     }, 3000);
                 }
             });
         });
 
-        // Enhanced table functionality
-        const tables = document.querySelectorAll('table');
-        tables.forEach(table => {
-            // Add hover effects to table rows
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                row.addEventListener('mouseenter', () => {
-                    row.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
-                });
-                row.addEventListener('mouseleave', () => {
-                    row.style.backgroundColor = '';
-                });
-            });
-        });
-
-        // File input enhancements
-        const fileInputs = document.querySelectorAll('input[type="file"]');
-        fileInputs.forEach(input => {
-            input.addEventListener('change', function() {
-                const fileName = this.files[0]?.name;
-                if (fileName) {
-                    // Create or update file name display
-                    let fileNameDisplay = this.parentNode.querySelector('.file-name-display');
-                    if (!fileNameDisplay) {
-                        fileNameDisplay = document.createElement('div');
-                        fileNameDisplay.className = 'file-name-display text-sm text-gray-600 mt-1';
-                        this.parentNode.appendChild(fileNameDisplay);
-                    }
-                    fileNameDisplay.textContent = `Selected: ${fileName}`;
-                }
-            });
-        });
-
         // Alert auto-dismiss
-        const alerts = document.querySelectorAll('.alert');
-        alerts.forEach(alert => {
+        document.querySelectorAll('.alert-dismissible').forEach(alert => {
             setTimeout(() => {
-                alert.style.opacity = '0';
-                alert.style.transform = 'translateY(-10px)';
-                setTimeout(() => {
-                    if (alert.parentNode) alert.parentNode.removeChild(alert);
-                }, 300);
+                $(alert).alert('close');
             }, 5000);
         });
     });
 
-    // Utility functions
+    // Utility: show notification toast
     window.showNotification = function(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg transition-all duration-300 ${
-            type === 'success' ? 'bg-green-500 text-white' :
-            type === 'error' ? 'bg-red-500 text-white' :
-            type === 'warning' ? 'bg-yellow-500 text-white' :
-            'bg-blue-500 text-white'
-        }`;
-        notification.textContent = message;
-
-        document.body.appendChild(notification);
-
-        // Animate in
+        const colors = {
+            success: '#25D366',
+            error:   '#ef4444',
+            warning: '#f59e0b',
+            info:    '#0ea5e9'
+        };
+        const color = colors[type] || colors.info;
+        const el = document.createElement('div');
+        el.style.cssText = `
+            position:fixed;top:20px;right:20px;z-index:9999;
+            padding:12px 20px;border-radius:10px;
+            background:${color};color:#fff;
+            font-size:0.875rem;font-weight:600;
+            box-shadow:0 8px 24px rgba(0,0,0,0.15);
+            transition:all .3s ease;opacity:0;transform:translateX(20px);
+        `;
+        el.textContent = message;
+        document.body.appendChild(el);
+        setTimeout(() => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; }, 50);
         setTimeout(() => {
-            notification.style.transform = 'translateX(0)';
-            notification.style.opacity = '1';
-        }, 100);
-
-        // Auto remove
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => {
-                if (notification.parentNode) notification.parentNode.removeChild(notification);
-            }, 300);
+            el.style.opacity = '0';
+            el.style.transform = 'translateX(20px)';
+            setTimeout(() => el.remove(), 300);
         }, 3000);
     };
 </script>
+
+<!-- jQuery, Bootstrap 4, AdminLTE 3 -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>

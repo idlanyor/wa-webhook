@@ -1,37 +1,48 @@
-<header class="bg-white shadow-sm border-b border-gray-200 px-4 sm:px-6 py-4">
-    <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-4">
-            <div>
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-800"><%= typeof title !== 'undefined' ? title : 'Dasbor' %></h2>
-                <p class="text-sm text-gray-500 hidden sm:block mt-1">Kelola layanan WhatsApp Webhook Anda</p>
+<!-- Navbar -->
+<nav class="main-header navbar navbar-expand navbar-white navbar-light">
+    <!-- Left navbar links -->
+    <ul class="navbar-nav">
+        <li class="nav-item">
+            <a class="nav-link" data-widget="pushmenu" href="#" role="button">
+                <i class="ri-menu-line"></i>
+            </a>
+        </li>
+        <li class="nav-item d-none d-sm-inline-block">
+            <div class="nav-link">
+                <span class="font-weight-bold text-dark" style="font-size:1rem;">
+                    <%= typeof title !== 'undefined' ? title : 'Dasbor' %>
+                </span>
+                <small class="d-block text-muted" style="font-size:0.72rem;line-height:1.2;">
+                    Kelola layanan WhatsApp Webhook Anda
+                </small>
             </div>
-        </div>
-        <div class="flex items-center space-x-4">
-            <!-- User info (if available) -->
-            <% if (typeof user !== 'undefined' && user) { %>
-                <div class="hidden sm:flex items-center space-x-3 pr-4 border-r border-gray-200">
-                    <div class="text-right">
-                        <p class="text-xs font-bold text-gray-900 leading-none mb-1"><%= user.name || 'User' %></p>
-                        <p class="text-[10px] text-gray-400 leading-none"><%= user.email %></p>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-100">
-                        <span class="font-bold text-sm"><%= (user.name || 'U').substring(0, 1).toUpperCase() %></span>
-                    </div>
-                </div>
-            <% } %>
+        </li>
+    </ul>
 
-            <!-- Dark mode toggle -->
-            <button id="darkModeToggle" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <i class="ri-sun-line text-gray-600 text-xl"></i>
-            </button>
+    <!-- Right navbar links -->
+    <ul class="navbar-nav ml-auto">
+        <!-- User Info -->
+        <% if (typeof user !== 'undefined' && user) { %>
+        <li class="nav-item d-none d-sm-flex align-items-center pr-3 mr-2 border-right">
+            <div class="text-right">
+                <p class="mb-0 font-weight-bold text-dark" style="font-size:0.85rem;line-height:1.2;"><%= user.name || 'User' %></p>
+                <small class="text-muted" style="font-size:0.72rem;"><%= user.email %></small>
+            </div>
+            <div class="ml-2 d-flex align-items-center justify-content-center rounded-lg text-white font-weight-bold"
+                 style="width:36px;height:36px;background:linear-gradient(135deg,#4f46e5,#7c3aed);font-size:0.9rem;border-radius:10px!important;">
+                <%= (user.name || 'U').substring(0, 1).toUpperCase() %>
+            </div>
+        </li>
+        <% } %>
 
-            <!-- Logout button -->
+        <!-- Logout -->
+        <li class="nav-item">
             <form id="logoutForm" action="/logout-user" method="POST" data-confirm="Apakah Anda yakin ingin logout?">
-                <button type="submit" class="group flex items-center space-x-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md">
-                    <i class="ri-logout-box-line text-lg group-hover:scale-110 transition-transform"></i>
-                    <span class="font-medium hidden sm:inline">Keluar</span>
+                <button type="submit" class="btn btn-sm btn-danger ml-2 mr-2" style="border-radius:8px;">
+                    <i class="ri-logout-box-line"></i>
+                    <span class="d-none d-sm-inline ml-1">Keluar</span>
                 </button>
             </form>
-        </div>
-    </div>
-</header>
+        </li>
+    </ul>
+</nav>

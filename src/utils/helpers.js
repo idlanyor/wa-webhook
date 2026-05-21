@@ -9,7 +9,8 @@ function formatPhoneToJid(phone) {
     if (phone.includes('@')) {
         return phone;
     }
-    return `${phone}@s.whatsapp.net`;
+    const cleaned = phone.replace(/[^\d]/g, '');
+    return `${cleaned}@s.whatsapp.net`;
 }
 
 /**

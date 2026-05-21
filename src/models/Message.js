@@ -20,6 +20,13 @@ const messageSchema = new mongoose.Schema({
   message: {
     type: String
   },
+  messageType: {
+    type: String,
+    default: 'text'
+  },
+  attachment: {
+    type: mongoose.Schema.Types.Mixed
+  },
   direction: {
     type: String,
     enum: ['in', 'out'],
@@ -51,6 +58,7 @@ const messageSchema = new mongoose.Schema({
 
 messageSchema.index({ userId: 1, chatJid: 1 });
 messageSchema.index({ userId: 1, timestamp: -1 });
+messageSchema.index({ stanzaId: 1, userId: 1 }); // for reply-to lookups
 
 const Message = mongoose.model('Message', messageSchema);
 export default Message;

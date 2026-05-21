@@ -19,8 +19,7 @@ export const config = {
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
     whatsapp: {
-        keepAliveInterval: 25000,
-        keepAliveIntervalMs: 20000,
+        keepAliveIntervalMs: 20000,      // Interval (ms) for keep-alive presence updates
         markOnlineOnConnect: false,
         // Bun-specific optimizations
         ...(runtime.isBun && {
@@ -60,6 +59,11 @@ export function validateConfig() {
         } else {
             throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
         }
+    }
+
+    // Warn if using default session secret in production
+    if (config.node_env === 'production' && config.session.secret === 'default-secret') {
+        throw new Error('SESSION_SECRET must be set to a strong random value in production!');
     }
     
     // Log runtime information

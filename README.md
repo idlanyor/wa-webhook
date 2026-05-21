@@ -124,6 +124,22 @@ Aplikasi akan berjalan di `http://localhost:8181` (atau port yang Anda tentukan)
 }
 ```
 
+Kirim dokumen:
+
+**Endpoint:** `POST /send-document`
+**Body (JSON):**
+```json
+{
+  "to": "6281234567890",
+  "url": "https://example.com/file.pdf",
+  "fileName": "file.pdf",
+  "mimetype": "application/pdf",
+  "caption": "Dokumen terlampir"
+}
+```
+
+Upload file juga didukung via `multipart/form-data` dengan field `document` atau `file`.
+
 ---
 
 ##  Struktur Folder

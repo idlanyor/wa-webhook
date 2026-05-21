@@ -11,6 +11,7 @@ import Setting from '../models/Setting.js';
 import AutoReply from '../models/AutoReply.js';
 import Message from '../models/Message.js';
 import MessageService from './MessageService.js';
+import { info, error as logError, warn } from '../utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -20,7 +21,7 @@ class WhatsAppService {
         this.io = io;
         this.sessions = new Map(); // userId => session object
         this.appSettings = {};
-        this.autoReplies = [];
+        this.autoReplies = new Map(); // keyword => AutoReply rule (O(1) lookup)
         this.webhookService = null;
     }
 
@@ -41,13 +42,15 @@ class WhatsAppService {
                 return acc;
             }, {});
 
-            // Load auto-replies
-            const repliesData = await AutoReply.find({});
-            this.autoReplies = repliesData;
+            // Load auto-replies into a Map keyed by lowercase keyword for O(1) lookup
+            const repliesData = await AutoReply.find({ enabled: true });
+            this.autoReplies = new Map(
+                repliesData.map(r => [String(r.keyword || '').toLowerCase().trim(), r])
+            );
 
-            console.log('App settings and auto-replies loaded from database.');
+            info(`App settings and ${this.autoReplies.size} auto-reply rules loaded from database.`);
         } catch (error) {
-            console.error('Failed to load settings from database:', error);
+            logError('Failed to load settings from database:', error);
         }
     }
 
@@ -72,7 +75,7 @@ class WhatsAppService {
         const { state, saveCreds } = await useMultiFileAuthState(authDir);
 
         const { version, isLatest } = await fetchLatestBaileysVersion();
-        console.log(`using WA v${version.join('.')}, isLatest: ${isLatest}`);
+        info(`Using WA v${version.join('.')}, isLatest: ${isLatest}`);
 
         const session = {
             sock: null,
@@ -116,10 +119,10 @@ class WhatsAppService {
                 try {
                     await sock.sendPresenceUpdate('available');
                 } catch (error) {
-                    console.error('Keep-alive error:', error);
+                    logError('Keep-alive error:', error);
                 }
             }
-        }, config.whatsapp.keepAliveInterval);
+        }, config.whatsapp.keepAliveIntervalMs);
 
         // Credentials update handler
         sock.ev.on('creds.update', saveCreds);
@@ -154,8 +157,14 @@ class WhatsAppService {
             session.isConnected = true;
             session.state = 'connected';
             session.qr = null;
-            this.io.to(userId).emit('connection_status', { status: 'connected' });
-            console.log(`WhatsApp connected for user: ${userId}`);
+            this.io.to(userId).emit('connection_status', { 
+                status: 'connected',
+                user: session.sock?.user ? {
+                    id: session.sock.user.id,
+                    name: session.sock.user.name
+                } : null
+            });
+            info(`WhatsApp connected for user: ${userId}`);
             if (this.webhookService && this.appSettings.webhook_toggle_connection !== 'false') {
                 this.webhookService.send('connection_status', { userId, status: 'connected' });
             }
@@ -164,7 +173,7 @@ class WhatsAppService {
         if (connection === 'close') {
             const statusCode = lastDisconnect?.error?.output?.statusCode;
             const reason = lastDisconnect?.error?.message;
-            console.log(`WhatsApp connection closed for user ${userId}. Status: ${statusCode}, Reason: ${reason}`);
+            warn(`WhatsApp connection closed for user ${userId}. Status: ${statusCode}, Reason: ${reason}`);
 
             session.isConnected = false;
             session.state = 'disconnected';
@@ -182,27 +191,27 @@ class WhatsAppService {
 
             if (statusCode === DisconnectReason.loggedOut || statusCode === 405) {
                 const reasonText = statusCode === 405 ? 'Connection Failure (405)' : 'Intentional logout';
-                console.log(`${reasonText} detected for user ${userId}; clearing session.`);
+                info(`${reasonText} detected for user ${userId}; clearing session.`);
                 try {
                     if (existsSync(authDir)) {
                         rmSync(authDir, { recursive: true, force: true });
                     }
                 } catch (error) {
-                    console.error('Error removing auth directory:', error);
+                    logError('Error removing auth directory:', error);
                 }
             }
 
             // Reconnect if not a logout or 405
             if (shouldReconnect) {
                 const delay = statusCode === DisconnectReason.restartRequired ? 0 : 3000;
-                console.log(`Reconnecting for user ${userId} in ${delay}ms...`);
+                info(`Reconnecting for user ${userId} in ${delay}ms...`);
                 setTimeout(() => this.createSession(userId), delay);
             } else if (statusCode === 405) {
                 // If it was a 405, we cleared the session, so we SHOULD reconnect to let them scan QR again
-                console.log(`Session cleared for user ${userId} due to 405 error. Re-initializing for fresh QR...`);
+                info(`Session cleared for user ${userId} due to 405 error. Re-initializing for fresh QR...`);
                 setTimeout(() => this.createSession(userId), 5000);
             } else {
-                console.log(`Skipping reconnect for user ${userId} due to intentional logout.`);
+                info(`Skipping reconnect for user ${userId} due to intentional logout.`);
             }
         }
     }
@@ -214,8 +223,14 @@ class WhatsAppService {
         const message = messageUpdate.messages[0];
 
         if (!message.key.fromMe && messageUpdate.type === 'notify') {
-            const messageText = message.message?.conversation ||
-                message.message?.extendedTextMessage?.text || '';
+            const incomingContent = this.unwrapMessageContent(message.message);
+            const messageText = incomingContent?.conversation ||
+                incomingContent?.extendedTextMessage?.text ||
+                incomingContent?.documentMessage?.caption ||
+                incomingContent?.imageMessage?.caption ||
+                incomingContent?.videoMessage?.caption || '';
+            const attachment = this.extractAttachment(incomingContent);
+            const messageType = attachment?.type || 'text';
 
             // Handle quoted messages
             const contextInfo = message.message?.extendedTextMessage?.contextInfo;
@@ -244,10 +259,12 @@ class WhatsAppService {
                 sender: message.pushName || message.key.participant || message.key.remoteJid,
                 senderJid: message.key.participant || message.key.remoteJid,
                 text: messageText,
+                messageType,
+                attachment,
                 direction: 'in',
                 timestamp: (message.messageTimestamp || Date.now()) * 1000,
                 stanzaId: message.key.id,
-                rawMessage: message.message,
+                rawMessage: null, // not stored to save space; stanzaId is sufficient for reply
                 replyToId: replyToId,
                 quotedText: quotedText,
                 quotedSender: quotedSender
@@ -266,6 +283,8 @@ class WhatsAppService {
                         chatJid: recordedMessage.chatJid,
                         sender: recordedMessage.sender,
                         text: recordedMessage.message,
+                        messageType: recordedMessage.messageType,
+                        attachment: recordedMessage.attachment,
                         timestamp: recordedMessage.timestamp
                     });
                 }
@@ -284,10 +303,15 @@ class WhatsAppService {
 
         if (autoReplyEnabled && !message.key.remoteJid.endsWith('@g.us') && messageText) {
             const lowerText = messageText.trim().toLowerCase();
-            const rule = this.autoReplies.find(r =>
-                r.enabled &&
-                lowerText.includes(String(r.keyword || '').toLowerCase().trim())
-            );
+
+            // O(1) Map lookup: find a keyword that the message contains
+            let rule = null;
+            for (const [keyword, r] of this.autoReplies) {
+                if (keyword && lowerText.includes(keyword)) {
+                    rule = r;
+                    break;
+                }
+            }
 
             if (rule) {
                 try {
@@ -299,10 +323,11 @@ class WhatsAppService {
                         chatJid: message.key.remoteJid,
                         sender: 'auto-reply',
                         text: rule.reply,
+                        messageType: 'text',
                         direction: 'out',
                         timestamp: Date.now(),
                         stanzaId: result.key.id,
-                        rawMessage: result.message,
+                        rawMessage: null,
                         replyToId: replyToId,
                         quotedText: quotedText,
                         quotedSender: quotedSender,
@@ -317,10 +342,35 @@ class WhatsAppService {
                         });
                     }
                 } catch (error) {
-                    console.error('Auto-reply error:', error);
+                    logError('Auto-reply error:', error);
                 }
             }
         }
+    }
+
+    /**
+     * Resolve reply-to quoted info from database (shared by sendMessage & sendDocumentMessage)
+     * @private
+     */
+    async _getQuotedInfo(userId, replyToId) {
+        if (!replyToId) return { quotedInfo: undefined, quotedDbRecord: null };
+
+        const data = await Message.findOne({ _id: replyToId, userId });
+        if (!data) return { quotedInfo: undefined, quotedDbRecord: null };
+
+        return {
+            quotedDbRecord: data,
+            quotedInfo: {
+                key: {
+                    remoteJid: data.chatJid,
+                    id: data.stanzaId,
+                    fromMe: data.direction === 'out',
+                    participant: data.senderJid,
+                },
+                // rawMessage is no longer stored; pass undefined (WhatsApp will still thread correctly via stanzaId)
+                message: data.rawMessage || undefined
+            }
+        };
     }
 
     /**
@@ -333,30 +383,10 @@ class WhatsAppService {
             throw new Error('WhatsApp not connected');
         }
 
-        const phone = to.includes('@') ? to : `${to}@s.whatsapp.net`;
+        const cleanedTo = to.includes('@') ? to : to.replace(/[^\d]/g, '');
+        const phone = cleanedTo.includes('@') ? cleanedTo : `${cleanedTo}@s.whatsapp.net`;
 
-        let quotedInfo = undefined;
-        let quotedDbRecord = null;
-
-        if (replyToId) {
-            const data = await Message.findOne({
-                _id: replyToId,
-                userId: userId
-            });
-
-            if (data) {
-                quotedDbRecord = data;
-                quotedInfo = {
-                    key: {
-                        remoteJid: data.chatJid,
-                        id: data.stanzaId,
-                        fromMe: data.direction === 'out',
-                        participant: data.senderJid,
-                    },
-                    message: data.rawMessage
-                };
-            }
-        }
+        const { quotedInfo, quotedDbRecord } = await this._getQuotedInfo(userId, replyToId);
 
         const result = await session.sock.sendMessage(phone, { text: message }, { quoted: quotedInfo });
 
@@ -369,7 +399,7 @@ class WhatsAppService {
             direction: 'out',
             timestamp: Date.now(),
             stanzaId: result.key.id,
-            rawMessage: result.message,
+            rawMessage: null,
             replyToId: replyToId,
             quotedText: quotedDbRecord?.message,
             quotedSender: quotedDbRecord?.sender,
@@ -389,6 +419,157 @@ class WhatsAppService {
                     chatJid: recordedOutgoing.chatJid,
                     sender: recordedOutgoing.sender,
                     text: recordedOutgoing.message,
+                    messageType: recordedOutgoing.messageType,
+                    attachment: recordedOutgoing.attachment,
+                    timestamp: recordedOutgoing.timestamp
+                });
+            }
+        }
+
+        return result;
+    }
+
+    extractAttachment(rawMessage = {}) {
+        const mediaTypes = [
+            ['documentMessage', 'document'],
+            ['imageMessage', 'image'],
+            ['videoMessage', 'video'],
+            ['audioMessage', 'audio'],
+            ['stickerMessage', 'sticker']
+        ];
+
+        for (const [key, type] of mediaTypes) {
+            const media = rawMessage?.[key];
+            if (!media) continue;
+
+            return {
+                type,
+                fileName: media.fileName || null,
+                mimetype: media.mimetype || null,
+                caption: media.caption || null,
+                fileLength: media.fileLength ? String(media.fileLength) : null,
+                mediaKeyTimestamp: media.mediaKeyTimestamp ? String(media.mediaKeyTimestamp) : null
+            };
+        }
+
+        return null;
+    }
+
+    unwrapMessageContent(rawMessage = {}) {
+        let content = rawMessage;
+
+        for (let i = 0; i < 5; i++) {
+            if (content?.ephemeralMessage?.message) {
+                content = content.ephemeralMessage.message;
+                continue;
+            }
+
+            if (content?.viewOnceMessage?.message) {
+                content = content.viewOnceMessage.message;
+                continue;
+            }
+
+            if (content?.viewOnceMessageV2?.message) {
+                content = content.viewOnceMessageV2.message;
+                continue;
+            }
+
+            if (content?.documentWithCaptionMessage?.message) {
+                content = content.documentWithCaptionMessage.message;
+                continue;
+            }
+
+            break;
+        }
+
+        return content;
+    }
+
+    buildDocumentPayload(document) {
+        const {
+            url,
+            base64,
+            buffer,
+            caption,
+            fileName,
+            filename,
+            mimetype = 'application/octet-stream'
+        } = document;
+
+        if (!url && !base64 && !buffer) {
+            throw new Error('Either "url", "base64", or "buffer" is required for document');
+        }
+
+        const normalizedBase64 = base64?.includes(',')
+            ? base64.slice(base64.indexOf(',') + 1)
+            : base64;
+        const documentContent = url ? { url } : buffer || Buffer.from(normalizedBase64, 'base64');
+
+        return {
+            document: documentContent,
+            mimetype,
+            fileName: fileName || filename || 'document',
+            ...(caption ? { caption } : {})
+        };
+    }
+
+    /**
+     * Send a document attachment via WhatsApp
+     */
+    async sendDocumentMessage(userId, to, document, replyToId = null) {
+        const session = await this.ensureSession(userId);
+
+        if (!session.isConnected) {
+            throw new Error('WhatsApp not connected');
+        }
+
+        const cleanedTo = to.includes('@') ? to : to.replace(/[^\d]/g, '');
+        const phone = cleanedTo.includes('@') ? cleanedTo : `${cleanedTo}@s.whatsapp.net`;
+        const payload = this.buildDocumentPayload(document);
+
+        const { quotedInfo, quotedDbRecord } = await this._getQuotedInfo(userId, replyToId);
+
+        const result = await session.sock.sendMessage(phone, payload, { quoted: quotedInfo });
+        const attachment = {
+            type: 'document',
+            fileName: payload.fileName,
+            mimetype: payload.mimetype,
+            caption: payload.caption || null,
+            url: document.url || null
+        };
+
+        const recordedOutgoing = await MessageService.recordMessage({
+            userId,
+            chatJid: phone,
+            sender: 'me',
+            text: payload.caption || payload.fileName,
+            messageType: 'document',
+            attachment,
+            direction: 'out',
+            timestamp: Date.now(),
+            stanzaId: result.key.id,
+            rawMessage: null,
+            replyToId: replyToId,
+            quotedText: quotedDbRecord?.message,
+            quotedSender: quotedDbRecord?.sender,
+            senderJid: session.sock.user.id.replace(/:.*$/, '@s.whatsapp.net')
+        });
+
+        if (recordedOutgoing) {
+            this.io.to(userId).emit('new_message', {
+                ...recordedOutgoing.toObject(),
+                id: recordedOutgoing._id,
+                chat_jid: recordedOutgoing.chatJid
+            });
+            if (this.webhookService && this.appSettings.webhook_toggle_message_out !== 'false') {
+                this.webhookService.send('message.out', {
+                    userId,
+                    id: recordedOutgoing._id,
+                    chatJid: recordedOutgoing.chatJid,
+                    sender: recordedOutgoing.sender,
+                    text: recordedOutgoing.message,
+                    messageType: recordedOutgoing.messageType,
+                    attachment: recordedOutgoing.attachment,
                     timestamp: recordedOutgoing.timestamp
                 });
             }
@@ -408,7 +589,7 @@ class WhatsAppService {
         try {
             await session.sock.logout();
         } catch (error) {
-            console.error('Logout error:', error);
+            logError('Logout error:', error);
         }
 
         if (session.keepAliveTimer) {
@@ -422,7 +603,7 @@ class WhatsAppService {
                 rmSync(authDir, { recursive: true, force: true });
             }
         } catch (error) {
-            console.error('Error removing auth directory:', error);
+            logError('Error removing auth directory:', error);
         }
     }
 
@@ -438,12 +619,18 @@ class WhatsAppService {
         return {
             status: session.state,
             connected: session.isConnected,
-            qr: session.qr
+            qr: session.qr,
+            user: session.isConnected && session.sock?.user ? {
+                id: session.sock.user.id,
+                name: session.sock.user.name
+            } : null
         };
     }
 
     /**
-     * Preload sessions for users with existing auth files
+     * Preload sessions for users with existing auth files.
+     * Uses Promise.allSettled with a concurrency limit (max 3 parallel) to avoid
+     * flooding the WhatsApp server on startup.
      */
     async preloadSessions() {
         try {
@@ -454,12 +641,28 @@ class WhatsAppService {
                 .filter(dirent => dirent.isDirectory())
                 .map(dirent => dirent.name);
 
-            for (const userId of userDirs) {
-                console.log(`Preloading WhatsApp session for user: ${userId}`);
-                await this.ensureSession(userId);
+            if (userDirs.length === 0) return;
+
+            info(`Preloading ${userDirs.length} WhatsApp session(s)...`);
+
+            const CONCURRENCY = 3;
+            for (let i = 0; i < userDirs.length; i += CONCURRENCY) {
+                const batch = userDirs.slice(i, i + CONCURRENCY);
+                await Promise.allSettled(
+                    batch.map(userId => {
+                        info(`Preloading WhatsApp session for user: ${userId}`);
+                        return this.ensureSession(userId);
+                    })
+                );
+                // Small delay between batches to avoid flooding WA servers
+                if (i + CONCURRENCY < userDirs.length) {
+                    await new Promise(r => setTimeout(r, 1000));
+                }
             }
+
+            info('Session preloading complete.');
         } catch (error) {
-            console.error('Error during WhatsApp session preload:', error);
+            logError('Error during WhatsApp session preload:', error);
         }
     }
     async requestPairingCode(userId, phoneNumber) {
@@ -491,17 +694,17 @@ class WhatsAppService {
     }
 
     async sendInteractiveMessage(userId, to, content) {
-        console.log(`[WhatsAppService] sendInteractiveMessage start for user: ${userId}`);
+        info(`[WhatsAppService] sendInteractiveMessage start for user: ${userId}`);
         const session = await this.ensureSession(userId);
         if (!session.isConnected) {
             throw new Error('WhatsApp not connected');
         }
 
-        const phone = to.includes('@') ? to : `${to}@s.whatsapp.net`;
-        console.log(`[WhatsAppService] Target JID: ${phone}`);
+        const cleanedTo = to.includes('@') ? to : to.replace(/[^\d]/g, '');
+        const phone = cleanedTo.includes('@') ? cleanedTo : `${cleanedTo}@s.whatsapp.net`;
+        info(`[WhatsAppService] Target JID: ${phone}`);
 
         /* Use buttons-warpper enhanced method for better compatibility */
-        console.log(`[WhatsAppService] Using buttons-warpper sendInteractiveMessage...`);
         try {
             const msg = await session.sock.sendInteractiveMessage(phone, {
                 text: content.text || '',
@@ -510,10 +713,10 @@ class WhatsAppService {
                 subtitle: content.subtitle || '',
                 interactiveButtons: content.interactiveButtons || []
             });
-            console.log(`[WhatsAppService] Message sent successfully via buttons-warpper`);
+            info(`[WhatsAppService] Message sent successfully via buttons-warpper`);
             return msg;
         } catch (err) {
-            console.error(`[WhatsAppService] Failed to send via buttons-warpper:`, err);
+            logError(`[WhatsAppService] Failed to send via buttons-warpper:`, err);
             throw err;
         }
     }

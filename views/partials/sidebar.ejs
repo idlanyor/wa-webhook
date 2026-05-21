@@ -4,59 +4,45 @@
             id: 'dashboard', 
             label: 'Dasbor', 
             path: '/dashboard', 
-            icon: 'ri-dashboard-line', 
-            activeClass: 'bg-blue-50 text-blue-700 shadow-sm border-r-4 border-blue-500',
-            hoverClass: 'hover:bg-gray-50 hover:text-blue-700'
+            icon: 'ri-dashboard-line'
         },
         { 
             id: 'auto-reply', 
             label: 'Balas Otomatis', 
             path: '/auto-reply', 
-            icon: 'ri-reply-all-line', 
-            activeClass: 'bg-orange-50 text-orange-700 shadow-sm border-r-4 border-orange-500',
-            hoverClass: 'hover:bg-gray-50 hover:text-orange-700'
+            icon: 'ri-reply-all-line'
         },
         { 
             id: 'scheduled-messages', 
             label: 'Pesan Terjadwal', 
             path: '/scheduled-messages', 
-            icon: 'ri-calendar-schedule-line', 
-            activeClass: 'bg-green-50 text-green-700 shadow-sm border-r-4 border-green-500',
-            hoverClass: 'hover:bg-gray-50 hover:text-green-700'
+            icon: 'ri-calendar-schedule-line'
         },
         { 
             id: 'api-keys', 
             label: 'Kunci API', 
             path: '/api-keys', 
-            icon: 'ri-key-line', 
-            activeClass: 'bg-indigo-50 text-indigo-700 shadow-sm border-r-4 border-indigo-500',
-            hoverClass: 'hover:bg-gray-50 hover:text-indigo-700'
+            icon: 'ri-key-line'
         },
         { 
             id: 'users', 
             label: 'Users', 
             path: '/users', 
-            icon: 'ri-group-line', 
-            activeClass: 'bg-purple-50 text-purple-700 shadow-sm border-r-4 border-purple-500',
-            hoverClass: 'hover:bg-gray-50 hover:text-purple-700',
+            icon: 'ri-group-line',
             adminOnly: true
         },
         { 
             id: 'settings', 
             label: 'Pengaturan', 
             path: '/settings', 
-            icon: 'ri-settings-3-line', 
-            activeClass: 'bg-gray-50 text-teal-700 shadow-sm border-r-4 border-teal-500',
-            hoverClass: 'hover:bg-gray-50 hover:text-teal-700',
+            icon: 'ri-settings-3-line',
             adminOnly: true
         },
         { 
             id: 'documentation', 
             label: 'Dokumentasi', 
             path: '/documentation', 
-            icon: 'ri-file-text-line', 
-            activeClass: 'bg-gray-50 text-gray-800 shadow-sm border-r-4 border-gray-500',
-            hoverClass: 'hover:bg-gray-50 hover:text-gray-800'
+            icon: 'ri-file-text-line'
         }
     ];
 
@@ -65,39 +51,54 @@
         return true;
     });
 %>
-<aside class="w-64 bg-white shadow-lg border-r border-gray-200 hidden lg:flex flex-col fixed inset-y-0 left-0 h-screen overflow-y-auto z-50" id="sidebar">
-    <div class="p-6 border-b border-gray-200">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-linear-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <i class="ri-whatsapp-line text-white text-xl"></i>
+
+<!-- Main Sidebar Container -->
+<aside class="main-sidebar sidebar-dark-success elevation-4">
+    <!-- Brand Logo -->
+    <a href="/dashboard" class="brand-link">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-lg me-2" 
+             style="width:36px;height:36px;background:rgba(255,255,255,0.2);flex-shrink:0;">
+            <i class="ri-whatsapp-line text-white" style="font-size:1.2rem;"></i>
+        </div>
+        <span class="brand-text font-weight-bold">WA Webhook</span>
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <!-- Sidebar user panel -->
+        <% if (typeof user !== 'undefined' && user) { %>
+        <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+            <div class="image">
+                <div class="d-flex align-items-center justify-content-center rounded-circle bg-success text-white" 
+                     style="width:34px;height:34px;font-weight:700;font-size:0.9rem;">
+                    <%= (user.name || 'U').substring(0, 1).toUpperCase() %>
                 </div>
-                <h1 class="text-xl font-bold text-gray-800">WA Webhook</h1>
+            </div>
+            <div class="info">
+                <a href="#" class="d-block font-weight-bold"><%= user.name || 'User' %></a>
+                <span class="text-muted" style="font-size:0.75rem;"><%= user.email %></span>
             </div>
         </div>
-    </div>
-    <nav class="flex-1 py-6 overflow-y-auto">
-        <ul class="space-y-2 px-4">
-            <% filteredMenuItems.forEach(item => { %>
-                <% 
-                    const isActive = typeof page !== 'undefined' && page === item.id;
-                %>
-                <li>
-                    <a href="<%= item.path %>" 
-                       class="group flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 transition-all duration-200 <%= isActive ? item.activeClass : item.hoverClass %>">
-                        <i class="<%= item.icon %> text-lg group-hover:scale-110 transition-transform"></i>
-                        <span class="font-medium"><%= item.label %></span>
+        <% } %>
+
+        <!-- Sidebar Menu -->
+        <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+                <% filteredMenuItems.forEach(item => { %>
+                <% const isActive = typeof page !== 'undefined' && page === item.id; %>
+                <li class="nav-item">
+                    <a href="<%= item.path %>" class="nav-link <%= isActive ? 'active' : '' %>">
+                        <i class="nav-icon <%= item.icon %>"></i>
+                        <p><%= item.label %></p>
                     </a>
                 </li>
-            <% }); %>
-        </ul>
-    </nav>
+                <% }); %>
+            </ul>
+        </nav>
+    </div>
 
     <!-- Footer -->
-    <div class="p-4 border-t border-gray-200 bg-gray-50">
-        <div class="text-center">
-            <p class="text-xs text-gray-500">Version 1.0.0</p>
-            <p class="text-xs text-gray-400 mt-1">WhatsApp Webhook</p>
-        </div>
+    <div class="sidebar-footer p-3 border-top" style="border-color:rgba(255,255,255,0.1)!important;">
+        <p class="text-center text-muted mb-0" style="font-size:0.7rem;">Version 1.0.0 • WhatsApp Webhook</p>
     </div>
 </aside>

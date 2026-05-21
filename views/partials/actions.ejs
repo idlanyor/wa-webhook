@@ -1,48 +1,35 @@
-<div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 card-hover transition-all duration-300">
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h3 class="text-lg font-semibold text-gray-800">Aksi Cepat</h3>
-            <p class="text-sm text-gray-600 mt-1">Kendalikan layanan WhatsApp Anda</p>
-        </div>
-        <div
-            class="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center shadow-inner">
-            <i class="ri-gamepad-line text-purple-600 text-2xl"></i>
+<!-- Quick Actions Card -->
+<div class="card card-outline card-purple" style="border-color:#7c3aed;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="ri-flashlight-line mr-2" style="color:#7c3aed;"></i>
+            Aksi Cepat
+        </h3>
+        <div class="card-tools">
+            <small class="text-muted">Kendalikan sesi WhatsApp Anda</small>
         </div>
     </div>
-    <div class="space-y-3">
-        <button
-            class="w-full group flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1"
-            id="resetSessionBtn">
-            <i class="ri-refresh-line text-lg group-hover:scale-110 transition-transform"></i>
-            <span>Reset Sesi</span>
+    <div class="card-body p-3">
+        <button class="btn btn-warning btn-block mb-2" id="resetSessionBtn">
+            <i class="ri-refresh-line mr-1"></i> Reset Sesi
         </button>
-        <button
-            class="w-full group flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1"
-            id="refreshBtn" onclick="refreshStatus()">
-            <i class="ri-refresh-line text-lg group-hover:scale-110 transition-transform"></i>
+        <button class="btn btn-primary btn-block mb-2" id="refreshBtn" onclick="refreshStatus()">
+            <i class="ri-refresh-line mr-1"></i>
             <span id="refreshText">Segarkan Status</span>
         </button>
-        <button
-            class="w-full group flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md"
-            id="testBtn" onclick="testMessage()" disabled>
-            <i class="ri-send-plane-line text-lg group-hover:scale-110 transition-transform"></i>
-            <span>Kirim Pesan Uji</span>
+        <button class="btn btn-success btn-block mb-2" id="testBtn" onclick="testMessage()" disabled>
+            <i class="ri-send-plane-line mr-1"></i> Kirim Pesan Uji
         </button>
-        <button
-            class="w-full group flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md"
-            id="waLogoutBtn" onclick="waLogout()" disabled>
-            <i class="ri-logout-circle-r-line text-lg group-hover:scale-110 transition-transform"></i>
-            <span>Keluar WhatsApp</span>
+        <button class="btn btn-danger btn-block" id="waLogoutBtn" onclick="waLogout()" disabled>
+            <i class="ri-logout-circle-r-line mr-1"></i> Keluar WhatsApp
         </button>
-    </div>
 
-    <!-- Action Status -->
-    <div id="actionStatus" class="hidden mt-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
-        <div class="flex items-center space-x-2">
-            <div class="animate-spin">
-                <i class="ri-loader-4-line text-blue-600"></i>
+        <!-- Action Status -->
+        <div id="actionStatus" class="alert mt-3 mb-0 py-2 d-none" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="ri-loader-4-line spin mr-2"></i>
+                <span id="actionStatusText" style="font-size:0.83rem;">Memproses…</span>
             </div>
-            <span class="text-sm text-blue-700" id="actionStatusText">Memproses…</span>
         </div>
     </div>
 </div>

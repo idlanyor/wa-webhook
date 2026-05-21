@@ -1,44 +1,63 @@
-<div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-4 mb-6 transition-all duration-300">
-    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-        <!-- Status & Title -->
-        <div class="flex items-center space-x-4">
-            <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center shadow-inner flex-shrink-0">
-                <i id="statusIcon" class="ri-signal-wifi-line text-blue-600 text-xl"></i>
-            </div>
-            <div>
-                <div class="flex items-center space-x-2">
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Status Koneksi</h3>
-                    <div id="statusIndicator" class="w-2.5 h-2.5 rounded-full bg-gray-400"></div>
+<!-- Status Info Boxes -->
+<div class="row">
+
+    <!-- 1. Connection Status -->
+    <div class="col-6 col-lg-3">
+        <div class="info-box fade-in">
+            <span class="info-box-icon bg-primary elevation-1">
+                <i id="statusIcon" class="ri-signal-wifi-line"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text text-uppercase" style="font-size:0.7rem;font-weight:700;letter-spacing:.05em;">Koneksi</span>
+                <span class="info-box-number" id="connectionStatus" style="font-size:1rem;">Menghubungkan…</span>
+                <div class="d-flex align-items-center mt-1">
+                    <span id="statusIndicator" class="status-dot disconnected"></span>
+                    <small id="socketStatus" class="text-muted" style="font-size:0.68rem;font-family:monospace;">Socket: ...</small>
                 </div>
-                <div class="flex items-baseline space-x-2">
-                    <span class="text-xl font-bold text-gray-800" id="connectionStatus">Menghubungkan…</span>
-                    <span id="socketStatus" class="text-[10px] text-gray-400">Socket: ...</span>
-                </div>
             </div>
-        </div>
-
-        <!-- Metrics -->
-        <div class="flex items-center space-x-8 px-8 border-x border-gray-100 hidden md:flex">
-            <div class="text-center">
-                <div class="text-xs text-gray-400 uppercase font-medium">Uptime</div>
-                <div class="text-lg font-bold text-blue-600" id="uptime">--</div>
-            </div>
-            <div class="text-center">
-                <div class="text-xs text-gray-400 uppercase font-medium">Pesan</div>
-                <div class="text-lg font-bold text-green-600" id="messageCount">--</div>
-            </div>
-        </div>
-
-        <!-- Progress/Message -->
-        <div class="flex-1 text-center md:text-left hidden lg:block">
-            <p id="statusMessage" class="text-sm text-gray-600 truncate">Memuat status koneksi…</p>
-        </div>
-
-        <!-- Actions -->
-        <div class="flex items-center space-x-2">
-            <button id="refreshBtn" type="button" class="inline-flex items-center space-x-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-gray-700 transition-all text-sm font-medium">
-                <span id="refreshText">Refresh</span>
-            </button>
         </div>
     </div>
+
+    <!-- 2. Live Messages -->
+    <div class="col-6 col-lg-3">
+        <div class="info-box fade-in">
+            <span class="info-box-icon bg-success elevation-1">
+                <i class="ri-chat-check-line"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text text-uppercase" style="font-size:0.7rem;font-weight:700;letter-spacing:.05em;">Pesan Live</span>
+                <span class="info-box-number" id="messageCount">--</span>
+                <small class="text-muted">Sesi monitoring aktif</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Uptime -->
+    <div class="col-6 col-lg-3">
+        <div class="info-box fade-in">
+            <span class="info-box-icon bg-purple elevation-1" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)!important;">
+                <i class="ri-time-line"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text text-uppercase" style="font-size:0.7rem;font-weight:700;letter-spacing:.05em;">Uptime Sesi</span>
+                <span class="info-box-number" id="uptime">--</span>
+                <small class="text-muted">Berjalan aktif</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Active Session -->
+    <div class="col-6 col-lg-3">
+        <div class="info-box fade-in">
+            <span class="info-box-icon bg-warning elevation-1">
+                <i class="ri-whatsapp-line"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text text-uppercase" style="font-size:0.7rem;font-weight:700;letter-spacing:.05em;">Sesi Terhubung</span>
+                <span class="info-box-number" id="activePhone" style="font-size:0.9rem;">Menunggu Sesi</span>
+                <small class="text-muted" id="activeProfileName">Belum terhubung</small>
+            </div>
+        </div>
+    </div>
+
 </div>

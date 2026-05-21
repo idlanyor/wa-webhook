@@ -3,322 +3,303 @@
 <head>
     <%- include('partials/head', { title: 'Pesan Terjadwal' }) %>
 </head>
-<body class="bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
-    <div class="flex min-h-screen">
-        <%- include('partials/sidebar') %>
-        <div class="flex-1 flex flex-col lg:ml-64">
-            <%- include('partials/navbar', { title: 'Pesan Terjadwal' }) %>
-            <main class="flex-1 p-4 sm:p-6 lg:p-8">
-                <div class="max-w-7xl mx-auto">
-                    
-                    <!-- Statistics -->
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 fade-in">
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                                    <i class="ri-calendar-line text-blue-600"></i>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-bold text-gray-400 uppercase">Total</p>
-                                    <p class="text-lg font-bold text-gray-800"><%= stats.total %></p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
-                                    <i class="ri-time-line text-yellow-600"></i>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-bold text-gray-400 uppercase">Pending</p>
-                                    <p class="text-lg font-bold text-gray-800"><%= stats.pending %></p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
-                                    <i class="ri-check-line text-green-600"></i>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-bold text-gray-400 uppercase">Terkirim</p>
-                                    <p class="text-lg font-bold text-gray-800"><%= stats.sent %></p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                                    <i class="ri-close-line text-red-600"></i>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-bold text-gray-400 uppercase">Gagal</p>
-                                    <p class="text-lg font-bold text-gray-800"><%= stats.failed %></p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center">
-                                    <i class="ri-forbid-line text-gray-600"></i>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-bold text-gray-400 uppercase">Dibatal</p>
-                                    <p class="text-lg font-bold text-gray-800"><%= stats.cancelled %></p>
-                                </div>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+
+    <%- include('partials/navbar') %>
+    <%- include('partials/sidebar') %>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0">Pesan Terjadwal</h1>
+                    </div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="/dashboard">Dasbor</a></li>
+                            <li class="breadcrumb-item active">Pesan Terjadwal</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+
+                <!-- Stats -->
+                <div class="row fade-in">
+                    <div class="col-6 col-lg">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-info elevation-1"><i class="ri-calendar-line"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Total</span>
+                                <span class="info-box-number"><%= stats.total %></span>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Create Button -->
-                    <div class="flex justify-between items-center mb-6 fade-in">
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-800">Daftar Pesan Terjadwal</h2>
-                            <p class="text-sm text-gray-600 mt-1">Kelola pesan terjadwal Anda</p>
+                    <div class="col-6 col-lg">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-warning elevation-1"><i class="ri-time-line"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Pending</span>
+                                <span class="info-box-number"><%= stats.pending %></span>
+                            </div>
                         </div>
-                        <button onclick="showCreateDialog()" 
-                            class="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md">
-                            <i class="ri-add-line"></i>
-                            <span>Buat Jadwal</span>
-                        </button>
                     </div>
-
-                    <!-- Alerts -->
-                    <% if (locals.error) { %>
-                        <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center space-x-2 text-sm fade-in">
-                            <i class="ri-error-warning-line"></i>
-                            <span><%= error %></span>
+                    <div class="col-6 col-lg">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-success elevation-1"><i class="ri-check-line"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Terkirim</span>
+                                <span class="info-box-number"><%= stats.sent %></span>
+                            </div>
                         </div>
-                    <% } %>
-                    <% if (locals.success) { %>
-                        <div class="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-center space-x-2 text-sm fade-in">
-                            <i class="ri-checkbox-circle-line"></i>
-                            <span><%= success %></span>
+                    </div>
+                    <div class="col-6 col-lg">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-danger elevation-1"><i class="ri-close-line"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Gagal</span>
+                                <span class="info-box-number"><%= stats.failed %></span>
+                            </div>
                         </div>
-                    <% } %>
+                    </div>
+                    <div class="col-6 col-lg">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-secondary elevation-1"><i class="ri-forbid-line"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Dibatal</span>
+                                <span class="info-box-number"><%= stats.cancelled %></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                    <!-- Messages List -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 fade-in">
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead class="bg-gray-50/50 border-b border-gray-100">
+                <!-- Alerts -->
+                <% if (locals.error) { %>
+                <div class="alert alert-danger alert-dismissible fade show fade-in" role="alert">
+                    <i class="ri-error-warning-line mr-2"></i> <%= error %>
+                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                </div>
+                <% } %>
+                <% if (locals.success) { %>
+                <div class="alert alert-success alert-dismissible fade show fade-in" role="alert">
+                    <i class="ri-checkbox-circle-line mr-2"></i> <%= success %>
+                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                </div>
+                <% } %>
+
+                <!-- Messages Table -->
+                <div class="card card-outline card-primary fade-in">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="ri-calendar-schedule-line text-primary mr-2"></i>Daftar Pesan Terjadwal</h3>
+                        <div class="card-tools">
+                            <button onclick="showCreateDialog()" class="btn btn-primary btn-sm">
+                                <i class="ri-add-line mr-1"></i> Buat Jadwal
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0">
+                                <thead>
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase">No</th>
-                                        <th class="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase">Tujuan</th>
-                                        <th class="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase">Pesan</th>
-                                        <th class="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase">Jadwal</th>
-                                        <th class="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase">Status</th>
-                                        <th class="px-6 py-3 text-right text-[10px] font-bold text-gray-400 uppercase">Aksi</th>
+                                        <th width="40">No</th>
+                                        <th>Tujuan</th>
+                                        <th>Pesan</th>
+                                        <th>Jadwal</th>
+                                        <th>Status</th>
+                                        <th class="text-right">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-50">
+                                <tbody>
                                     <% if (messages && messages.length > 0) { %>
                                         <% messages.forEach((msg, index) => { %>
-                                            <tr class="hover:bg-gray-50/30 transition-colors">
-                                                <td class="px-6 py-4 text-sm text-gray-400"><%= index + 1 %></td>
-                                                <td class="px-6 py-4">
-                                                    <code class="text-xs font-mono bg-gray-100 px-2 py-1 rounded"><%= msg.to %></code>
-                                                </td>
-                                                <td class="px-6 py-4">
-                                                    <div class="text-sm text-gray-700 truncate max-w-xs" title="<%= msg.message %>">
-                                                        <%= msg.message.substring(0, 50) %><% if (msg.message.length > 50) { %>...<% } %>
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4">
-                                                    <div class="text-xs text-gray-600">
-                                                        <%= new Date(msg.scheduledAt).toLocaleString('id-ID', { 
-                                                            day: '2-digit', 
-                                                            month: 'short', 
-                                                            year: 'numeric',
-                                                            hour: '2-digit',
-                                                            minute: '2-digit'
-                                                        }) %>
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4">
-                                                    <% if (msg.status === 'pending') { %>
-                                                        <span class="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-700 text-[10px] font-semibold rounded-lg">
-                                                            <i class="ri-time-line mr-1"></i> Pending
-                                                        </span>
-                                                    <% } else if (msg.status === 'sent') { %>
-                                                        <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 text-[10px] font-semibold rounded-lg">
-                                                            <i class="ri-check-line mr-1"></i> Terkirim
-                                                        </span>
-                                                    <% } else if (msg.status === 'failed') { %>
-                                                        <span class="inline-flex items-center px-2 py-1 bg-red-100 text-red-700 text-[10px] font-semibold rounded-lg">
-                                                            <i class="ri-close-line mr-1"></i> Gagal
-                                                        </span>
-                                                    <% } else if (msg.status === 'cancelled') { %>
-                                                        <span class="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 text-[10px] font-semibold rounded-lg">
-                                                            <i class="ri-forbid-line mr-1"></i> Dibatal
-                                                        </span>
-                                                    <% } %>
-                                                </td>
-                                                <td class="px-6 py-4 text-right">
-                                                    <div class="flex items-center justify-end space-x-2">
-                                                        <% if (msg.status === 'pending') { %>
-                                                            <form action="/scheduled-messages/cancel/<%= msg._id %>" method="POST" class="inline" data-confirm="Batalkan pesan terjadwal ini?">
-                                                                <button type="submit" class="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors">
-                                                                    <i class="ri-forbid-line"></i>
-                                                                </button>
-                                                            </form>
-                                                        <% } %>
-                                                        <form action="/scheduled-messages/delete/<%= msg._id %>" method="POST" class="inline" data-confirm="Hapus pesan terjadwal ini?">
-                                                            <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                                                                <i class="ri-delete-bin-line"></i>
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        <% }) %>
-                                    <% } else { %>
                                         <tr>
-                                            <td colspan="6" class="px-6 py-12 text-center text-gray-400">
-                                                <i class="ri-calendar-line text-4xl mb-2"></i>
-                                                <p>Belum ada pesan terjadwal</p>
+                                            <td class="text-muted"><%= index + 1 %></td>
+                                            <td><code><%= msg.to %></code></td>
+                                            <td>
+                                                <span title="<%= msg.message %>" style="max-width:200px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                                    <%= msg.message.substring(0, 50) %><% if (msg.message.length > 50) { %>...<% } %>
+                                                </span>
+                                            </td>
+                                            <td style="font-size:0.82rem;">
+                                                <%= new Date(msg.scheduledAt).toLocaleString('id-ID', {
+                                                    day: '2-digit', month: 'short', year: 'numeric',
+                                                    hour: '2-digit', minute: '2-digit'
+                                                }) %>
+                                            </td>
+                                            <td>
+                                                <% if (msg.status === 'pending') { %>
+                                                    <span class="badge badge-warning p-2" style="border-radius:20px;">
+                                                        <i class="ri-time-line mr-1"></i>Pending
+                                                    </span>
+                                                <% } else if (msg.status === 'sent') { %>
+                                                    <span class="badge badge-success p-2" style="border-radius:20px;">
+                                                        <i class="ri-check-line mr-1"></i>Terkirim
+                                                    </span>
+                                                <% } else if (msg.status === 'failed') { %>
+                                                    <span class="badge badge-danger p-2" style="border-radius:20px;">
+                                                        <i class="ri-close-line mr-1"></i>Gagal
+                                                    </span>
+                                                <% } else if (msg.status === 'cancelled') { %>
+                                                    <span class="badge badge-secondary p-2" style="border-radius:20px;">
+                                                        <i class="ri-forbid-line mr-1"></i>Dibatal
+                                                    </span>
+                                                <% } %>
+                                            </td>
+                                            <td class="text-right">
+                                                <% if (msg.status === 'pending') { %>
+                                                <form action="/scheduled-messages/cancel/<%= msg._id %>" method="POST"
+                                                      style="display:inline;" data-confirm="Batalkan pesan terjadwal ini?">
+                                                    <button type="submit" class="btn btn-sm btn-warning mr-1">
+                                                        <i class="ri-forbid-line"></i>
+                                                    </button>
+                                                </form>
+                                                <% } %>
+                                                <form action="/scheduled-messages/delete/<%= msg._id %>" method="POST"
+                                                      style="display:inline;" data-confirm="Hapus pesan terjadwal ini?">
+                                                    <button type="submit" class="btn btn-sm btn-danger">
+                                                        <i class="ri-delete-bin-line"></i>
+                                                    </button>
+                                                </form>
                                             </td>
                                         </tr>
+                                        <% }) %>
+                                    <% } else { %>
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-5">
+                                            <i class="ri-calendar-line d-block" style="font-size:2.5rem;margin-bottom:8px;"></i>
+                                            Belum ada pesan terjadwal.<br>
+                                            <small>Klik "Buat Jadwal" untuk membuat pesan terjadwal baru.</small>
+                                        </td>
+                                    </tr>
                                     <% } %>
                                 </tbody>
                             </table>
                         </div>
                     </div>
-
                 </div>
-            </main>
-        </div>
+
+            </div>
+        </section>
     </div>
 
-    <%- include('partials/bottom-nav') %>
-    <%- include('partials/simple-scripts') %>
+    <footer class="main-footer">
+        <strong>WhatsApp Webhook</strong> &copy; 2024.
+        <div class="float-right d-none d-sm-inline-block"><b>Version</b> 1.0.0</div>
+    </footer>
+</div>
 
-    <script>
-        async function showCreateDialog() {
-            // Step 1: Get phone number
-            const { value: phoneNumber } = await Swal.fire({
-                title: 'Nomor Tujuan',
-                input: 'text',
-                inputPlaceholder: '6281234567890 atau 08123456789',
-                showCancelButton: true,
-                confirmButtonText: 'Lanjut',
-                cancelButtonText: 'Batal',
-                inputValidator: (value) => {
-                    if (!value) return 'Nomor WhatsApp harus diisi!';
-                    if (!/^(62|08)\d{8,13}$/.test(value)) return 'Format nomor tidak valid!';
-                }
-            });
+<%- include('partials/bottom-nav') %>
+<%- include('partials/simple-scripts') %>
 
-            if (!phoneNumber) return;
-            const finalPhone = phoneNumber.startsWith('08') ? phoneNumber.replace(/^08/, '628') : phoneNumber;
-
-            // Step 2: Get message
-            const { value: message } = await Swal.fire({
-                title: 'Isi Pesan',
-                input: 'textarea',
-                inputPlaceholder: 'Ketik pesan Anda...',
-                showCancelButton: true,
-                confirmButtonText: 'Lanjut',
-                cancelButtonText: 'Batal',
-                inputValidator: (value) => {
-                    if (!value) return 'Pesan tidak boleh kosong!';
-                }
-            });
-
-            if (!message) return;
-
-            // Step 3: Get scheduled time
-            const now = new Date();
-            const minDateTime = new Date(now.getTime() + 60000).toISOString().slice(0, 16);
-
-            const { value: scheduledAt } = await Swal.fire({
-                title: 'Jadwal Pengiriman',
-                html: `
-                    <div class="text-left">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Pilih tanggal dan waktu:</label>
-                        <input type="datetime-local" id="scheduledDateTime" class="swal2-input w-full" min="${minDateTime}" required>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'Jadwalkan',
-                cancelButtonText: 'Batal',
-                preConfirm: () => {
-                    const dateTime = document.getElementById('scheduledDateTime').value;
-                    if (!dateTime) {
-                        Swal.showValidationMessage('Tanggal dan waktu harus dipilih!');
-                        return false;
-                    }
-                    const selectedDate = new Date(dateTime);
-                    if (selectedDate <= new Date()) {
-                        Swal.showValidationMessage('Waktu harus di masa depan!');
-                        return false;
-                    }
-                    return dateTime;
-                }
-            });
-
-            if (!scheduledAt) return;
-
-            // Send request
-            try {
-                const response = await fetch('/scheduled-messages/create', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        to: finalPhone,
-                        message: message,
-                        scheduledAt: scheduledAt,
-                        messageType: 'text'
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    await Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: 'Pesan berhasil dijadwalkan',
-                        confirmButtonText: 'OK'
-                    });
-                    window.location.reload();
-                } else {
-                    throw new Error(result.error || 'Failed to schedule message');
-                }
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal!',
-                    text: error.message,
-                    confirmButtonText: 'OK'
-                });
+<script>
+    async function showCreateDialog() {
+        // Step 1: Get phone number
+        const { value: phoneNumber } = await Swal.fire({
+            title: 'Nomor Tujuan',
+            input: 'text',
+            inputPlaceholder: 'Contoh: 6281234567890',
+            showCancelButton: true,
+            confirmButtonText: 'Lanjut',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#25D366',
+            inputValidator: (value) => {
+                if (!value) return 'Nomor WhatsApp harus diisi!';
+                const cleaned = value.replace(/[^\d+]/g, '');
+                if (!/^\+?\d{7,15}$/.test(cleaned)) return 'Format nomor tidak valid!';
             }
+        });
+
+        if (!phoneNumber) return;
+        let finalPhone = phoneNumber.replace(/[^\d+]/g, '');
+        if (finalPhone.startsWith('+')) {
+            finalPhone = finalPhone.substring(1);
+        } else if (finalPhone.startsWith('0')) {
+            finalPhone = '62' + finalPhone.substring(1);
         }
 
-        // Form confirmation
-        document.querySelectorAll('form[data-confirm]').forEach(form => {
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const message = form.getAttribute('data-confirm') || 'Apakah Anda yakin?';
-                const result = await Swal.fire({
-                    title: 'Konfirmasi',
-                    text: message,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Ya',
-                    cancelButtonText: 'Batal'
-                });
-                if (result.isConfirmed) form.submit();
-            });
+        // Step 2: Get message
+        const { value: message } = await Swal.fire({
+            title: 'Isi Pesan',
+            input: 'textarea',
+            inputPlaceholder: 'Ketik pesan Anda...',
+            showCancelButton: true,
+            confirmButtonText: 'Lanjut',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#25D366',
+            inputValidator: (value) => {
+                if (!value) return 'Pesan tidak boleh kosong!';
+            }
         });
-    </script>
+
+        if (!message) return;
+
+        // Step 3: Get scheduled time
+        const now = new Date();
+        const minDateTime = new Date(now.getTime() + 60000).toISOString().slice(0, 16);
+
+        const { value: scheduledAt } = await Swal.fire({
+            title: 'Jadwal Pengiriman',
+            html: `
+                <div class="text-left">
+                    <label class="form-label">Pilih tanggal dan waktu:</label>
+                    <input type="datetime-local" id="scheduledDateTime" class="form-control" min="${minDateTime}" required>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Jadwalkan',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#25D366',
+            preConfirm: () => {
+                const dateTime = document.getElementById('scheduledDateTime').value;
+                if (!dateTime) {
+                    Swal.showValidationMessage('Tanggal dan waktu harus dipilih!');
+                    return false;
+                }
+                const selectedDate = new Date(dateTime);
+                if (selectedDate <= new Date()) {
+                    Swal.showValidationMessage('Waktu harus di masa depan!');
+                    return false;
+                }
+                return dateTime;
+            }
+        });
+
+        if (!scheduledAt) return;
+
+        try {
+            const response = await fetch('/scheduled-messages/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ to: finalPhone, message, scheduledAt, messageType: 'text' })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'Pesan berhasil dijadwalkan',
+                    confirmButtonColor: '#25D366'
+                });
+                window.location.reload();
+            } else {
+                throw new Error(result.error || 'Gagal menjadwalkan pesan');
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: error.message
+            });
+        }
+    }
+</script>
 </body>
 </html>
