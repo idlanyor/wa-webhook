@@ -1,6 +1,7 @@
 .env
 node_modules
 package-lock.json
+# Legacy Baileys auth state (sessions now stored in MongoDB via zapo-js)
 auth_info_baileys
 logs/**/*
 data/

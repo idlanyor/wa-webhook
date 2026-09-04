@@ -116,7 +116,7 @@ async function verifyApiKey(key) {
         const userId = apiKey?.userId || null;
 
         // Cache the result (even null to avoid repeated DB hits for invalid keys)
-        if (userId) setCachedApiKey(keyHash, userId);
+        setCachedApiKey(keyHash, userId);
 
         return userId;
     } catch (err) {

@@ -155,7 +155,7 @@
   -H "Content-Type: application/json" \
   -H "X-API-KEY: YOUR_API_KEY" \
   -d '{"to":"6281234567890","message":"Hello via API key!"}' \
-  http://localhost:3000/send-message</code></pre>
+  https://gate.ireng.uk/send-message</code></pre>
                                 </div>
                             </div>
 
@@ -166,7 +166,7 @@
   -H "Content-Type: application/json" \
   -H "Cookie: auth-token=YOUR_COOKIE_HERE" \
   -d '{"to":"6281234567890","message":"Hello via cookie!"}' \
-  http://localhost:3000/send-message</code></pre>
+  https://gate.ireng.uk/send-message</code></pre>
                                 </div>
                             </div>
 
@@ -179,7 +179,7 @@
   -F "to=6281234567890" \
   -F "caption=Dokumen terlampir" \
   -F "document=@/path/file.pdf" \
-  http://localhost:3000/send-document</code></pre>
+  https://gate.ireng.uk/send-document</code></pre>
                                 </div>
                             </div>
 
@@ -200,7 +200,7 @@
       {"name":"quick_reply","buttonParamsJson":"{\"display_text\":\"Nanti\",\"id\":\"btn_later\"}"}
     ]
   }' \
-  http://localhost:3000/send-interactive</code></pre>
+  https://gate.ireng.uk/send-interactive</code></pre>
                                 </div>
                             </div>
 
@@ -221,7 +221,7 @@
       "buttonParamsJson":"{\"title\":\"Pilih Menu\",\"sections\":[{\"title\":\"Layanan\",\"rows\":[{\"header\":\"Cek Pesanan\",\"title\":\"Cek Pesanan\",\"description\":\"Lihat status pesanan\",\"id\":\"help_order\"},{\"header\":\"Info Produk\",\"title\":\"Info Produk\",\"description\":\"Tanya tentang produk\",\"id\":\"help_product\"}]}]}"
     }]
   }' \
-  http://localhost:3000/send-interactive</code></pre>
+  https://gate.ireng.uk/send-interactive</code></pre>
                                 </div>
                             </div>
                         </div>

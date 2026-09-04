@@ -14,6 +14,14 @@ export const config = {
     mongodb: {
         uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/whatsapp-webhook',
     },
+    // Store backend for zapo-js session state (credentials + Signal state).
+    // Defaults to the app's MongoDB URI and its database name.
+    zapoStore: {
+        uri: process.env.ZAPO_STORE_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/whatsapp-webhook',
+        database: process.env.ZAPO_STORE_DB || extractDatabaseName(
+            process.env.ZAPO_STORE_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/whatsapp-webhook'
+        ),
+    },
     session: {
         secret: process.env.SESSION_SECRET || 'default-secret',
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
@@ -46,6 +54,20 @@ export const config = {
         optimizedJSON: runtime.isBun
     }
 };
+
+/**
+ * Extract the database name from a MongoDB connection string (the path segment).
+ * @private
+ */
+function extractDatabaseName(uri) {
+    try {
+        const parsed = new URL(uri);
+        const name = parsed.pathname?.replace(/^\//, '').split('/')[0] || '';
+        return name || 'whatsapp-webhook';
+    } catch {
+        return 'whatsapp-webhook';
+    }
+}
 
 // Validate required environment variables
 export function validateConfig() {

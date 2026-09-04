@@ -21,6 +21,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
+  },
+  // Set when this user's WhatsApp device is paired (zapo sessionId = _id).
+  // Used to preload active sessions on startup. Cleared on logout.
+  waSessionId: {
+    type: String,
+    default: null
   }
 }, {
   timestamps: true

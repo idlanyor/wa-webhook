@@ -126,6 +126,10 @@ class Application {
         this.app.use('/send-message', sendMessageLimiter);
         this.app.use('/send-bulk', sendMessageLimiter);
         this.app.use('/send-document', sendMessageLimiter);
+        this.app.use('/send-image', sendMessageLimiter);
+        this.app.use('/send-video', sendMessageLimiter);
+        this.app.use('/send-audio', sendMessageLimiter);
+        this.app.use('/send-sticker', sendMessageLimiter);
         this.app.use('/send-interactive', sendMessageLimiter);
         this.app.use(generalLimiter);
 
@@ -347,6 +351,23 @@ class Application {
         // Stop scheduler
         if (this.schedulerService) {
             this.schedulerService.stop();
+        }
+
+        // Disconnect all WhatsApp sessions (flushes credentials)
+        if (this.whatsappService) {
+            for (const [userId, session] of this.whatsappService.sessions) {
+                if (session.client) {
+                    try {
+                        await session.client.disconnect();
+                        info(`WhatsApp session disconnected for user: ${userId}`);
+                    } catch (e) {
+                        _error(`Error disconnecting WhatsApp session for user: ${userId}`, e);
+                    }
+                }
+                if (session.keepAliveTimer) {
+                    clearInterval(session.keepAliveTimer);
+                }
+            }
         }
         
         // Close server

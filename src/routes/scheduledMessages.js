@@ -54,13 +54,25 @@ router.post('/create', isAuthenticated, async (req, res) => {
             });
         }
 
+        let parsedInteractiveData = null;
+        if (interactiveData) {
+            try {
+                parsedInteractiveData = JSON.parse(interactiveData);
+            } catch (parseError) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid interactiveData JSON'
+                });
+            }
+        }
+
         const schedulerService = req.app.get('schedulerService');
         const scheduled = await schedulerService.createScheduledMessage(req.user.id, {
             to,
             message,
             scheduledAt,
             messageType: messageType || 'text',
-            interactiveData: interactiveData ? JSON.parse(interactiveData) : null
+            interactiveData: parsedInteractiveData
         });
 
         res.json({

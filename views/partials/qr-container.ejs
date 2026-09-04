@@ -101,7 +101,7 @@
                     <div class="info-box info-box-sm bg-light">
                         <div class="info-box-content">
                             <span class="info-box-text text-uppercase" style="font-size:0.65rem;font-weight:700;">Metode Sinkronisasi</span>
-                            <span class="info-box-number" style="font-size:0.8rem;">Baileys Multidevice</span>
+                            <span class="info-box-number" style="font-size:0.8rem;">zapo (Multi-Device)</span>
                         </div>
                     </div>
                 </div>
@@ -153,6 +153,13 @@
             fullPhone = '62' + fullPhone.substring(1);
         }
 
+        // Lock the button: each request issues a NEW code that invalidates the
+        // previous one. Re-clicking is the main reason typed codes get rejected.
+        const btn = document.querySelector('button[onclick="requestPairingCode()"]');
+        btn.disabled = true;
+        const originalLabel = btn.innerHTML;
+        btn.innerHTML = '<i class="ri-loader-4-line ri-spin mr-1"></i> Meminta kode...';
+
         try {
             const response = await fetch('/pairing-code', {
                 method: 'POST',
@@ -164,11 +171,19 @@
             if (data.success) {
                 document.getElementById('pairingCodeResult').style.display = 'block';
                 document.getElementById('pairingCodeDisplay').textContent = data.pairingCode.match(/.{1,4}/g).join('-');
+                btn.innerHTML = '<i class="ri-time-line mr-1"></i> Kode aktif 60 detik';
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalLabel;
+                }, 60000);
+                return;
             } else {
                 alert('Gagal: ' + data.message);
             }
         } catch (error) {
             alert('Terjadi kesalahan');
         }
+        btn.disabled = false;
+        btn.innerHTML = originalLabel;
     }
 </script>

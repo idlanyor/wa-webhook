@@ -155,8 +155,10 @@ Upload file juga didukung via `multipart/form-data` dengan field `document` atau
 │   └── utils/          # Helper & Logger
 ├── views/              # Template EJS (Frontend)
 ├── public/             # File statis (CSS/JS)
-└── auth_info_baileys/  # Data sesi WhatsApp (Jangan di-commit)
+└── data/               # Data lokal (DB memory server, dsb.)
 ```
+
+> **Mesin WhatsApp**: Menggunakan **zapo-js** (`zapo.to`) — pengganti Baileys. Sesi WhatsApp (credential + Signal state) disimpan di MongoDB melalui `@zapo-js/store-mongo`, bukan di folder `auth_info_baileys/`. Folder lama hanya berlaku untuk sesi yang belum dimigrasi.
 
 ---
 

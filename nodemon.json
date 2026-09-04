@@ -1,9 +1,10 @@
 {
   "ignore": [
-    "auth_info_baileys/*",
     "node_modules/*",
     "public/*",
     "logs/*",
+    "data/*",
+    "auth_info_baileys/*",
     "*.test.js",
     "tests/*"
   ],

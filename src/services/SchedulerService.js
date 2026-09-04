@@ -115,7 +115,7 @@ class SchedulerService {
             // Update status to sent
             scheduled.status = 'sent';
             scheduled.sentAt = new Date();
-            scheduled.messageId = result.key?.id || null;
+            scheduled.messageId = result?.id || null;
             await scheduled.save();
 
             info(`Scheduled message ${scheduled._id} sent successfully`);
