@@ -398,4 +398,5 @@ if (!process.env.JEST_WORKER_ID) {
 export const app = appInstance.app;
 export const server = appInstance.server;
 export const application = appInstance;
-export default appInstance;
+// No default export: Bun treats a default-exported object with an `app`
+// property as a Bun.serve() config and tries to start its own server.
