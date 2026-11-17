@@ -41,7 +41,7 @@
 
 Sebelum memulai, pastikan Anda telah menginstal:
 
-- [Node.js](https://nodejs.org/) (Versi 16.x atau lebih tinggi)
+- [Node.js](https://nodejs.org/) (Versi 22 atau lebih tinggi — dibutuhkan untuk WebSocket bawaan yang dipakai zapo-js) atau [Bun](https://bun.sh/)
 - [MongoDB](https://www.mongodb.com/try/download/community) (Lokal atau MongoDB Atlas)
 - NPM atau [Bun](https://bun.sh/) (Optional untuk performa lebih cepat)
 

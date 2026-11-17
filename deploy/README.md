@@ -24,6 +24,8 @@ The provided systemd unit is at:
 
 - `deploy/systemd/wa-webhook.service`
 
+Requires Node.js 22+ (or Bun) on the host — check with `node -v`. The unit runs `/usr/bin/node`; point `ExecStart` at another binary if needed.
+
 Install it with:
 
 ```bash

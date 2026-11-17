@@ -70,7 +70,20 @@ function extractDatabaseName(uri) {
 }
 
 // Validate required environment variables
+export const MIN_NODE_MAJOR = 22;
+
 export function validateConfig() {
+    // Node 22+ is required: zapo-js needs the global WebSocket (unflagged since Node 22).
+    if (!runtime.isBun) {
+        const major = parseInt(process.versions.node.split('.')[0], 10);
+        if (major < MIN_NODE_MAJOR) {
+            throw new Error(
+                `Node.js ${MIN_NODE_MAJOR}+ is required (running ${process.versions.node}). ` +
+                'Upgrade Node.js or run with Bun.'
+            );
+        }
+    }
+
     const required = ['MONGODB_URI'];
     const missing = required.filter(key => !process.env[key]);
     
