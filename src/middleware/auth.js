@@ -1,22 +1,4 @@
 import { createHash } from 'crypto';
-
-// In-memory API key cache: keyHash => { userId, expiresAt }
-const apiKeyCache = new Map();
-const API_KEY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-
-function getCachedApiKey(keyHash) {
-    const cached = apiKeyCache.get(keyHash);
-    if (!cached) return undefined;
-    if (Date.now() > cached.expiresAt) {
-        apiKeyCache.delete(keyHash);
-        return undefined;
-    }
-    return cached.userId;
-}
-
-function setCachedApiKey(keyHash, userId) {
-    apiKeyCache.set(keyHash, { userId, expiresAt: Date.now() + API_KEY_CACHE_TTL_MS });
-}
 import jwt from 'jsonwebtoken';
 import { config } from '../config/index.js';
 import UserService from '../services/UserService.js';
@@ -108,14 +90,9 @@ async function verifyApiKey(key) {
     try {
         const keyHash = createHash('sha256').update(key).digest('hex');
 
-        // Check cache first
-        const cached = getCachedApiKey(keyHash);
-        if (cached !== undefined) return cached;
-
+        // Indexed lookup on every request (no cache), so a deleted key
+        // stops working immediately.
         const userId = ApiKeyService.findUserIdByKeyHash(keyHash);
-
-        // Cache the result (even null to avoid repeated DB hits for invalid keys)
-        setCachedApiKey(keyHash, userId);
 
         return userId;
     } catch (err) {
@@ -163,7 +140,29 @@ function isAdmin(req, res, next) {
     });
 }
 
+/**
+ * Socket.IO middleware: authenticate the handshake with the same signed
+ * `auth-token` cookie as the web UI. The room is derived from the verified
+ * token — never from client-supplied data — so a socket only receives its
+ * own user's QR codes and messages.
+ * Requires `io.engine.use(cookieParser(secret))` so signed cookies are parsed.
+ */
+function authenticateSocket(socket, next) {
+    const token = socket.request.signedCookies?.['auth-token'];
+    if (!token) return next(new Error('unauthorized'));
+    try {
+        const decoded = jwt.verify(token, config.session.secret);
+        const user = UserService.findPublicById(decoded.userId);
+        if (!user) return next(new Error('unauthorized'));
+        socket.data.userId = String(user.id);
+        next();
+    } catch {
+        next(new Error('unauthorized'));
+    }
+}
+
 export {
+    authenticateSocket,
     isAuthenticated,
     isAuthenticatedOrApiKey,
     redirectIfAuthenticated,

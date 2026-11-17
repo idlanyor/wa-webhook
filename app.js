@@ -13,6 +13,7 @@ const __dirname = dirname(__filename);
 
 // Import configuration
 import { config, validateConfig } from './src/config/index.js';
+import { resolveTrustProxy } from './src/config/trustProxy.js';
 import { initializeDatabase, closeDb } from './src/config/database.js';
 
 // Runtime detection
@@ -41,6 +42,7 @@ import scheduledMessagesRoutes from './src/routes/scheduledMessages.js';
 
 // Import middleware
 import { generalLimiter, sendMessageLimiter, authLimiter } from './src/middleware/rateLimit.js';
+import { authenticateSocket } from './src/middleware/auth.js';
 
 // Import utilities
 import { info, error as _error, warn } from './src/utils/logger.js';
@@ -96,7 +98,8 @@ class Application {
         // View engine setup
         this.app.set('view engine', 'ejs');
         this.app.set('views', join(__dirname, 'views'));
-        this.app.set('trust proxy', 1);
+        // Real client IP behind Cloudflare / LAN proxy (see src/config/trustProxy.js)
+        this.app.set('trust proxy', resolveTrustProxy());
 
         // Compression middleware (gzip/deflate)
         this.app.use(compression());
@@ -153,20 +156,18 @@ class Application {
      * Setup Socket.IO
      */
     setupSocketIO() {
-        this.io = new Server(this.server, {
-            cors: {
-                origin: "*",
-                methods: ["GET", "POST"]
-            }
-        });
+        // Same-origin only (the UI connects to '/'); no cross-origin CORS.
+        this.io = new Server(this.server);
 
-        // Socket connection handling
+        // Authenticate every socket with the signed auth cookie
+        this.io.engine.use(cookieParser(config.session.secret));
+        this.io.use(authenticateSocket);
+
+        // Socket connection handling: room = verified user id
         this.io.on('connection', (socket) => {
-            const userId = socket.handshake.query.userId;
-            if (userId) {
-                socket.join(userId);
-                info(`Socket connected for user: ${userId}`);
-            }
+            const { userId } = socket.data;
+            socket.join(userId);
+            info(`Socket connected for user: ${userId}`);
 
             socket.on('disconnect', () => {
                 info(`Socket disconnected for user: ${userId}`);

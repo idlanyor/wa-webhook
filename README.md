@@ -83,6 +83,8 @@ Sebelum memulai, pastikan Anda telah menginstal:
 
    Backup cukup dengan menyalin folder `data/` saat aplikasi berhenti.
 
+   **Di belakang HTTPS / Cloudflare:** set `NODE_ENV=production` supaya cookie login hanya dikirim lewat HTTPS. Dengan setting ini login lewat HTTP biasa (mis. `http://IP:8181`) tidak bisa. IP asli pengunjung (untuk rate limit) dibaca dari `X-Forwarded-For` dengan hanya mempercayai jaringan lokal dan rentang IP Cloudflare; ubah lewat `TRUST_PROXY` bila proxy-nya lain.
+
    **Pindah dari instalasi lama (MongoDB):** jalankan sekali dengan database SQLite yang masih kosong:
    ```bash
    MONGODB_URI=mongodb://localhost:27017/whatsapp-webhook npm run db:migrate-mongo
