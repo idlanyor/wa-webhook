@@ -153,14 +153,14 @@
                                             </td>
                                             <td class="text-right">
                                                 <% if (msg.status === 'pending') { %>
-                                                <form action="/scheduled-messages/cancel/<%= msg._id %>" method="POST"
+                                                <form action="/scheduled-messages/cancel/<%= msg.id %>" method="POST"
                                                       style="display:inline;" data-confirm="Batalkan pesan terjadwal ini?">
                                                     <button type="submit" class="btn btn-sm btn-warning mr-1">
                                                         <i class="ri-forbid-line"></i>
                                                     </button>
                                                 </form>
                                                 <% } %>
-                                                <form action="/scheduled-messages/delete/<%= msg._id %>" method="POST"
+                                                <form action="/scheduled-messages/delete/<%= msg.id %>" method="POST"
                                                       style="display:inline;" data-confirm="Hapus pesan terjadwal ini?">
                                                     <button type="submit" class="btn btn-sm btn-danger">
                                                         <i class="ri-delete-bin-line"></i>

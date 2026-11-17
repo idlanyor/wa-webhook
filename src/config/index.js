@@ -11,16 +11,10 @@ export const config = {
     runtime,
     port: process.env.PORT || 8181,
     node_env: process.env.NODE_ENV || 'development',
-    mongodb: {
-        uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/whatsapp-webhook',
-    },
-    // Store backend for zapo-js session state (credentials + Signal state).
-    // Defaults to the app's MongoDB URI and its database name.
-    zapoStore: {
-        uri: process.env.ZAPO_STORE_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/whatsapp-webhook',
-        database: process.env.ZAPO_STORE_DB || extractDatabaseName(
-            process.env.ZAPO_STORE_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/whatsapp-webhook'
-        ),
+    // SQLite database files
+    database: {
+        path: process.env.SQLITE_PATH || './data/wa-webhook.db',
+        zapoSqlitePath: process.env.ZAPO_SQLITE_PATH || './data/wa-session.db',
     },
     session: {
         secret: process.env.SESSION_SECRET || 'default-secret',
@@ -55,31 +49,18 @@ export const config = {
     }
 };
 
-/**
- * Extract the database name from a MongoDB connection string (the path segment).
- * @private
- */
-function extractDatabaseName(uri) {
-    try {
-        const parsed = new URL(uri);
-        const name = parsed.pathname?.replace(/^\//, '').split('/')[0] || '';
-        return name || 'whatsapp-webhook';
-    } catch {
-        return 'whatsapp-webhook';
-    }
-}
-
 // Validate required environment variables
+export const MIN_NODE_MAJOR = 22;
+
 export function validateConfig() {
-    const required = ['MONGODB_URI'];
-    const missing = required.filter(key => !process.env[key]);
-    
-    if (missing.length > 0) {
-        // Fallback for local development if not provided
-        if (config.node_env === 'development') {
-            console.warn(`⚠️ MONGODB_URI not found in .env, using default: ${config.mongodb.uri}`);
-        } else {
-            throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    // Node 22+ is required: zapo-js needs the global WebSocket (unflagged since Node 22).
+    if (!runtime.isBun) {
+        const major = parseInt(process.versions.node.split('.')[0], 10);
+        if (major < MIN_NODE_MAJOR) {
+            throw new Error(
+                `Node.js ${MIN_NODE_MAJOR}+ is required (running ${process.versions.node}). ` +
+                'Upgrade Node.js or run with Bun.'
+            );
         }
     }
 

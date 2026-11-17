@@ -24,11 +24,13 @@ The provided systemd unit is at:
 
 - `deploy/systemd/wa-webhook.service`
 
+Requires Node.js 22+ (or Bun) on the host — check with `node -v`. The unit runs `/usr/bin/node`; point `ExecStart` at another binary if needed.
+
 Install it with:
 
 ```bash
 cp .env.example .env
-# edit .env and set at least MONGODB_URI and SESSION_SECRET
+# edit .env and set at least SESSION_SECRET (data lives in SQLite under ./data)
 sudo cp deploy/systemd/wa-webhook.service /etc/systemd/system/wa-webhook.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now wa-webhook

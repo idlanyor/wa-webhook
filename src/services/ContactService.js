@@ -3,7 +3,10 @@ const { parse } = vcf;
 import csv from 'csv-parser';
 import { Readable } from 'stream';
 import { config } from '../config/index.js';
-import Contact from '../models/Contact.js';
+import { and, eq, asc, count } from 'drizzle-orm';
+import { db, schema } from '../db/index.js';
+
+const { contacts: contactsTable } = schema;
 
 class ContactService {
     /**
@@ -12,19 +15,22 @@ class ContactService {
     static async getContacts(userId, page = 1) {
         try {
             const pageSize = config.pagination.defaultPageSize;
-            const skip = (page - 1) * pageSize;
+            const offset = (page - 1) * pageSize;
+            const owner = eq(contactsTable.userId, String(userId));
 
-            const total = await Contact.countDocuments({ userId });
-            const contacts = await Contact.find({ userId })
-                .sort({ name: 1 })
-                .skip(skip)
-                .limit(pageSize);
+            const total = db.select({ n: count() }).from(contactsTable).where(owner).get().n;
+            const contacts = db.select().from(contactsTable)
+                .where(owner)
+                .orderBy(asc(contactsTable.name))
+                .limit(pageSize)
+                .offset(offset)
+                .all();
 
             return {
-                contacts: contacts || [],
+                contacts,
                 totalPages: Math.ceil(total / pageSize),
                 currentPage: page,
-                total: total
+                total
             };
         } catch (error) {
             console.error('Error fetching contacts:', error);
@@ -37,13 +43,10 @@ class ContactService {
      */
     static async addContact(userId, name, phone, tags = '') {
         try {
-            const contact = new Contact({
-                userId,
-                name,
-                phone,
-                tags: tags || ''
-            });
-            await contact.save();
+            const [contact] = db.insert(contactsTable)
+                .values({ userId: String(userId), name, phone, tags: tags || '' })
+                .returning()
+                .all();
             return contact;
         } catch (error) {
             console.error('Error adding contact:', error);
@@ -56,7 +59,9 @@ class ContactService {
      */
     static async deleteContact(userId, contactId) {
         try {
-            await Contact.findOneAndDelete({ _id: contactId, userId });
+            db.delete(contactsTable)
+                .where(and(eq(contactsTable.id, String(contactId)), eq(contactsTable.userId, String(userId))))
+                .run();
             return true;
         } catch (error) {
             console.error('Error deleting contact:', error);
@@ -66,10 +71,10 @@ class ContactService {
 
     static async updateTags(userId, contactId, tags) {
         try {
-            await Contact.findOneAndUpdate(
-                { _id: contactId, userId },
-                { tags: tags || '' }
-            );
+            db.update(contactsTable)
+                .set({ tags: tags || '' })
+                .where(and(eq(contactsTable.id, String(contactId)), eq(contactsTable.userId, String(userId))))
+                .run();
             return true;
         } catch (error) {
             console.error('Error updating tags:', error);
@@ -163,16 +168,18 @@ class ContactService {
      */
     static async insertUniqueContacts(userId, contacts) {
         try {
-            // Get existing contacts' phones
-            const existingContacts = await Contact.find({ userId }, 'phone');
-            const existingPhones = new Set(existingContacts.map(c => c.phone));
-            
+            const owner = String(userId);
+            const existingPhones = new Set(
+                db.select({ phone: contactsTable.phone }).from(contactsTable)
+                    .where(eq(contactsTable.userId, owner)).all().map(c => c.phone)
+            );
+
             const uniqueNewContacts = [];
             const phonesInThisBatch = new Set();
 
             for (const contact of contacts) {
                 if (!existingPhones.has(contact.phone) && !phonesInThisBatch.has(contact.phone)) {
-                    uniqueNewContacts.push(contact);
+                    uniqueNewContacts.push({ userId: owner, name: contact.name, phone: contact.phone, tags: contact.tags || '' });
                     phonesInThisBatch.add(contact.phone);
                 }
             }
@@ -180,7 +187,12 @@ class ContactService {
             const duplicateCount = contacts.length - uniqueNewContacts.length;
 
             if (uniqueNewContacts.length > 0) {
-                await Contact.insertMany(uniqueNewContacts);
+                // Chunk to stay well under SQLite's bound-parameter limit
+                db.transaction((tx) => {
+                    for (let i = 0; i < uniqueNewContacts.length; i += 500) {
+                        tx.insert(contactsTable).values(uniqueNewContacts.slice(i, i + 500)).run();
+                    }
+                });
             }
 
             return {
@@ -199,8 +211,10 @@ class ContactService {
      */
     static async getAllContacts(userId) {
         try {
-            const contacts = await Contact.find({ userId }).sort({ name: 1 });
-            return contacts;
+            return db.select().from(contactsTable)
+                .where(eq(contactsTable.userId, String(userId)))
+                .orderBy(asc(contactsTable.name))
+                .all();
         } catch (error) {
             console.error('Error fetching all contacts:', error);
             throw error;

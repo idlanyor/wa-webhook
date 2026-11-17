@@ -1,46 +1,41 @@
 import { WaClient, createStore, parsePhoneJid } from 'zapo-js';
-import { createMongoStore } from '@zapo-js/store-mongo';
+import { createSqliteStore } from '@zapo-js/store-sqlite';
 import { createMediaProcessor } from '@zapo-js/media-utils';
 import { Readable } from 'stream';
 import { config } from '../config/index.js';
-import Setting from '../models/Setting.js';
-import AutoReply from '../models/AutoReply.js';
-import Message from '../models/Message.js';
-import User from '../models/User.js';
 import MessageService from './MessageService.js';
+import SettingsService from './SettingsService.js';
+import UserService from './UserService.js';
 import { info, error as logError, warn } from '../utils/logger.js';
 
 /**
- * Shared zapo store. Backed by MongoDB — one `store` instance is reused by
- * every session; each account is keyed by `sessionId` = userId.
+ * Shared zapo store, backed by SQLite (`@zapo-js/store-sqlite`). One `store`
+ * instance is reused by every session; each account is keyed by
+ * `sessionId` = userId.
  *
  * `sessionId` is the durable key: same id across restarts resumes the same
- * paired device. The app persists its own message archive in Mongo (the
- * Message model), so the zapo mailbox domains (`messages`/`threads`/`contacts`)
- * are disabled to save bandwidth.
+ * paired device. The app persists its own message archive (messages table),
+ * so the zapo mailbox domains (`messages`/`threads`/`contacts`) are disabled.
  */
 let _store = null;
 function getStore() {
     if (!_store) {
         _store = createStore({
             backends: {
-                mongo: createMongoStore({
-                    db: {
-                        uri: config.zapoStore.uri,
-                        database: config.zapoStore.database
-                    },
-                    collectionPrefix: 'wa_'
+                sqlite: createSqliteStore({
+                    path: config.database.zapoSqlitePath,
+                    pragmas: { journal_mode: 'WAL', synchronous: 'NORMAL' }
                 })
             },
             providers: {
-                auth: 'mongo',
-                signal: 'mongo',
-                preKey: 'mongo',
-                session: 'mongo',
-                identity: 'mongo',
-                senderKey: 'mongo',
-                appState: 'mongo',
-                privacyToken: 'mongo',
+                auth: 'sqlite',
+                signal: 'sqlite',
+                preKey: 'sqlite',
+                session: 'sqlite',
+                identity: 'sqlite',
+                senderKey: 'sqlite',
+                appState: 'sqlite',
+                privacyToken: 'sqlite',
                 messages: 'none',
                 threads: 'none',
                 contacts: 'none'
@@ -70,15 +65,10 @@ class WhatsAppService {
     async loadSettings() {
         try {
             // Load app settings
-            const settingsData = await Setting.find({});
-
-            this.appSettings = settingsData.reduce((acc, row) => {
-                acc[row.key] = row.value;
-                return acc;
-            }, {});
+            this.appSettings = await SettingsService.getSettings();
 
             // Load auto-replies into a Map keyed by lowercase keyword for O(1) lookup
-            const repliesData = await AutoReply.find({ enabled: true });
+            const repliesData = await SettingsService.getEnabledAutoReplies();
             this.autoReplies = new Map(
                 repliesData.map(r => [String(r.keyword || '').toLowerCase().trim(), r])
             );
@@ -243,8 +233,11 @@ class WhatsAppService {
             if (session.client !== client) return;
             info(`WhatsApp paired for user: ${userId} (${credentials.meJid})`);
             session.lastPairing = null;
-            User.updateOne({ _id: userId }, { $set: { waSessionId: userId } })
-                .catch(err => logError('Failed to mark user as WhatsApp-linked:', err));
+            try {
+                UserService.setWaSession(userId, userId);
+            } catch (err) {
+                logError('Failed to mark user as WhatsApp-linked:', err);
+            }
         });
 
         // Passkey-gated account (informational)
@@ -296,8 +289,11 @@ class WhatsAppService {
                 if (event.isLogout) {
                     info(`Logout detected for user ${userId}; clearing session.`);
                     this.sessions.delete(userId);
-                    User.updateOne({ _id: userId }, { $set: { waSessionId: null } })
-                        .catch(err => logError('Failed to clear WhatsApp-link marker:', err));
+                    try {
+                        UserService.setWaSession(userId, null);
+                    } catch (err) {
+                        logError('Failed to clear WhatsApp-link marker:', err);
+                    }
                 } else if (!session.user && !client.getCredentials()?.meJid) {
                     // Never paired — don't auto-reconnect; user must initiate from dashboard
                     info(`Unpaired session closed for user ${userId}; not reconnecting.`);
@@ -351,12 +347,9 @@ class WhatsAppService {
             quotedSender = contextInfo.participant;
 
             // Find the original message ID in database
-            const repliedToMsg = await Message.findOne({
-                stanzaId: contextInfo.stanzaId,
-                userId: userId
-            });
+            const repliedToMsg = MessageService.findByStanzaId(userId, contextInfo.stanzaId);
 
-            if (repliedToMsg) replyToId = repliedToMsg._id;
+            if (repliedToMsg) replyToId = repliedToMsg.id;
         }
 
         // Record incoming message
@@ -379,14 +372,14 @@ class WhatsAppService {
 
         if (recordedMessage) {
             this.io.to(userId).emit('new_message', {
-                ...recordedMessage.toObject(),
-                id: recordedMessage._id,
+                ...recordedMessage,
+                id: recordedMessage.id,
                 chat_jid: recordedMessage.chatJid
             });
             if (this.webhookService && this.appSettings.webhook_toggle_message_in !== 'false') {
                 this.webhookService.send('message.in', {
                     userId,
-                    id: recordedMessage._id,
+                    id: recordedMessage.id,
                     chatJid: recordedMessage.chatJid,
                     sender: recordedMessage.sender,
                     text: recordedMessage.message,
@@ -442,8 +435,8 @@ class WhatsAppService {
 
                     if (recordedReply) {
                         this.io.to(userId).emit('new_message', {
-                            ...recordedReply.toObject(),
-                            id: recordedReply._id,
+                            ...recordedReply,
+                            id: recordedReply.id,
                             chat_jid: recordedReply.chatJid
                         });
                     }
@@ -471,7 +464,7 @@ class WhatsAppService {
     async _getQuotedInfo(userId, replyToId) {
         if (!replyToId) return { quote: undefined, quotedDbRecord: null };
 
-        const data = await Message.findOne({ _id: replyToId, userId });
+        const data = MessageService.findById(userId, replyToId);
         if (!data) return { quote: undefined, quotedDbRecord: null };
 
         return {
@@ -544,14 +537,14 @@ class WhatsAppService {
 
         if (recordedOutgoing) {
             this.io.to(userId).emit('new_message', {
-                ...recordedOutgoing.toObject(),
-                id: recordedOutgoing._id,
+                ...recordedOutgoing,
+                id: recordedOutgoing.id,
                 chat_jid: recordedOutgoing.chatJid
             });
             if (this.webhookService && this.appSettings.webhook_toggle_message_out !== 'false') {
                 this.webhookService.send('message.out', {
                     userId,
-                    id: recordedOutgoing._id,
+                    id: recordedOutgoing.id,
                     chatJid: recordedOutgoing.chatJid,
                     sender: recordedOutgoing.sender,
                     text: recordedOutgoing.message,
@@ -704,14 +697,14 @@ class WhatsAppService {
 
         if (recordedOutgoing) {
             this.io.to(userId).emit('new_message', {
-                ...recordedOutgoing.toObject(),
-                id: recordedOutgoing._id,
+                ...recordedOutgoing,
+                id: recordedOutgoing.id,
                 chat_jid: recordedOutgoing.chatJid
             });
             if (this.webhookService && this.appSettings.webhook_toggle_message_out !== 'false') {
                 this.webhookService.send('message.out', {
                     userId,
-                    id: recordedOutgoing._id,
+                    id: recordedOutgoing.id,
                     chatJid: recordedOutgoing.chatJid,
                     sender: recordedOutgoing.sender,
                     text: recordedOutgoing.message,
@@ -791,14 +784,14 @@ class WhatsAppService {
 
         if (recordedOutgoing) {
             this.io.to(userId).emit('new_message', {
-                ...recordedOutgoing.toObject(),
-                id: recordedOutgoing._id,
+                ...recordedOutgoing,
+                id: recordedOutgoing.id,
                 chat_jid: recordedOutgoing.chatJid
             });
             if (this.webhookService && this.appSettings.webhook_toggle_message_out !== 'false') {
                 this.webhookService.send('message.out', {
                     userId,
-                    id: recordedOutgoing._id,
+                    id: recordedOutgoing.id,
                     chatJid: recordedOutgoing.chatJid,
                     sender: recordedOutgoing.sender,
                     text: recordedOutgoing.message,
@@ -878,14 +871,14 @@ class WhatsAppService {
 
         if (recordedOutgoing) {
             this.io.to(userId).emit('new_message', {
-                ...recordedOutgoing.toObject(),
-                id: recordedOutgoing._id,
+                ...recordedOutgoing,
+                id: recordedOutgoing.id,
                 chat_jid: recordedOutgoing.chatJid
             });
             if (this.webhookService && this.appSettings.webhook_toggle_message_out !== 'false') {
                 this.webhookService.send('message.out', {
                     userId,
-                    id: recordedOutgoing._id,
+                    id: recordedOutgoing.id,
                     chatJid: recordedOutgoing.chatJid,
                     sender: recordedOutgoing.sender,
                     text: recordedOutgoing.message,
@@ -964,14 +957,14 @@ class WhatsAppService {
 
         if (recordedOutgoing) {
             this.io.to(userId).emit('new_message', {
-                ...recordedOutgoing.toObject(),
-                id: recordedOutgoing._id,
+                ...recordedOutgoing,
+                id: recordedOutgoing.id,
                 chat_jid: recordedOutgoing.chatJid
             });
             if (this.webhookService && this.appSettings.webhook_toggle_message_out !== 'false') {
                 this.webhookService.send('message.out', {
                     userId,
-                    id: recordedOutgoing._id,
+                    id: recordedOutgoing.id,
                     chatJid: recordedOutgoing.chatJid,
                     sender: recordedOutgoing.sender,
                     text: recordedOutgoing.message,
@@ -1048,14 +1041,14 @@ class WhatsAppService {
 
         if (recordedOutgoing) {
             this.io.to(userId).emit('new_message', {
-                ...recordedOutgoing.toObject(),
-                id: recordedOutgoing._id,
+                ...recordedOutgoing,
+                id: recordedOutgoing.id,
                 chat_jid: recordedOutgoing.chatJid
             });
             if (this.webhookService && this.appSettings.webhook_toggle_message_out !== 'false') {
                 this.webhookService.send('message.out', {
                     userId,
-                    id: recordedOutgoing._id,
+                    id: recordedOutgoing.id,
                     chatJid: recordedOutgoing.chatJid,
                     sender: recordedOutgoing.sender,
                     text: recordedOutgoing.message,
@@ -1091,7 +1084,7 @@ class WhatsAppService {
 
         // Clear the preload marker so the session is not resumed on next boot
         try {
-            await User.updateOne({ _id: userId }, { $set: { waSessionId: null } });
+            UserService.setWaSession(userId, null);
         } catch (error) {
             logError('Error clearing waSessionId:', error);
         }
@@ -1121,11 +1114,7 @@ class WhatsAppService {
      */
     async preloadSessions() {
         try {
-            const linkedUsers = await User.find({ waSessionId: { $exists: true, $ne: null } })
-                .select('waSessionId')
-                .lean();
-
-            const userDirs = linkedUsers.map(u => String(u.waSessionId)).filter(Boolean);
+            const userDirs = UserService.listLinkedSessionIds().map(String).filter(Boolean);
             if (userDirs.length === 0) return;
 
             info(`Preloading ${userDirs.length} WhatsApp session(s)...`);
@@ -1421,8 +1410,8 @@ class WhatsAppService {
         });
         if (recorded) {
             this.io.to(String(userId)).emit('new_message', {
-                ...recorded.toObject(),
-                id: recorded._id,
+                ...recorded,
+                id: recorded.id,
                 chat_jid: recorded.chatJid
             });
         }

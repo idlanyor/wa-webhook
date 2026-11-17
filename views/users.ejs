@@ -151,11 +151,11 @@
                                                     <%= new Date(u.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) %>
                                                 </td>
                                                 <td class="text-right">
-                                                    <button onclick="editUser('<%= u._id %>', '<%= u.name %>', '<%= u.email %>', '<%= u.role %>')"
+                                                    <button onclick="editUser('<%= u.id %>', '<%= u.name %>', '<%= u.email %>', '<%= u.role %>')"
                                                             class="btn btn-sm btn-info mr-1">
                                                         <i class="ri-edit-line"></i>
                                                     </button>
-                                                    <form action="/users/delete/<%= u._id %>" method="POST"
+                                                    <form action="/users/delete/<%= u.id %>" method="POST"
                                                           data-confirm="Are you sure you want to delete this user?"
                                                           style="display:inline;">
                                                         <button type="submit" class="btn btn-sm btn-danger">

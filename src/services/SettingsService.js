@@ -1,53 +1,37 @@
-import Setting from '../models/Setting.js';
-import AutoReply from '../models/AutoReply.js';
+import { eq, desc, inArray, not } from 'drizzle-orm';
+import { db, schema } from '../db/index.js';
+
+const { settings, autoReplies } = schema;
 
 class SettingsService {
     static async get(key) {
-        try {
-            const setting = await Setting.findOne({ key });
-            return setting ? setting.value : null;
-        } catch (error) {
-            console.error('Error fetching setting:', error);
-            throw error;
-        }
+        const row = db.select({ value: settings.value }).from(settings).where(eq(settings.key, key)).get();
+        return row ? row.value : null;
     }
 
     static async getMany(keys) {
-        try {
-            const settings = await Setting.find({ key: { $in: keys } });
-            const map = new Map();
-            settings.forEach(r => map.set(r.key, r.value));
-            return map;
-        } catch (error) {
-            console.error('Error fetching settings:', error);
-            throw error;
-        }
+        const map = new Map();
+        if (!keys.length) return map;
+        const rows = db.select().from(settings).where(inArray(settings.key, keys)).all();
+        rows.forEach(r => map.set(r.key, r.value));
+        return map;
     }
 
     static async set(key, value, description = null) {
-        try {
-            await Setting.findOneAndUpdate(
-                { key },
-                { value, description },
-                { upsert: true, new: true }
-            );
-        } catch (error) {
-            console.error('Error setting setting:', error);
-            throw error;
-        }
+        db.insert(settings)
+            .values({ key, value, description })
+            .onConflictDoUpdate({
+                target: settings.key,
+                set: { value, description, updatedAt: new Date() }
+            })
+            .run();
     }
 
     // Fetch all settings as an object
     static async getSettings() {
-        try {
-            const settings = await Setting.find({});
-            const obj = {};
-            settings.forEach(r => { obj[r.key] = r.value; });
-            return obj;
-        } catch (error) {
-            console.error('Error fetching all settings:', error);
-            throw error;
-        }
+        const obj = {};
+        db.select().from(settings).all().forEach(r => { obj[r.key] = r.value; });
+        return obj;
     }
 
     static async updateSetting(key, value, description = null) {
@@ -56,52 +40,33 @@ class SettingsService {
 
     // Auto-replies (global table)
     static async getAutoReplies() {
-        try {
-            const replies = await AutoReply.find({}).sort({ createdAt: -1 });
-            return replies.map(r => ({
-                id: r._id,
-                keyword: r.keyword,
-                reply: r.reply,
-                enabled: r.enabled,
-                created_at: r.createdAt,
-                updated_at: r.updatedAt
-            }));
-        } catch (error) {
-            console.error('Error fetching auto replies:', error);
-            throw error;
-        }
+        return db.select().from(autoReplies).orderBy(desc(autoReplies.createdAt)).all().map(r => ({
+            id: r.id,
+            keyword: r.keyword,
+            reply: r.reply,
+            enabled: r.enabled,
+            created_at: r.createdAt,
+            updated_at: r.updatedAt
+        }));
+    }
+
+    static async getEnabledAutoReplies() {
+        return db.select().from(autoReplies).where(eq(autoReplies.enabled, true)).all();
     }
 
     static async addAutoReply(keyword, reply) {
-        try {
-            const autoReply = new AutoReply({ keyword, reply, enabled: true });
-            await autoReply.save();
-        } catch (error) {
-            console.error('Error adding auto reply:', error);
-            throw error;
-        }
+        db.insert(autoReplies).values({ keyword, reply, enabled: true }).run();
     }
 
     static async deleteAutoReply(id) {
-        try {
-            await AutoReply.findByIdAndDelete(id);
-        } catch (error) {
-            console.error('Error deleting auto reply:', error);
-            throw error;
-        }
+        db.delete(autoReplies).where(eq(autoReplies.id, String(id))).run();
     }
 
     static async toggleAutoReply(id) {
-        try {
-            const autoReply = await AutoReply.findById(id);
-            if (autoReply) {
-                autoReply.enabled = !autoReply.enabled;
-                await autoReply.save();
-            }
-        } catch (error) {
-            console.error('Error toggling auto reply:', error);
-            throw error;
-        }
+        db.update(autoReplies)
+            .set({ enabled: not(autoReplies.enabled) })
+            .where(eq(autoReplies.id, String(id)))
+            .run();
     }
 }
 

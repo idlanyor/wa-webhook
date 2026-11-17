@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/index.js';
-import User from '../models/User.js';
+import UserService from '../services/UserService.js';
 import { redirectIfAuthenticated } from '../middleware/auth.js';
 
 const router = Router();
@@ -53,7 +53,7 @@ router.post('/register', redirectIfAuthenticated, async (req, res) => {
     
     try {
         // Check if user already exists
-        const existingUser = await User.findOne({ email });
+        const existingUser = UserService.findByEmail(email);
         if (existingUser) {
             return res.render('register', { 
                 error: 'Email already registered', 
@@ -62,21 +62,15 @@ router.post('/register', redirectIfAuthenticated, async (req, res) => {
         }
 
         // Check if this is the first user
-        const userCount = await User.countDocuments();
+        const userCount = UserService.count();
         const role = userCount === 0 ? 'admin' : 'user';
 
         // Create new user
-        const user = new User({
-            name,
-            email,
-            password,
-            role
-        });
-        await user.save();
+        const user = await UserService.create({ name, email, password, role });
 
         // Generate token
         const token = jwt.sign(
-            { userId: user._id },
+            { userId: user.id },
             config.session.secret,
             { expiresIn: '24h' }
         );
@@ -103,19 +97,19 @@ router.post('/login', redirectIfAuthenticated, async (req, res) => {
     }
 
     try {
-        const user = await User.findOne({ email });
+        const user = UserService.findByEmail(email);
         if (!user) {
             return res.render('login', { error: 'Invalid email or password' });
         }
 
-        const isMatch = await user.comparePassword(password);
+        const isMatch = await UserService.comparePassword(user, password);
         if (!isMatch) {
             return res.render('login', { error: 'Invalid email or password' });
         }
 
         // Generate token
         const token = jwt.sign(
-            { userId: user._id },
+            { userId: user.id },
             config.session.secret,
             { expiresIn: '24h' }
         );

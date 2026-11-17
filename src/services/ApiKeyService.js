@@ -1,61 +1,60 @@
 import { randomBytes, createHash } from 'crypto';
-import ApiKey from '../models/ApiKey.js';
+import { and, eq, desc } from 'drizzle-orm';
+import { db, schema } from '../db/index.js';
+
+const { apiKeys } = schema;
 
 class ApiKeyService {
     /**
      * Get API keys for a user
      */
     static async getUserApiKeys(userId) {
-        try {
-            const keys = await ApiKey.find({ userId })
-                .sort({ createdAt: -1 });
-
-            return keys.map(k => ({
-                id: k._id,
-                created_at: k.createdAt
-            }));
-        } catch (error) {
-            console.error('Error fetching API keys:', error);
-            throw error;
-        }
+        return db.select({ id: apiKeys.id, created_at: apiKeys.createdAt })
+            .from(apiKeys)
+            .where(eq(apiKeys.userId, String(userId)))
+            .orderBy(desc(apiKeys.createdAt))
+            .all();
     }
 
     /**
      * Generate a new API key for a user
      */
     static async generateApiKey(userId) {
-        try {
-            const rawKey = randomBytes(32).toString('hex');
-            const keyHash = createHash('sha256').update(rawKey).digest('hex');
-            
-            const apiKey = new ApiKey({
-                userId,
-                keyHash
-            });
-            await apiKey.save();
+        const rawKey = randomBytes(32).toString('hex');
+        const keyHash = createHash('sha256').update(rawKey).digest('hex');
 
-            return {
-                id: apiKey._id,
-                created_at: apiKey.createdAt,
-                raw_key: rawKey // Only returned once during creation
-            };
-        } catch (error) {
-            console.error('Error generating API key:', error);
-            throw error;
-        }
+        const [apiKey] = db.insert(apiKeys)
+            .values({ userId: String(userId), keyHash })
+            .returning()
+            .all();
+
+        return {
+            id: apiKey.id,
+            created_at: apiKey.createdAt,
+            raw_key: rawKey // Only returned once during creation
+        };
     }
 
     /**
      * Delete an API key
      */
     static async deleteApiKey(userId, keyId) {
-        try {
-            await ApiKey.findOneAndDelete({ _id: keyId, userId });
-            return true;
-        } catch (error) {
-            console.error('Error deleting API key:', error);
-            throw error;
-        }
+        db.delete(apiKeys)
+            .where(and(eq(apiKeys.id, String(keyId)), eq(apiKeys.userId, String(userId))))
+            .run();
+        return true;
+    }
+
+    /**
+     * Resolve the owner of an API key by its SHA-256 hash.
+     * @returns {string|null} userId
+     */
+    static findUserIdByKeyHash(keyHash) {
+        const row = db.select({ userId: apiKeys.userId })
+            .from(apiKeys)
+            .where(eq(apiKeys.keyHash, keyHash))
+            .get();
+        return row?.userId ?? null;
     }
 }
 

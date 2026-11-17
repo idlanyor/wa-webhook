@@ -19,8 +19,8 @@ function setCachedApiKey(keyHash, userId) {
 }
 import jwt from 'jsonwebtoken';
 import { config } from '../config/index.js';
-import User from '../models/User.js';
-import ApiKey from '../models/ApiKey.js';
+import UserService from '../services/UserService.js';
+import ApiKeyService from '../services/ApiKeyService.js';
 
 /**
  * Middleware to check if user is authenticated via session cookie
@@ -45,7 +45,7 @@ async function isAuthenticated(req, res, next) {
     
     try {
         const decoded = jwt.verify(token, config.session.secret);
-        const user = await User.findById(decoded.userId).select('-password');
+        const user = UserService.findPublicById(decoded.userId);
 
         if (!user) {
             res.clearCookie('auth-token');
@@ -59,7 +59,7 @@ async function isAuthenticated(req, res, next) {
         }
         
         req.user = {
-            id: user._id,
+            id: user.id,
             email: user.email,
             name: user.name,
             role: user.role
@@ -91,7 +91,7 @@ async function redirectIfAuthenticated(req, res, next) {
 
     try {
         const decoded = jwt.verify(token, config.session.secret);
-        const user = await User.findById(decoded.userId);
+        const user = UserService.findPublicById(decoded.userId);
         if (user) {
             return res.redirect('/dashboard');
         }
@@ -112,8 +112,7 @@ async function verifyApiKey(key) {
         const cached = getCachedApiKey(keyHash);
         if (cached !== undefined) return cached;
 
-        const apiKey = await ApiKey.findOne({ keyHash });
-        const userId = apiKey?.userId || null;
+        const userId = ApiKeyService.findUserIdByKeyHash(keyHash);
 
         // Cache the result (even null to avoid repeated DB hits for invalid keys)
         setCachedApiKey(keyHash, userId);

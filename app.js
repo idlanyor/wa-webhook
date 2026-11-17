@@ -13,7 +13,7 @@ const __dirname = dirname(__filename);
 
 // Import configuration
 import { config, validateConfig } from './src/config/index.js';
-import { initializeDatabase } from './src/config/database.js';
+import { initializeDatabase, closeDb } from './src/config/database.js';
 
 // Runtime detection
 const runtime = {
@@ -372,6 +372,7 @@ class Application {
         
         // Close server
         this.server.close(() => {
+            closeDb();
             info('Server shut down successfully');
             process.exit(0);
         });
@@ -398,4 +399,5 @@ if (!process.env.JEST_WORKER_ID) {
 export const app = appInstance.app;
 export const server = appInstance.server;
 export const application = appInstance;
-export default appInstance;
+// No default export: Bun treats a default-exported object with an `app`
+// property as a Bun.serve() config and tries to start its own server.
