@@ -1,8 +1,8 @@
 <div align="center">
 
 # WhatsApp Webhook API Service
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
-[![MongoDB](https://img.shields.io/badge/database-MongoDB-informational.svg)](https://www.mongodb.com/)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
+[![SQLite](https://img.shields.io/badge/database-SQLite-informational.svg)](https://www.sqlite.org/)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![WA Channel](https://img.shields.io/badge/WhatsApp-Channel-25D366?style=flat&logo=whatsapp)](https://www.whatsapp.com/channel/0029VagADOLLSmbaxFNswH1m)
 
@@ -42,7 +42,6 @@
 Sebelum memulai, pastikan Anda telah menginstal:
 
 - [Node.js](https://nodejs.org/) (Versi 22 atau lebih tinggi — dibutuhkan untuk WebSocket bawaan yang dipakai zapo-js) atau [Bun](https://bun.sh/)
-- [MongoDB](https://www.mongodb.com/try/download/community) (Lokal atau MongoDB Atlas)
 - NPM atau [Bun](https://bun.sh/) (Optional untuk performa lebih cepat)
 
 ---
@@ -70,9 +69,27 @@ Sebelum memulai, pastikan Anda telah menginstal:
    ```env
    PORT=8181
    NODE_ENV=development
-   MONGODB_URI=mongodb://localhost:27017/whatsapp-webhook
    SESSION_SECRET=masukkan-secret-key-anda-disini
+   SQLITE_PATH=./data/wa-webhook.db
+   ZAPO_SQLITE_PATH=./data/wa-session.db
    ```
+
+   **Database:** aplikasi memakai SQLite (via [Drizzle ORM](https://orm.drizzle.team/)), tidak perlu server database terpisah. File dibuat otomatis dan migrasi skema dijalankan saat start. Driver: `better-sqlite3` di Node, `bun:sqlite` di Bun.
+
+   | File | Isi |
+   | --- | --- |
+   | `SQLITE_PATH` (default `./data/wa-webhook.db`) | Data aplikasi: user, API key, pesan, auto-reply, jadwal, pengaturan |
+   | `ZAPO_SQLITE_PATH` (default `./data/wa-session.db`) | Sesi WhatsApp (credential + Signal state) |
+
+   Backup cukup dengan menyalin folder `data/` saat aplikasi berhenti.
+
+   **Pindah dari instalasi lama (MongoDB):** jalankan sekali dengan database SQLite yang masih kosong:
+   ```bash
+   MONGODB_URI=mongodb://localhost:27017/whatsapp-webhook npm run db:migrate-mongo
+   ```
+   Semua user, API key, pesan, kontak, auto-reply, jadwal, dan pengaturan disalin dengan ID yang sama (cookie login tetap berlaku). Sesi WhatsApp **tidak** bisa dipindahkan: setiap user perlu scan QR ulang.
+
+   **Mengubah skema:** edit `src/db/schema.js`, lalu `npm run db:generate` untuk membuat file migrasi baru di `drizzle/`. `npm run db:studio` membuka Drizzle Studio untuk melihat isi database.
 
 ---
 
@@ -147,18 +164,20 @@ Upload file juga didukung via `multipart/form-data` dengan field `document` atau
 ```text
 ├── app.js              # Entry point aplikasi
 ├── src/
-│   ├── config/         # Konfigurasi DB & App
+│   ├── config/         # Konfigurasi aplikasi
+│   ├── db/             # Skema & koneksi SQLite (Drizzle)
 │   ├── middleware/     # Auth & Upload middleware
-│   ├── models/         # Mongoose Schema
 │   ├── routes/         # Express Routes
 │   ├── services/       # Logika bisnis & Integrasi WA
 │   └── utils/          # Helper & Logger
 ├── views/              # Template EJS (Frontend)
 ├── public/             # File statis (CSS/JS)
-└── data/               # Data lokal (DB memory server, dsb.)
+├── drizzle/            # File migrasi SQL (hasil drizzle-kit)
+├── scripts/            # Skrip satu kali (migrasi dari MongoDB)
+└── data/               # File database SQLite
 ```
 
-> **Mesin WhatsApp**: Menggunakan **zapo-js** (`zapo.to`) — pengganti Baileys. Sesi WhatsApp (credential + Signal state) disimpan di MongoDB melalui `@zapo-js/store-mongo`, bukan di folder `auth_info_baileys/`. Folder lama hanya berlaku untuk sesi yang belum dimigrasi.
+> **Mesin WhatsApp**: Menggunakan **zapo-js** (`zapo.to`) — pengganti Baileys. Sesi WhatsApp (credential + Signal state) disimpan di SQLite melalui `@zapo-js/store-sqlite`, bukan di folder `auth_info_baileys/`. Folder lama hanya berlaku untuk sesi yang belum dimigrasi.
 
 ---
 

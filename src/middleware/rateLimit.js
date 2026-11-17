@@ -18,7 +18,7 @@ setInterval(() => {
             requestLog.set(ip, recent);
         }
     }
-}, 5 * 60 * 1000);
+}, 5 * 60 * 1000).unref(); // housekeeping only: don't keep the process alive
 
 /**
  * Create a rate limiter middleware.

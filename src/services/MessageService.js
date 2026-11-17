@@ -1,9 +1,12 @@
-import mongoose from 'mongoose';
-import Message from '../models/Message.js';
+import { and, eq, desc, lt, sql } from 'drizzle-orm';
+import { db, schema } from '../db/index.js';
+
+const { messages } = schema;
 
 class MessageService {
     /**
      * Record a message in the database
+     * @returns {object|null} the stored row, or null on failure
      */
     static async recordMessage(params) {
         const {
@@ -11,10 +14,10 @@ class MessageService {
             stanzaId, rawMessage, replyToId, quotedText, quotedSender, senderJid,
             messageType = 'text', attachment = null
         } = params;
-        
+
         try {
-            const message = new Message({
-                userId,
+            const [row] = db.insert(messages).values({
+                userId: String(userId),
                 chatJid,
                 sender,
                 senderJid,
@@ -25,54 +28,58 @@ class MessageService {
                 timestamp: new Date(timestamp),
                 stanzaId,
                 rawMessage,
-                replyToId,
+                replyToId: replyToId != null ? String(replyToId) : null,
                 quotedText,
                 quotedSender
-            });
-
-            await message.save();
-            return message;
+            }).returning().all();
+            return row;
         } catch (err) {
             console.error('Failed to record message:', err);
             return null;
         }
     }
 
+    /** Find a stored message by its id (scoped to the user). */
+    static findById(userId, id) {
+        if (!id) return null;
+        return db.select().from(messages)
+            .where(and(eq(messages.id, String(id)), eq(messages.userId, String(userId))))
+            .get() ?? null;
+    }
+
+    /** Find a stored message by its WhatsApp stanza id (scoped to the user). */
+    static findByStanzaId(userId, stanzaId) {
+        if (!stanzaId) return null;
+        return db.select().from(messages)
+            .where(and(eq(messages.stanzaId, stanzaId), eq(messages.userId, String(userId))))
+            .get() ?? null;
+    }
+
     /**
-     * Get chat list for a user
+     * Get chat list for a user: the latest message of every chat, newest first.
      */
     static async getChats(userId) {
-        try {
-            // MongoDB aggregation to get last message per chatJid
-            const chats = await Message.aggregate([
-                { $match: { userId: typeof userId === 'string' ? new mongoose.Types.ObjectId(userId) : userId } },
-                { $sort: { timestamp: -1 } },
-                {
-                    $group: {
-                        _id: '$chatJid',
-                        lastMessage: { $first: '$$ROOT' }
-                    }
-                },
-                { $replaceRoot: { newRoot: '$lastMessage' } },
-                { $sort: { timestamp: -1 } }
-            ]);
-            
-            // Map to match expected format (chat_jid instead of chatJid if views expect that)
-            // Actually, let's keep the model field names and check views later if needed.
-            // SQL used chat_jid, message, timestamp, sender
-            return chats.map(c => ({
-                id: c._id,
-                chat_jid: c.chatJid,
-                message: c.message,
-                messageType: c.messageType,
-                attachment: c.attachment,
-                timestamp: c.timestamp,
-                sender: c.sender
-            }));
-        } catch (error) {
-            console.error('Fetch chats error:', error);
-            throw error;
-        }
+        const latest = db.select({
+            id: messages.id,
+            rn: sql`row_number() over (partition by ${messages.chatJid} order by ${messages.timestamp} desc)`.as('rn')
+        }).from(messages).where(eq(messages.userId, String(userId))).as('latest');
+
+        const rows = db.select({ m: messages })
+            .from(messages)
+            .innerJoin(latest, eq(latest.id, messages.id))
+            .where(eq(latest.rn, 1))
+            .orderBy(desc(messages.timestamp))
+            .all();
+
+        return rows.map(({ m }) => ({
+            id: m.id,
+            chat_jid: m.chatJid,
+            message: m.message,
+            messageType: m.messageType,
+            attachment: m.attachment,
+            timestamp: m.timestamp,
+            sender: m.sender
+        }));
     }
 
     /**
@@ -84,23 +91,17 @@ class MessageService {
      * @param {Date|string} [opts.before] - Cursor: only return messages before this timestamp
      */
     static async getChatMessages(userId, chatJid, { limit = 100, before } = {}) {
-        try {
-            const query = { userId, chatJid };
-            if (before) {
-                query.timestamp = { $lt: new Date(before) };
-            }
+        const conditions = [eq(messages.userId, String(userId)), eq(messages.chatJid, chatJid)];
+        if (before) conditions.push(lt(messages.timestamp, new Date(before)));
 
-            const messages = await Message.find(query)
-                .sort({ timestamp: -1 })
-                .limit(limit)
-                .lean();
+        const rows = db.select().from(messages)
+            .where(and(...conditions))
+            .orderBy(desc(messages.timestamp))
+            .limit(limit)
+            .all();
 
-            // Return in ascending order (oldest first) for chat display
-            return messages.reverse();
-        } catch (error) {
-            console.error('Fetch chat messages error:', error);
-            throw error;
-        }
+        // Return in ascending order (oldest first) for chat display
+        return rows.reverse();
     }
 }
 

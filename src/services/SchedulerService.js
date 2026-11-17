@@ -1,4 +1,7 @@
-import ScheduledMessage from '../models/ScheduledMessage.js';
+import { and, eq, desc, lte, count } from 'drizzle-orm';
+import { db, schema } from '../db/index.js';
+
+const { scheduledMessages } = schema;
 import { info, error as logError, warn } from '../utils/logger.js';
 
 class SchedulerService {
@@ -62,10 +65,11 @@ class SchedulerService {
             const now = new Date();
 
             // Find all pending messages that should be sent
-            const pendingMessages = await ScheduledMessage.find({
-                status: 'pending',
-                scheduledAt: { $lte: now }
-            }).limit(50);
+            const pendingMessages = db.select().from(scheduledMessages)
+                .where(and(eq(scheduledMessages.status, 'pending'), lte(scheduledMessages.scheduledAt, now)))
+                .orderBy(scheduledMessages.scheduledAt)
+                .limit(50)
+                .all();
 
             if (pendingMessages.length === 0) {
                 return;
@@ -77,7 +81,7 @@ class SchedulerService {
                 try {
                     await this.sendScheduledMessage(scheduled);
                 } catch (err) {
-                    logError(`Failed to send scheduled message ${scheduled._id}:`, err);
+                    logError(`Failed to send scheduled message ${scheduled.id}:`, err);
                 }
             }
         } catch (err) {
@@ -90,7 +94,7 @@ class SchedulerService {
      */
     async sendScheduledMessage(scheduled) {
         try {
-            info(`Sending scheduled message ${scheduled._id} to ${scheduled.to}`);
+            info(`Sending scheduled message ${scheduled.id} to ${scheduled.to}`);
 
             let result;
 
@@ -113,39 +117,40 @@ class SchedulerService {
             }
 
             // Update status to sent
-            scheduled.status = 'sent';
-            scheduled.sentAt = new Date();
-            scheduled.messageId = result?.id || null;
-            await scheduled.save();
+            SchedulerService._update(scheduled.id, {
+                status: 'sent',
+                sentAt: new Date(),
+                messageId: result?.id || null
+            });
 
-            info(`Scheduled message ${scheduled._id} sent successfully`);
+            info(`Scheduled message ${scheduled.id} sent successfully`);
         } catch (err) {
-            logError(`Error sending scheduled message ${scheduled._id}:`, err);
+            logError(`Error sending scheduled message ${scheduled.id}:`, err);
 
             // Update status to failed
-            scheduled.status = 'failed';
-            scheduled.error = err.message;
-            await scheduled.save();
+            SchedulerService._update(scheduled.id, { status: 'failed', error: err.message });
 
             throw err;
         }
+    }
+
+    static _update(id, values) {
+        db.update(scheduledMessages).set(values).where(eq(scheduledMessages.id, String(id))).run();
     }
 
     /**
      * Create a new scheduled message
      */
     async createScheduledMessage(userId, data) {
-        const scheduled = new ScheduledMessage({
-            userId,
+        const [scheduled] = db.insert(scheduledMessages).values({
+            userId: String(userId),
             to: data.to,
             message: data.message,
             messageType: data.messageType || 'text',
             interactiveData: data.interactiveData || null,
             scheduledAt: new Date(data.scheduledAt)
-        });
-
-        await scheduled.save();
-        info(`Created scheduled message ${scheduled._id} for ${data.scheduledAt}`);
+        }).returning().all();
+        info(`Created scheduled message ${scheduled.id} for ${data.scheduledAt}`);
 
         return scheduled;
     }
@@ -154,33 +159,35 @@ class SchedulerService {
      * Get user's scheduled messages
      */
     async getUserScheduledMessages(userId, filters = {}) {
-        const query = { userId };
-
+        const conditions = [eq(scheduledMessages.userId, String(userId))];
         if (filters.status) {
-            query.status = filters.status;
+            conditions.push(eq(scheduledMessages.status, filters.status));
         }
 
-        return await ScheduledMessage.find(query)
-            .sort({ scheduledAt: -1 })
-            .limit(filters.limit || 100);
+        return db.select().from(scheduledMessages)
+            .where(and(...conditions))
+            .orderBy(desc(scheduledMessages.scheduledAt))
+            .limit(filters.limit || 100)
+            .all();
     }
 
     /**
      * Cancel a scheduled message
      */
     async cancelScheduledMessage(userId, messageId) {
-        const scheduled = await ScheduledMessage.findOne({
-            _id: messageId,
-            userId,
-            status: 'pending'
-        });
+        const [scheduled] = db.update(scheduledMessages)
+            .set({ status: 'cancelled' })
+            .where(and(
+                eq(scheduledMessages.id, String(messageId)),
+                eq(scheduledMessages.userId, String(userId)),
+                eq(scheduledMessages.status, 'pending')
+            ))
+            .returning()
+            .all();
 
         if (!scheduled) {
             throw new Error('Scheduled message not found or already processed');
         }
-
-        scheduled.status = 'cancelled';
-        await scheduled.save();
 
         info(`Cancelled scheduled message ${messageId}`);
         return scheduled;
@@ -190,16 +197,14 @@ class SchedulerService {
      * Delete a scheduled message
      */
     async deleteScheduledMessage(userId, messageId) {
-        const scheduled = await ScheduledMessage.findOne({
-            _id: messageId,
-            userId
-        });
+        const [scheduled] = db.delete(scheduledMessages)
+            .where(and(eq(scheduledMessages.id, String(messageId)), eq(scheduledMessages.userId, String(userId))))
+            .returning()
+            .all();
 
         if (!scheduled) {
             throw new Error('Scheduled message not found');
         }
-
-        await ScheduledMessage.deleteOne({ _id: messageId });
         info(`Deleted scheduled message ${messageId}`);
 
         return scheduled;
@@ -209,21 +214,18 @@ class SchedulerService {
      * Get statistics
      */
     async getStatistics(userId) {
-        const [total, pending, sent, failed, cancelled] = await Promise.all([
-            ScheduledMessage.countDocuments({ userId }),
-            ScheduledMessage.countDocuments({ userId, status: 'pending' }),
-            ScheduledMessage.countDocuments({ userId, status: 'sent' }),
-            ScheduledMessage.countDocuments({ userId, status: 'failed' }),
-            ScheduledMessage.countDocuments({ userId, status: 'cancelled' })
-        ]);
+        const rows = db.select({ status: scheduledMessages.status, n: count() })
+            .from(scheduledMessages)
+            .where(eq(scheduledMessages.userId, String(userId)))
+            .groupBy(scheduledMessages.status)
+            .all();
 
-        return {
-            total,
-            pending,
-            sent,
-            failed,
-            cancelled
-        };
+        const stats = { total: 0, pending: 0, sent: 0, failed: 0, cancelled: 0 };
+        for (const { status, n } of rows) {
+            stats[status] = n;
+            stats.total += n;
+        }
+        return stats;
     }
 }
 

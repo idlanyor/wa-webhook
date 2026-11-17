@@ -30,7 +30,7 @@ Install it with:
 
 ```bash
 cp .env.example .env
-# edit .env and set at least MONGODB_URI and SESSION_SECRET
+# edit .env and set at least SESSION_SECRET (data lives in SQLite under ./data)
 sudo cp deploy/systemd/wa-webhook.service /etc/systemd/system/wa-webhook.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now wa-webhook
