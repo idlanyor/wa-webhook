@@ -34,7 +34,11 @@ describe('UserService', () => {
   });
 
   it('enforces unique email', async () => {
-    await expect(UserService.create({ name: 'C', email: 'a@x.io', password: 'x' })).rejects.toThrow(/UNIQUE/);
+    // Match on the code, not toThrow(): better-sqlite3 registers its SqliteError
+    // class once per process, so under Jest the error can come from another test
+    // file's realm and fail Jest's `instanceof Error` check.
+    await expect(UserService.create({ name: 'C', email: 'a@x.io', password: 'x' }))
+      .rejects.toMatchObject({ code: 'SQLITE_CONSTRAINT_UNIQUE' });
   });
 
   it('tracks linked WhatsApp sessions', () => {
