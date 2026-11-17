@@ -5,8 +5,8 @@
         transports: ['polling'],
         reconnection: true,
         reconnectionAttempts: Infinity,
-        reconnectionDelay: 1000,
-        query: { userId: '<%= typeof userId !== "undefined" ? userId : "guest" %>' }
+        reconnectionDelay: 1000
+        // Authenticated by the auth cookie; the server derives the user from it
     });
 
     const socketStatusEl = document.getElementById('socketStatus');
