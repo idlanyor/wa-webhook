@@ -1,86 +1,87 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <%- include('partials/head') %>
+    <%- include('partials/head', { title: 'Dasbor' }) %>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+        integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
-<div class="wrapper">
+<body>
+<%- include('partials/shell-start', { title: 'Dasbor', page: 'dashboard' }) %>
 
-    <%- include('partials/navbar') %>
-    <%- include('partials/sidebar') %>
-
-    <!-- Content Wrapper -->
-    <div class="content-wrapper">
-        <!-- Content Header -->
-        <div class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                        <h1 class="m-0">Dasbor</h1>
+    <!-- Session strip -->
+    <section class="card mb-4" aria-label="Sesi WhatsApp">
+        <div class="flex flex-col gap-3 p-4 md:flex-row md:items-center">
+            <div class="flex min-w-0 flex-1 items-center gap-3">
+                <span class="avatar h-10 w-10 text-lg"><i id="statusIcon" class="ri-whatsapp-line"></i></span>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                        <span id="statusIndicator" class="dot disconnected"></span>
+                        <span id="connectionStatus" class="text-sm font-bold text-ink">Menghubungkan…</span>
+                        <span class="text-muted">·</span>
+                        <span id="activePhone" class="truncate font-mono text-[13px] text-ink-soft">Menunggu sesi</span>
                     </div>
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb float-sm-right">
-                            <li class="breadcrumb-item active">Dasbor</li>
-                        </ol>
+                    <div class="mt-0.5 flex items-center gap-2 text-xs text-muted">
+                        <span id="activeProfileName" class="truncate">Belum terhubung</span>
+                        <span>·</span>
+                        <span id="socketStatus" class="font-mono">Socket: …</span>
                     </div>
                 </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button type="button" class="btn btn-secondary btn-sm" id="refreshBtn">
+                    <span id="refreshText"><i class="ri-refresh-line"></i> Segarkan</span>
+                </button>
+                <button type="button" class="btn btn-warning btn-sm" id="resetSessionBtn">
+                    <i class="ri-restart-line"></i> Reset sesi
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="testBtn" onclick="testMessage()" disabled>
+                    <i class="ri-send-plane-line"></i> Kirim uji
+                </button>
+                <button type="button" class="btn btn-danger btn-sm" id="waLogoutBtn" onclick="waLogout()" disabled>
+                    <i class="ri-logout-circle-r-line"></i> Keluar WA
+                </button>
             </div>
         </div>
+        <div id="actionStatus" class="alert alert-info mx-4 mb-4" role="status" hidden>
+            <i class="ri-loader-4-line spin"></i><span id="actionStatusText">Memproses…</span>
+        </div>
+    </section>
 
-        <!-- Main content -->
-        <section class="content">
-            <div class="container-fluid">
+    <!-- Stats -->
+    <section class="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Ringkasan">
+        <div class="stat">
+            <div class="stat-label">Pesan sesi ini</div>
+            <div class="stat-value" id="messageCount">0</div>
+            <div class="stat-meta">Masuk sejak halaman dibuka</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Uptime sesi</div>
+            <div class="stat-value font-mono" id="uptime">--</div>
+            <div class="stat-meta" id="uptimeSince">Belum terhubung</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Mesin</div>
+            <div class="stat-value">zapo</div>
+            <div class="stat-meta">Multi-device</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Integrasi</div>
+            <div class="stat-value">REST API</div>
+            <div class="stat-meta"><a href="/api-keys">Kelola kunci</a> · webhook</div>
+        </div>
+    </section>
 
-                <!-- Status Info Boxes -->
-                <%- include('partials/status-card') %>
+    <!-- Connect panel (shown when not connected) -->
+    <%- include('partials/qr-container') %>
 
-                <div class="row">
-                    <!-- Left Column: 2/3 -->
-                    <div class="col-lg-8">
-
-                        <!-- QR / Connection Card -->
-                        <div class="fade-in">
-                            <%- include('partials/qr-container') %>
-                        </div>
-
-                        <!-- Live Messages -->
-                        <div class="fade-in">
-                            <%- include('partials/messages') %>
-                        </div>
-
-                    </div>
-
-                    <!-- Right Column: 1/3 -->
-                    <div class="col-lg-4">
-
-                        <!-- Quick Actions -->
-                        <div class="fade-in">
-                            <%- include('partials/actions') %>
-                        </div>
-
-                        <!-- API Info -->
-                        <div class="fade-in">
-                            <%- include('partials/api-info') %>
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-        </section>
+    <div class="grid gap-4 lg:grid-cols-3">
+        <%- include('partials/messages') %>
+        <%- include('partials/api-info') %>
     </div>
 
-    <!-- Footer -->
-    <footer class="main-footer">
-        <strong>WhatsApp Webhook</strong> &copy; 2024.
-        <div class="float-right d-none d-sm-inline-block">
-            <b>Version</b> 1.0.0
-        </div>
-    </footer>
-
-</div>
-
-<%- include('partials/bottom-nav') %>
+<%- include('partials/shell-end') %>
 <%- include('partials/scripts') %>
 </body>
 </html>

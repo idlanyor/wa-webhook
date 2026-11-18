@@ -1,41 +1,27 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error - <%= locals.title || 'WhatsApp Webhook' %></title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
-    <link rel="stylesheet" href="/css/custom.css">
+    <%- include('partials/head', { title: 'Error ' + (locals.status || '500') }) %>
 </head>
-<body class="hold-transition" style="background: linear-gradient(135deg, #075E54 0%, #128C7E 40%, #25D366 100%); min-height:100vh;">
+<body>
+<div class="fixed top-3 right-3"><%- include('partials/theme-switch') %></div>
+<main class="flex min-h-screen items-center justify-center px-4">
+    <div class="w-full max-w-md">
+        <img src="/img/irengcloud.svg" alt="IrengCloud" class="logo-light mb-8 h-6 w-auto">
+        <img src="/img/irengcloud-light.svg" alt="IrengCloud" class="logo-dark mb-8 h-6 w-auto">
+        <p class="m-0 font-mono text-sm font-bold text-danger">Error <%= locals.status || '500' %></p>
+        <h1 class="mt-1 mb-2 text-2xl font-bold text-ink"><%= locals.message || 'Terjadi kesalahan. Coba lagi nanti.' %></h1>
+        <p class="mb-6 text-sm text-muted">Jika masalah berlanjut, periksa log server.</p>
 
-<div class="d-flex align-items-center justify-content-center min-vh-100 p-4">
-    <div class="card shadow-lg" style="max-width:480px;width:100%;border-radius:16px;border:none;">
-        <div class="card-body text-center p-5">
-            <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto mb-4 bg-danger"
-                 style="width:70px;height:70px;opacity:0.9;">
-                <i class="ri-error-warning-line text-white" style="font-size:2rem;"></i>
-            </div>
+        <% if (locals.error && locals.error.stack && process.env.NODE_ENV === 'development') { %>
+        <pre class="console mb-6 max-h-48 overflow-y-auto"><%= error.stack %></pre>
+        <% } %>
 
-            <h1 class="display-4 font-weight-bold text-dark mb-2"><%= locals.status || '500' %></h1>
-            <p class="lead text-muted mb-4"><%= locals.message || 'Something went wrong. Please try again later.' %></p>
-
-            <% if (locals.error && locals.error.stack && process.env.NODE_ENV === 'development') { %>
-            <div class="alert alert-danger text-left mb-4">
-                <pre class="mb-0" style="font-size:0.75rem;white-space:pre-wrap;word-break:break-all;max-height:160px;overflow-y:auto;"><%= error.stack %></pre>
-            </div>
-            <% } %>
-
-            <a href="/" class="btn btn-success btn-lg">
-                <i class="ri-home-4-line mr-2"></i> Kembali ke Beranda
-            </a>
+        <div class="flex gap-2">
+            <a href="/" class="btn btn-primary"><i class="ri-home-4-line"></i> Ke dasbor</a>
+            <button type="button" class="btn btn-secondary" onclick="history.back()">Kembali</button>
         </div>
     </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+</main>
 </body>
 </html>

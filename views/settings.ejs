@@ -3,169 +3,73 @@
 <head>
     <%- include('partials/head', { title: 'Pengaturan' }) %>
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
-<div class="wrapper">
+<body>
+<%- include('partials/shell-start', { title: 'Pengaturan', page: 'settings' }) %>
+<%
+    const events = [
+        { id: 'toggle_connection', name: 'webhook_toggle_connection', label: 'Status koneksi', hint: 'Terhubung, terputus, QR baru', on: locals.webhookToggleConnection },
+        { id: 'toggle_msg_in', name: 'webhook_toggle_message_in', label: 'Pesan masuk', hint: 'Termasuk tombol yang ditekan', on: locals.webhookToggleMessageIn },
+        { id: 'toggle_msg_out', name: 'webhook_toggle_message_out', label: 'Pesan keluar', hint: 'Pesan yang dikirim lewat API', on: locals.webhookToggleMessageOut }
+    ];
+%>
 
-    <%- include('partials/navbar') %>
-    <%- include('partials/sidebar') %>
-
-    <div class="content-wrapper">
-        <div class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                        <h1 class="m-0">Pengaturan Sistem</h1>
-                    </div>
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb float-sm-right">
-                            <li class="breadcrumb-item"><a href="/dashboard">Dasbor</a></li>
-                            <li class="breadcrumb-item active">Pengaturan</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">Pengaturan</h1>
+            <p class="page-sub m-0">Kirim event WhatsApp ke server Anda.</p>
         </div>
-
-        <section class="content">
-            <div class="container-fluid">
-
-                <!-- Alerts -->
-                <% if (locals.error) { %>
-                <div class="alert alert-danger alert-dismissible fade show fade-in" role="alert">
-                    <i class="ri-error-warning-fill mr-2"></i> <%= error %>
-                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-                </div>
-                <% } %>
-                <% if (locals.success) { %>
-                <div class="alert alert-success alert-dismissible fade show fade-in" role="alert">
-                    <i class="ri-checkbox-circle-fill mr-2"></i> <%= success %>
-                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-                </div>
-                <% } %>
-
-                <div class="row">
-                    <div class="col-lg-8">
-                        <!-- Webhook Config Card -->
-                        <div class="card card-outline card-primary fade-in">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    <i class="ri-webhook-line text-primary mr-2"></i>
-                                    Konfigurasi Webhook
-                                </h3>
-                                <div class="card-tools">
-                                    <small class="text-muted">Terima notifikasi real-time ke server Anda</small>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <form action="/settings/webhook" method="POST">
-                                    <div class="form-group">
-                                        <label class="font-weight-bold">Webhook URL</label>
-                                        <input type="url" name="webhook_url" value="<%= webhookUrl %>"
-                                               placeholder="https://domain-anda.com/webhook"
-                                               class="form-control">
-                                        <small class="form-text text-muted">URL ini akan menerima request POST setiap ada event baru.</small>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="font-weight-bold">Webhook Secret (HMAC)</label>
-                                        <input type="text" name="webhook_secret" value="<%= webhookSecret %>"
-                                               placeholder="Opsional: Kunci untuk verifikasi tanda tangan"
-                                               class="form-control">
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="font-weight-bold d-block mb-3">Event yang Dipantau</label>
-                                        <div class="row">
-                                            <div class="col-md-4 mb-2">
-                                                <div class="custom-control custom-switch">
-                                                    <input type="checkbox" class="custom-control-input" id="toggle_connection"
-                                                           name="webhook_toggle_connection"
-                                                           <%= webhookToggleConnection ? 'checked' : '' %>>
-                                                    <label class="custom-control-label" for="toggle_connection">Status Koneksi</label>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4 mb-2">
-                                                <div class="custom-control custom-switch">
-                                                    <input type="checkbox" class="custom-control-input" id="toggle_msg_in"
-                                                           name="webhook_toggle_message_in"
-                                                           <%= webhookToggleMessageIn ? 'checked' : '' %>>
-                                                    <label class="custom-control-label" for="toggle_msg_in">Pesan Masuk</label>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4 mb-2">
-                                                <div class="custom-control custom-switch">
-                                                    <input type="checkbox" class="custom-control-input" id="toggle_msg_out"
-                                                           name="webhook_toggle_message_out"
-                                                           <%= webhookToggleMessageOut ? 'checked' : '' %>>
-                                                    <label class="custom-control-label" for="toggle_msg_out">Pesan Keluar</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row mt-4">
-                                        <div class="col-sm-6">
-                                            <button type="submit" class="btn btn-primary">
-                                                <i class="ri-save-line mr-1"></i> Simpan Perubahan
-                                            </button>
-                                        </div>
-                                        <div class="col-sm-6 text-right">
-                                            <form action="/settings/webhook/test" method="POST" style="display:inline;">
-                                                <button type="submit" class="btn btn-outline-secondary">
-                                                    <i class="ri-send-plane-line mr-1"></i> Kirim Webhook Uji
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4">
-                        <!-- Info Cards -->
-                        <div class="card card-outline card-success fade-in">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    <i class="ri-shield-check-line text-success mr-2"></i>
-                                    Keamanan Webhook
-                                </h3>
-                            </div>
-                            <div class="card-body">
-                                <p class="text-muted" style="font-size:0.875rem;">
-                                    Jika Webhook Secret diisi, setiap request akan menyertakan header
-                                    <code>X-Signature</code> berisi HMAC SHA256 dari body request menggunakan secret tersebut.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="card card-outline card-info fade-in">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    <i class="ri-refresh-line text-info mr-2"></i>
-                                    Retrying Mechanism
-                                </h3>
-                            </div>
-                            <div class="card-body">
-                                <p class="text-muted" style="font-size:0.875rem;">
-                                    Sistem kami akan mencoba mengirim ulang webhook hingga 3 kali jika server Anda gagal merespons dengan status 200 OK.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
+        <form action="/settings/webhook/test" method="POST">
+            <button type="submit" class="btn btn-secondary"><i class="ri-send-plane-line"></i> Kirim webhook uji</button>
+        </form>
     </div>
 
-    <footer class="main-footer">
-        <strong>WhatsApp Webhook</strong> &copy; 2024.
-        <div class="float-right d-none d-sm-inline-block"><b>Version</b> 1.0.0</div>
-    </footer>
-</div>
+    <%- include('partials/flash') %>
 
-<%- include('partials/bottom-nav') %>
-<%- include('partials/simple-scripts') %>
+    <div class="grid gap-4 lg:grid-cols-3">
+        <form action="/settings/webhook" method="POST" class="card lg:col-span-2">
+            <div class="card-head"><h2 class="card-title"><i class="ri-webhook-line"></i> Webhook</h2></div>
+            <div class="card-body space-y-4">
+                <div>
+                    <label class="label" for="webhook_url">URL webhook</label>
+                    <input type="url" id="webhook_url" name="webhook_url" value="<%= locals.webhookUrl || '' %>" placeholder="https://domain-anda.com/webhook" class="input font-mono">
+                    <p class="hint">Menerima request POST untuk setiap event yang diaktifkan.</p>
+                </div>
+                <div>
+                    <label class="label" for="webhook_secret">Secret HMAC <span class="font-medium text-muted">(opsional)</span></label>
+                    <input type="text" id="webhook_secret" name="webhook_secret" value="<%= locals.webhookSecret || '' %>" placeholder="Kunci untuk verifikasi tanda tangan" class="input font-mono">
+                </div>
+                <fieldset class="m-0 border-0 p-0">
+                    <legend class="label">Event</legend>
+                    <div class="divide-y divide-line rounded-md border border-line">
+                        <% events.forEach(ev => { %>
+                        <label class="flex cursor-pointer items-center justify-between gap-3 px-3 py-2.5" for="<%= ev.id %>">
+                            <span>
+                                <span class="block text-sm font-semibold text-ink"><%= ev.label %></span>
+                                <span class="block text-xs text-muted"><%= ev.hint %></span>
+                            </span>
+                            <span class="switch"><input type="checkbox" id="<%= ev.id %>" name="<%= ev.name %>" <%= ev.on ? 'checked' : '' %>><span></span></span>
+                        </label>
+                        <% }) %>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="card-foot">
+                <button type="submit" class="btn btn-primary"><i class="ri-save-line"></i> Simpan</button>
+            </div>
+        </form>
+
+        <aside class="space-y-4">
+            <section class="card">
+                <div class="card-head"><h2 class="card-title"><i class="ri-shield-check-line"></i> Tanda tangan</h2></div>
+                <p class="card-body m-0 text-sm text-ink-soft">Jika secret diisi, setiap request membawa header <code class="code">X-Signature</code>: HMAC SHA256 dari body dengan secret tersebut.</p>
+            </section>
+            <section class="card">
+                <div class="card-head"><h2 class="card-title"><i class="ri-repeat-line"></i> Pengiriman ulang</h2></div>
+                <p class="card-body m-0 text-sm text-ink-soft">Webhook dikirim ulang hingga 3 kali bila server tidak membalas <code class="code">200 OK</code>.</p>
+            </section>
+        </aside>
+    </div>
+
+<%- include('partials/shell-end') %>
 </body>
 </html>

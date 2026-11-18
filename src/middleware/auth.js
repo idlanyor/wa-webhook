@@ -84,6 +84,23 @@ async function redirectIfAuthenticated(req, res, next) {
 }
 
 /**
+ * Attach req.user when a valid session cookie is present; never redirects.
+ * Used by public pages (landing) that adapt to signed-in visitors.
+ */
+async function optionalUser(req, res, next) {
+    const token = req.signedCookies['auth-token'];
+    if (!token) return next();
+    try {
+        const decoded = jwt.verify(token, config.session.secret);
+        const user = UserService.findPublicById(decoded.userId);
+        if (user) req.user = user;
+    } catch (error) {
+        // invalid/expired token: treat as anonymous
+    }
+    next();
+}
+
+/**
  * Verify API key against database
  */
 async function verifyApiKey(key) {
@@ -162,6 +179,7 @@ function authenticateSocket(socket, next) {
 }
 
 export {
+    optionalUser,
     authenticateSocket,
     isAuthenticated,
     isAuthenticatedOrApiKey,

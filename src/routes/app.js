@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import { isAuthenticated } from '../middleware/auth.js';
+import { isAuthenticated, optionalUser } from '../middleware/auth.js';
 import WhatsAppService from '../services/WhatsAppService.js';
 
 const router = Router();
 
-// Main redirect
-router.get('/', (req, res) => {
-    res.redirect('/dashboard');
+// Public landing page (indexable). Signed-in visitors get a dashboard link.
+router.get('/', optionalUser, (req, res) => {
+    res.render('landing', { user: req.user || null });
 });
 
 // Dashboard

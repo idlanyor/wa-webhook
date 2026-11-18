@@ -1,41 +1,14 @@
-<!-- API Info Card -->
-<div class="card card-outline card-warning">
-    <div class="card-header">
-        <h3 class="card-title">
-            <i class="ri-code-s-slash-line text-warning mr-2"></i>
-            Endpoints API
-        </h3>
-        <div class="card-tools">
-            <small class="text-muted">Integrasi pihak ketiga</small>
-        </div>
+<section class="card" aria-labelledby="endpointTitle">
+    <div class="card-head">
+        <h2 class="card-title" id="endpointTitle"><i class="ri-code-s-slash-line"></i> Endpoint utama</h2>
     </div>
-    <div class="card-body p-3">
-        <div class="api-endpoint">
-            <div class="d-flex align-items-center">
-                <span class="method-badge method-post mr-2">POST</span>
-                <span class="font-weight-semibold">/send-message</span>
-            </div>
-            <small class="text-muted">Kirim Pesan</small>
-        </div>
-        <div class="api-endpoint">
-            <div class="d-flex align-items-center">
-                <span class="method-badge method-get mr-2">GET</span>
-                <span class="font-weight-semibold">/status</span>
-            </div>
-            <small class="text-muted">Koneksi</small>
-        </div>
-        <div class="api-endpoint">
-            <div class="d-flex align-items-center">
-                <span class="method-badge method-post mr-2">POST</span>
-                <span class="font-weight-semibold">/logout</span>
-            </div>
-            <small class="text-muted">Logout WA</small>
-        </div>
-
-        <div class="mt-3 pt-3 border-top">
-            <a href="/documentation" class="btn btn-outline-secondary btn-block btn-sm">
-                <i class="ri-book-open-line mr-1"></i> Buka Dokumentasi API
-            </a>
-        </div>
+    <ul class="m-0 list-none divide-y divide-line p-0">
+        <li class="flex items-center gap-2 px-4 py-2.5"><span class="method method-post">post</span><code class="font-mono text-[13px] text-ink">/send-message</code><span class="ml-auto text-xs text-muted">Kirim pesan</span></li>
+        <li class="flex items-center gap-2 px-4 py-2.5"><span class="method method-post">post</span><code class="font-mono text-[13px] text-ink">/send-document</code><span class="ml-auto text-xs text-muted">Dokumen</span></li>
+        <li class="flex items-center gap-2 px-4 py-2.5"><span class="method method-post">post</span><code class="font-mono text-[13px] text-ink">/send-interactive</code><span class="ml-auto text-xs text-muted">Tombol/list</span></li>
+        <li class="flex items-center gap-2 px-4 py-2.5"><span class="method method-get">get</span><code class="font-mono text-[13px] text-ink">/status</code><span class="ml-auto text-xs text-muted">Koneksi</span></li>
+    </ul>
+    <div class="card-foot justify-start">
+        <a href="/documentation" class="btn btn-ghost btn-sm"><i class="ri-book-open-line"></i> Dokumentasi lengkap</a>
     </div>
-</div>
+</section>

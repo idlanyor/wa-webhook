@@ -1,164 +1,60 @@
-<!-- QR / Connection Card -->
-<div class="card card-outline card-success" id="connectionCard" style="display:none;">
-    <div class="card-header">
-        <h3 class="card-title">
-            <i class="ri-smartphone-line text-success mr-2"></i>
-            Koneksi WhatsApp
-        </h3>
+<section class="card mb-4" id="connectionCard" style="display:none;" aria-labelledby="connectTitle">
+    <div class="card-head">
+        <h2 class="card-title" id="connectTitle"><i class="ri-smartphone-line"></i> Hubungkan WhatsApp</h2>
+        <span class="text-xs text-muted" id="connectionDescription">Pilih metode koneksi.</span>
     </div>
-    <div class="card-body">
+    <div class="card-body" id="disconnectedState">
+        <div class="tabs mb-4" role="tablist">
+            <button type="button" class="tab" role="tab" id="qrTab" data-tab="qrMethod" aria-selected="true"><i class="ri-qr-code-line"></i> Kode QR</button>
+            <button type="button" class="tab" role="tab" id="pairingTab" data-tab="pairingMethod" aria-selected="false"><i class="ri-keyboard-box-line"></i> Kode pairing</button>
+        </div>
 
-        <!-- State 1: Disconnected (QR / Pairing) -->
-        <div id="disconnectedState">
-            <p class="text-muted mb-3" id="connectionDescription" style="font-size:0.85rem;">
-                Pilih metode koneksi untuk menghubungkan akun WhatsApp Anda.
-            </p>
-
-            <!-- Tabs -->
-            <ul class="nav nav-tabs mb-3" id="connectionMethods">
-                <li class="nav-item">
-                    <a class="nav-link active" href="#qrMethod" id="qrTab" data-toggle="tab">
-                        <i class="ri-qr-code-line mr-1"></i> Kode QR
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#pairingMethod" id="pairingTab" data-toggle="tab">
-                        <i class="ri-keyboard-box-line mr-1"></i> Pairing Code
-                    </a>
-                </li>
-            </ul>
-
-            <div class="tab-content">
-                <!-- QR Tab -->
-                <div class="tab-pane fade show active" id="qrMethod">
-                    <div class="text-center mb-3">
-                        <div class="d-inline-block p-3 bg-white border rounded" style="border-radius:12px!important;box-shadow:0 4px 20px rgba(0,0,0,0.1);">
-                            <div id="qrcode"></div>
-                        </div>
-                    </div>
-                    <div class="callout callout-info">
-                        <h6 class="text-uppercase font-weight-bold" style="font-size:0.7rem;letter-spacing:.05em;">Cara memindai QR Code:</h6>
-                        <ol class="mb-0 pl-3" style="font-size:0.8rem;">
-                            <li>Buka aplikasi <strong>WhatsApp</strong> di ponsel Anda</li>
-                            <li>Ketuk ikon <strong>Menu (⋮)</strong> di Android atau <strong>Pengaturan</strong> di iPhone</li>
-                            <li>Pilih <strong>Perangkat Tertaut</strong>, lalu <strong>Tautkan Perangkat</strong></li>
-                            <li>Arahkan kamera ke kode QR di atas</li>
-                        </ol>
-                    </div>
-                </div>
-
-                <!-- Pairing Tab -->
-                <div class="tab-pane fade" id="pairingMethod">
-                    <div class="form-group">
-                        <label class="text-uppercase font-weight-bold" style="font-size:0.7rem;letter-spacing:.05em;">Nomor WhatsApp</label>
-                        <input type="text" id="phoneNumber" class="form-control" placeholder="Contoh: 6281234567890">
-                        <small class="form-text text-muted">Masukkan nomor lengkap beserta kode negara tanpa "+" (contoh: 6281234567890).</small>
-                    </div>
-                    <button onclick="requestPairingCode()" class="btn btn-primary btn-block">
-                        <i class="ri-key-2-line mr-1"></i> Dapatkan Kode Pairing
-                    </button>
-
-                    <div id="pairingCodeResult" class="mt-3" style="display:none;">
-                        <div class="text-center p-4 border rounded" style="border-radius:10px;">
-                            <p class="text-muted mb-1" style="font-size:0.8rem;">Kode Pairing Anda:</p>
-                            <div class="font-weight-bold text-primary" id="pairingCodeDisplay" 
-                                 style="font-size:2rem;font-family:monospace;letter-spacing:.3em;">--</div>
-                        </div>
-                        <div class="callout callout-info mt-3">
-                            <h6 class="text-uppercase font-weight-bold" style="font-size:0.7rem;">Langkah selanjutnya:</h6>
-                            <ol class="mb-0 pl-3" style="font-size:0.8rem;">
-                                <li>Buka notifikasi <strong>Pairing Device</strong> di ponsel Anda</li>
-                                <li>Masukkan kode 8-digit di atas secara berurutan</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
+        <div id="qrMethod" role="tabpanel" class="grid items-start gap-6 md:grid-cols-[auto_1fr]">
+            <div class="inline-block rounded-md border border-line bg-white p-3"><div id="qrcode"></div></div>
+            <div>
+                <div class="eyebrow mb-2">Cara memindai</div>
+                <ol class="m-0 list-decimal space-y-1 pl-5 text-sm text-ink-soft">
+                    <li>Buka <strong>WhatsApp</strong> di ponsel.</li>
+                    <li>Ketuk <strong>Menu (⋮)</strong> di Android atau <strong>Pengaturan</strong> di iPhone.</li>
+                    <li>Pilih <strong>Perangkat Tertaut</strong> → <strong>Tautkan Perangkat</strong>.</li>
+                    <li>Arahkan kamera ke kode QR.</li>
+                </ol>
             </div>
         </div>
 
-        <!-- State 2: Connected Profile -->
-        <div id="connectedState" style="display:none;">
-            <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
-                <div class="connected-avatar mr-3">
-                    <i class="ri-whatsapp-line"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <div class="d-flex align-items-center">
-                        <h5 class="mb-0 mr-2 font-weight-bold" id="connectedProfileName">Sesi WhatsApp</h5>
-                        <span class="online-badge">ACTIVE</span>
-                    </div>
-                    <p class="text-muted mb-0" id="connectedProfilePhone" style="font-size:0.875rem;">--</p>
-                </div>
-                <div>
-                    <span class="badge badge-success p-2" style="border-radius:8px;">
-                        <i class="ri-shield-check-line mr-1"></i> E2E
-                    </span>
-                </div>
+        <div id="pairingMethod" role="tabpanel" hidden class="max-w-md">
+            <label class="label" for="phoneNumber">Nomor WhatsApp</label>
+            <div class="flex gap-2">
+                <input type="text" id="phoneNumber" class="input font-mono" placeholder="6281234567890" inputmode="numeric">
+                <button type="button" onclick="requestPairingCode()" class="btn btn-primary" id="pairingBtn">
+                    <i class="ri-key-2-line"></i> Minta kode
+                </button>
             </div>
+            <p class="hint">Nomor lengkap dengan kode negara, tanpa “+”.</p>
 
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="info-box info-box-sm bg-light">
-                        <div class="info-box-content">
-                            <span class="info-box-text text-uppercase" style="font-size:0.65rem;font-weight:700;">Metode Sinkronisasi</span>
-                            <span class="info-box-number" style="font-size:0.8rem;">zapo (Multi-Device)</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="info-box info-box-sm bg-light">
-                        <div class="info-box-content">
-                            <span class="info-box-text text-uppercase" style="font-size:0.65rem;font-weight:700;">Webhook Status</span>
-                            <span class="info-box-number text-success" style="font-size:0.8rem;">
-                                <i class="ri-checkbox-circle-fill"></i> Aktif & Siaga
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="callout callout-success">
-                <strong>WhatsApp Gateway Anda siap digunakan!</strong>
-                <p class="mb-0" style="font-size:0.82rem;">Layanan API WhatsApp Anda berjalan penuh. Anda dapat mengirim pesan teks, button, list, dokumen, maupun memicu auto-reply webhook secara dinamis.</p>
+            <div id="pairingCodeResult" class="mt-4 rounded-md border border-line bg-surface-2 p-4" style="display:none;">
+                <div class="eyebrow">Kode pairing</div>
+                <div id="pairingCodeDisplay" class="my-1 font-mono text-2xl font-bold tracking-[0.3em] text-brand-text">--</div>
+                <p class="m-0 text-sm text-ink-soft">Buka notifikasi <strong>Pairing Device</strong> di ponsel, lalu masukkan kode 8 digit di atas.</p>
             </div>
         </div>
-
     </div>
-</div>
+</section>
 
 <script>
-    function switchMethod(method) {
-        const qrTab = document.getElementById('qrTab');
-        const pairingTab = document.getElementById('pairingTab');
-        const qrMethod = document.getElementById('qrMethod');
-        const pairingMethod = document.getElementById('pairingMethod');
-
-        if (!qrTab || !pairingTab || !qrMethod || !pairingMethod) return;
-
-        if (method === 'qr') {
-            $(qrTab).tab('show');
-        } else {
-            $(pairingTab).tab('show');
-        }
-    }
-
     async function requestPairingCode() {
         const phone = document.getElementById('phoneNumber').value;
-        if (!phone) return alert('Silakan masukkan nomor telepon');
+        if (!phone) return showNotification('Masukkan nomor telepon', 'warning');
 
         let fullPhone = phone.replace(/[^\d+]/g, '');
-        if (fullPhone.startsWith('+')) {
-            fullPhone = fullPhone.substring(1);
-        } else if (fullPhone.startsWith('0')) {
-            fullPhone = '62' + fullPhone.substring(1);
-        }
+        if (fullPhone.startsWith('+')) fullPhone = fullPhone.substring(1);
+        else if (fullPhone.startsWith('0')) fullPhone = '62' + fullPhone.substring(1);
 
-        // Lock the button: each request issues a NEW code that invalidates the
-        // previous one. Re-clicking is the main reason typed codes get rejected.
-        const btn = document.querySelector('button[onclick="requestPairingCode()"]');
+        // Each request issues a NEW code that invalidates the previous one.
+        const btn = document.getElementById('pairingBtn');
         btn.disabled = true;
         const originalLabel = btn.innerHTML;
-        btn.innerHTML = '<i class="ri-loader-4-line ri-spin mr-1"></i> Meminta kode...';
+        btn.innerHTML = '<i class="ri-loader-4-line spin"></i> Meminta…';
 
         try {
             const response = await fetch('/pairing-code', {
@@ -167,21 +63,16 @@
                 body: JSON.stringify({ phoneNumber: fullPhone })
             });
             const data = await response.json();
-
             if (data.success) {
                 document.getElementById('pairingCodeResult').style.display = 'block';
                 document.getElementById('pairingCodeDisplay').textContent = data.pairingCode.match(/.{1,4}/g).join('-');
-                btn.innerHTML = '<i class="ri-time-line mr-1"></i> Kode aktif 60 detik';
-                setTimeout(() => {
-                    btn.disabled = false;
-                    btn.innerHTML = originalLabel;
-                }, 60000);
+                btn.innerHTML = '<i class="ri-time-line"></i> Aktif 60 detik';
+                setTimeout(() => { btn.disabled = false; btn.innerHTML = originalLabel; }, 60000);
                 return;
-            } else {
-                alert('Gagal: ' + data.message);
             }
+            showNotification('Gagal: ' + data.message, 'error');
         } catch (error) {
-            alert('Terjadi kesalahan');
+            showNotification('Terjadi kesalahan', 'error');
         }
         btn.disabled = false;
         btn.innerHTML = originalLabel;

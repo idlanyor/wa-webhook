@@ -12,9 +12,7 @@
     const socketStatusEl = document.getElementById('socketStatus');
     function setSocketStatus(text, colorClass = 'text-muted') {
         if (!socketStatusEl) return;
-        socketStatusEl.className = `mt-1 ${colorClass}`;
-        socketStatusEl.style.fontSize = '0.68rem';
-        socketStatusEl.style.fontFamily = 'monospace';
+        socketStatusEl.className = `font-mono ${colorClass}`;
         socketStatusEl.textContent = `Socket: ${text}`;
     }
 
@@ -36,7 +34,7 @@
     let currentStatus = 'disconnected';
     let messages = [];
     let currentConnectionMethod = 'qr'; // Default prioritize QR method
-    let startTime = Date.now();
+    let startTime = null; // epoch ms the WhatsApp session connected (from server)
     let messageCount = 0;
 
     // DOM elements
@@ -51,11 +49,10 @@
     const waLogoutBtn = document.getElementById('waLogoutBtn');
     const messagesCard = document.getElementById('messagesCard');
     const messagesList = document.getElementById('messagesList');
-    const sidebar = document.getElementById('sidebar');
-    const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
     const actionStatus = document.getElementById('actionStatus');
     const actionStatusText = document.getElementById('actionStatusText');
     const uptimeElement = document.getElementById('uptime');
+    const uptimeSince = document.getElementById('uptimeSince');
     const messageCountElement = document.getElementById('messageCount');
 
     // New DOM elements for Active Session Profile
@@ -66,7 +63,6 @@
     const activePhone = document.getElementById('activePhone');
     const activeProfileName = document.getElementById('activeProfileName');
 
-    // AdminLTE handles mobile menu via data-widget="pushmenu"
 
     // Connection method elements (QR only)
     const qrTab = document.getElementById('qrTab');
@@ -82,19 +78,23 @@
     // Update uptime and message count periodically
     setInterval(updateMetrics, 1000);
 
-    function updateMetrics() {
-        if (currentStatus === 'connected' && uptimeElement) {
-            const uptime = Math.floor((Date.now() - startTime) / 1000);
-            const hours = Math.floor(uptime / 3600);
-            const minutes = Math.floor((uptime % 3600) / 60);
-            const seconds = uptime % 60;
+    function formatDuration(totalSeconds) {
+        const d = Math.floor(totalSeconds / 86400);
+        const h = Math.floor((totalSeconds % 86400) / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        if (d > 0) return `${d}h ${h}j ${m}m`;
+        if (h > 0) return `${h}j ${m}m`;
+        if (m > 0) return `${m}m ${s}d`;
+        return `${s}d`;
+    }
 
-            if (hours > 0) {
-                uptimeElement.textContent = `${hours}h ${minutes}m`;
-            } else if (minutes > 0) {
-                uptimeElement.textContent = `${minutes}m ${seconds}s`;
+    function updateMetrics() {
+        if (uptimeElement) {
+            if (currentStatus === 'connected' && startTime) {
+                uptimeElement.textContent = formatDuration(Math.max(0, Math.floor((Date.now() - startTime) / 1000)));
             } else {
-                uptimeElement.textContent = `${seconds}s`;
+                uptimeElement.textContent = '--';
             }
         }
 
@@ -107,27 +107,19 @@
         if (!actionStatus || !actionStatusText) return;
 
         actionStatusText.textContent = text;
-        actionStatus.className = 'alert mt-3 mb-0 py-2';
-
-        switch (type) {
-            case 'success': actionStatus.classList.add('alert-success'); break;
-            case 'error':   actionStatus.classList.add('alert-danger');  break;
-            default:        actionStatus.classList.add('alert-info');
-        }
-
-        actionStatus.classList.remove('d-none');
+        const tone = { success: 'alert-success', error: 'alert-danger' }[type] || 'alert-info';
+        actionStatus.className = `alert ${tone} mx-4 mb-4`;
+        const icon = actionStatus.querySelector('i');
+        if (icon) icon.className = type === 'info' ? 'ri-loader-4-line spin' : (type === 'success' ? 'ri-checkbox-circle-line' : 'ri-error-warning-line');
+        actionStatus.hidden = false;
 
         if (type !== 'info') {
-            setTimeout(() => {
-                actionStatus.classList.add('d-none');
-            }, 3000);
+            setTimeout(() => { actionStatus.hidden = true; }, 3000);
         }
     }
 
     function hideActionStatus() {
-        if (actionStatus) {
-            actionStatus.classList.add('d-none');
-        }
+        if (actionStatus) actionStatus.hidden = true;
     }
 
     // Socket event listeners for WhatsApp service
@@ -147,7 +139,7 @@
 
     socket.on('connection_status', (data) => {
         console.log('Connection status:', data);
-        updateStatus(data.status, data.user);
+        updateStatus(data.status, data.user, data.status === 'connected' ? Date.now() : null);
     });
 
     socket.on('new_message', (message) => {
@@ -159,30 +151,34 @@
     // Functions
     function switchConnectionMethod() {
         currentConnectionMethod = 'qr';
-        if (qrTab) qrTab.classList.add('active');
-        if (qrMethod) qrMethod.style.display = 'block';
+        document.querySelectorAll('#connectionCard [role="tab"]').forEach(t => {
+            const on = t === qrTab;
+            t.setAttribute('aria-selected', on ? 'true' : 'false');
+            const panel = document.getElementById(t.dataset.tab);
+            if (panel) panel.hidden = !on;
+        });
     }
 
 
 
 
 
-    function updateStatus(status, user = null) {
+    function updateStatus(status, user = null, connectedAt = null) {
         currentStatus = status;
 
         if (statusIndicator && statusIcon) {
-            statusIndicator.className = 'status-dot';
+            statusIndicator.className = 'dot';
 
             switch (status) {
                 case 'connected':
                     if (statusElement) {
                         statusElement.textContent = 'Terhubung';
-                        statusElement.className = 'info-box-number text-success';
+                        statusElement.className = 'text-sm font-bold text-success';
                     }
                     statusIndicator.classList.add('connected');
-                    statusIcon.className = 'ri-checkbox-circle-line';
+                    statusIcon.className = 'ri-whatsapp-line';
 
-                    if (connectionCard) connectionCard.style.display = 'block';
+                    if (connectionCard) connectionCard.style.display = 'none';
                     if (disconnectedState) disconnectedState.style.display = 'none';
                     if (connectedState) connectedState.style.display = 'block';
 
@@ -202,15 +198,21 @@
 
                     if (testBtn) testBtn.disabled = false;
                     if (waLogoutBtn) waLogoutBtn.disabled = false;
-                    if (!startTime || currentStatus !== 'connected') startTime = Date.now();
+                    // Server-side connect time survives page reloads; fall back to now only if unknown
+                    startTime = connectedAt || startTime || Date.now();
+                    if (uptimeSince) {
+                        uptimeSince.textContent = 'Sejak ' + new Date(startTime).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                    }
                     break;
 
                 case 'qr_ready':
                     if (statusElement) {
                         statusElement.textContent = 'Scan QR';
-                        statusElement.className = 'info-box-number text-warning';
+                        statusElement.className = 'text-sm font-bold text-warning';
                     }
                     statusIndicator.classList.add('qr_ready');
+                    startTime = null;
+                    if (uptimeSince) uptimeSince.textContent = 'Belum terhubung';
                     statusIcon.className = 'ri-qr-code-line';
 
                     if (connectionCard) connectionCard.style.display = 'block';
@@ -227,9 +229,11 @@
                 default:
                     if (statusElement) {
                         statusElement.textContent = 'Terputus';
-                        statusElement.className = 'info-box-number text-danger';
+                        statusElement.className = 'text-sm font-bold text-danger';
                     }
                     statusIndicator.classList.add('disconnected');
+                    startTime = null;
+                    if (uptimeSince) uptimeSince.textContent = 'Belum terhubung';
                     statusIcon.className = 'ri-close-circle-line';
 
                     if (connectionCard) connectionCard.style.display = 'none';
@@ -260,14 +264,12 @@
         }
 
         if (connectionCard) connectionCard.style.display = 'block';
-        if (disconnectedState) disconnectedState.classList.remove('hidden');
-        if (connectedState) connectedState.classList.add('hidden');
 
         new QRCode(qrElement, {
             text: qrData,
-            width: 256,
-            height: 256,
-            colorDark: "#000000",
+            width: 208,
+            height: 208,
+            colorDark: "#0f172a",
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.H
         });
@@ -285,10 +287,10 @@
             if (remaining <= 0) {
                 clearInterval(qrCountdownTimer);
                 qrCountdownTimer = null;
-                descEl.textContent = 'Kode QR kedaluwarsa. Klik Segarkan Status untuk membuat yang baru.';
+                descEl.textContent = 'Kode QR kedaluwarsa. Klik Segarkan untuk membuat yang baru.';
                 return;
             }
-            descEl.textContent = `Pilih metode koneksi yang Anda inginkan. (QR kedaluwarsa dalam ${remaining}s)`;
+            descEl.textContent = `QR kedaluwarsa dalam ${remaining} detik`;
             remaining--;
         }, 1000);
     }
@@ -302,26 +304,21 @@
             placeholder.remove();
         }
 
+        const sender = escapeHtml(message.sender || 'Unknown');
+        const group = message.groupName ? escapeHtml(message.groupName) : '';
+        const text = escapeHtml(message.message || message.text || '(tanpa teks)');
+        const time = escapeHtml(new Date(message.timestamp * 1000 || Date.now()).toLocaleString('id-ID'));
         const messageElement = document.createElement('div');
-        messageElement.className = 'message-item fade-in';
+        messageElement.className = 'flex items-start gap-3 px-4 py-3';
         messageElement.innerHTML = `
-            <div class="d-flex align-items-start">
-                <div class="d-flex align-items-center justify-content-center rounded-circle mr-3 flex-shrink-0 bg-primary text-white"
-                     style="width:38px;height:38px;font-size:1rem;">
-                    <i class="ri-message-2-line"></i>
+            <span class="avatar"><i class="${group ? 'ri-group-line' : 'ri-user-3-line'}"></i></span>
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                    <strong class="truncate text-sm text-ink">${group ? `${group} · ` : ''}${sender}</strong>
+                    <span class="badge ${group ? 'badge-info' : 'badge-brand'}">${group ? 'Grup' : 'Personal'}</span>
+                    <span class="ml-auto shrink-0 text-xs text-muted">${time}</span>
                 </div>
-                <div class="flex-grow-1 overflow-hidden">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <strong class="text-dark" style="font-size:0.83rem;">
-                            ${message.groupName ? `[${message.groupName}] ` : ''}${message.sender || 'Unknown'}
-                        </strong>
-                        <span class="badge badge-primary" style="font-size:0.62rem;">
-                            ${message.groupName ? 'Grup' : 'Personal'}
-                        </span>
-                    </div>
-                    <p class="mb-0 text-muted" style="font-size:0.8rem;word-break:break-word;">${message.message || message.text || 'No message'}</p>
-                    <small class="text-muted" style="font-size:0.68rem;">${new Date(message.timestamp * 1000 || Date.now()).toLocaleString()}</small>
-                </div>
+                <p class="m-0 mt-0.5 text-sm break-words text-ink-soft">${text}</p>
             </div>
         `;
 
@@ -334,7 +331,7 @@
 
     async function refreshStatus() {
         const refreshText = document.getElementById('refreshText');
-        if (refreshText) refreshText.innerHTML = '<i class="ri-loader-4-line spin"></i> Refreshing...';
+        if (refreshText) refreshText.innerHTML = '<i class="ri-loader-4-line spin"></i> Memuat…';
         if (refreshBtn) refreshBtn.disabled = true;
         showActionStatus('Refreshing connection status...', 'info');
 
@@ -342,7 +339,8 @@
             const response = await fetch('/status');
             const data = await response.json();
 
-            updateStatus(data.status, data.user);
+            const connectedAt = typeof data.uptimeMs === 'number' ? Date.now() - data.uptimeMs : null;
+            updateStatus(data.status, data.user, connectedAt);
 
             if (data.qr) {
                 displayQR(data.qr);
@@ -355,7 +353,7 @@
             console.error('Error refreshing status:', error);
             showActionStatus('Error: Could not connect to the service.', 'error');
         } finally {
-            if (refreshText) refreshText.innerHTML = '<i class="ri-refresh-line"></i> Segarkan Status';
+            if (refreshText) refreshText.innerHTML = '<i class="ri-refresh-line"></i> Segarkan';
             if (refreshBtn) refreshBtn.disabled = false;
         }
     }
@@ -455,24 +453,21 @@
         } else if (messageType === 'button') {
             // Send button message
             const { value: formValues } = await Swal.fire({
-                title: 'Pesan dengan Button',
+                title: 'Pesan dengan tombol',
+                width: '560px',
                 html: `
-                    <div class="text-left space-y-3">
+                    <div class="swal-form">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Teks Pesan</label>
-                            <textarea id="buttonText" class="swal2-input w-full" placeholder="Silakan pilih opsi di bawah:" rows="2"></textarea>
+                            <label class="label" for="buttonText">Teks pesan</label>
+                            <textarea id="buttonText" class="input" rows="3" placeholder="Silakan pilih opsi di bawah:"></textarea>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Button 1 (Required)</label>
-                            <input id="btn1" class="swal2-input" placeholder="Ya" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Button 2 (Optional)</label>
-                            <input id="btn2" class="swal2-input" placeholder="Tidak">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Button 3 (Optional)</label>
-                            <input id="btn3" class="swal2-input" placeholder="Nanti">
+                            <span class="label">Tombol <span class="font-medium text-muted">(maks. 3, tombol 1 wajib)</span></span>
+                            <div class="grid gap-2 sm:grid-cols-3">
+                                <input id="btn1" class="input" placeholder="Ya" aria-label="Tombol 1" required>
+                                <input id="btn2" class="input" placeholder="Tidak" aria-label="Tombol 2 (opsional)">
+                                <input id="btn3" class="input" placeholder="Nanti" aria-label="Tombol 3 (opsional)">
+                            </div>
                         </div>
                     </div>
                 `,
@@ -487,7 +482,7 @@
                     const btn3 = document.getElementById('btn3').value;
 
                     if (!text || !btn1) {
-                        Swal.showValidationMessage('Teks pesan dan button 1 wajib diisi');
+                        Swal.showValidationMessage('Teks pesan dan tombol 1 wajib diisi');
                         return false;
                     }
 
@@ -554,36 +549,36 @@
         } else if (messageType === 'list') {
             // Send list message
             const { value: formValues } = await Swal.fire({
-                title: 'Pesan dengan List',
+                title: 'Pesan dengan list',
                 html: `
-                    <div class="text-left space-y-3">
+                    <div class="swal-form">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Teks Pesan</label>
-                            <textarea id="listText" class="swal2-input w-full" placeholder="Silakan pilih menu:" rows="2"></textarea>
+                            <label class="label" for="listText">Teks pesan</label>
+                            <textarea id="listText" class="input" rows="3" placeholder="Silakan pilih menu:"></textarea>
+                        </div>
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <div>
+                                <label class="label" for="listTitle">Judul list</label>
+                                <input id="listTitle" class="input" placeholder="Menu Utama" required>
+                            </div>
+                            <div>
+                                <label class="label" for="buttonText">Teks tombol</label>
+                                <input id="buttonText" class="input" placeholder="Pilih Menu" required>
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Judul List</label>
-                            <input id="listTitle" class="swal2-input" placeholder="Menu Utama" required>
+                            <span class="label">Opsi 1 <span class="font-medium text-muted">(wajib)</span></span>
+                            <div class="grid gap-2 sm:grid-cols-[2fr_3fr]">
+                                <input id="opt1Title" class="input" placeholder="Produk" aria-label="Judul opsi 1" required>
+                                <input id="opt1Desc" class="input" placeholder="Lihat katalog produk" aria-label="Deskripsi opsi 1">
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Teks Tombol</label>
-                            <input id="buttonText" class="swal2-input" placeholder="Pilih Menu" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Option 1 Title</label>
-                            <input id="opt1Title" class="swal2-input" placeholder="Produk" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Option 1 Description</label>
-                            <input id="opt1Desc" class="swal2-input" placeholder="Lihat katalog produk">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Option 2 Title</label>
-                            <input id="opt2Title" class="swal2-input" placeholder="Layanan">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Option 2 Description</label>
-                            <input id="opt2Desc" class="swal2-input" placeholder="Layanan kami">
+                            <span class="label">Opsi 2 <span class="font-medium text-muted">(opsional)</span></span>
+                            <div class="grid gap-2 sm:grid-cols-[2fr_3fr]">
+                                <input id="opt2Title" class="input" placeholder="Layanan" aria-label="Judul opsi 2">
+                                <input id="opt2Desc" class="input" placeholder="Layanan kami" aria-label="Deskripsi opsi 2">
+                            </div>
                         </div>
                     </div>
                 `,
@@ -602,7 +597,7 @@
                     const opt2Desc = document.getElementById('opt2Desc').value;
 
                     if (!text || !title || !buttonText || !opt1Title) {
-                        Swal.showValidationMessage('Teks pesan, judul, teks tombol, dan option 1 wajib diisi');
+                        Swal.showValidationMessage('Teks pesan, judul, teks tombol, dan opsi 1 wajib diisi');
                         return false;
                     }
 
@@ -677,8 +672,8 @@
             text: 'This will clear the session and you will need to scan the QR code again.',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
+            confirmButtonColor: '#b91c1c',
+            cancelButtonColor: '#64748b',
             confirmButtonText: 'Log out',
         });
         if (!result.isConfirmed) return;
@@ -701,12 +696,9 @@
                 }
                 if (messagesList) {
                     messagesList.innerHTML = `
-                        <div id="messagesPlaceholder" class="text-center py-4">
-                            <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto mb-3 bg-light" style="width:48px;height:48px;">
-                                <i class="ri-mail-open-line text-muted" style="font-size:1.4rem;"></i>
-                            </div>
-                            <h6 class="text-muted text-uppercase font-weight-bold" style="font-size:0.72rem;letter-spacing:.05em;">Belum Ada Aktivitas</h6>
-                            <p class="text-muted mb-0" style="font-size:0.8rem;">Hubungkan WhatsApp dan mulai kirim/terima pesan untuk melihat aktivitas log secara real-time di sini.</p>
+                        <div id="messagesPlaceholder" class="empty">
+                            <i class="ri-mail-open-line"></i>
+                            Belum ada aktivitas. Pesan masuk akan muncul di sini secara real-time.
                         </div>
                     `;
                 }
@@ -722,29 +714,6 @@
     document.addEventListener('DOMContentLoaded', () => {
         refreshStatus();
 
-        // SweetAlert2 confirm for any form with data-confirm
-        document.querySelectorAll('form[data-confirm]').forEach(form => {
-            form.addEventListener('submit', async function (e) {
-                e.preventDefault();
-                const message = form.getAttribute('data-confirm') || 'Are you sure?';
-                const result = await Swal.fire({
-                    title: 'Are you sure?',
-                    text: message,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Yes',
-                });
-                if (result.isConfirmed) form.submit();
-            });
-        });
-
-        // Add fade-in animation to elements
-        document.querySelectorAll('.fade-in').forEach((el, index) => {
-            el.style.animationDelay = `${index * 0.1}s`;
-        });
-
         // Refresh button handler
         if (refreshBtn) {
             refreshBtn.addEventListener('click', refreshStatus);
@@ -759,8 +728,8 @@
                     text: 'Sesi WhatsApp akan direset dan QR baru akan dibuat.',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#f59e0b',
-                    cancelButtonColor: '#6b7280',
+                    confirmButtonColor: '#b45309',
+                    cancelButtonColor: '#64748b',
                     confirmButtonText: 'Ya, reset',
                 });
                 if (!result.isConfirmed) return;
@@ -780,8 +749,3 @@
     });
 
 </script>
-
-<!-- jQuery, Bootstrap 4, AdminLTE 3 -->
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>

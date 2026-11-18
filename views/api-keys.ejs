@@ -1,192 +1,86 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <%- include('partials/head', { title: 'Manajemen Kunci API' }) %>
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <%- include('partials/head', { title: 'Kunci API' }) %>
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
-<div class="wrapper">
+<body>
+<%- include('partials/shell-start', { title: 'Kunci API', page: 'api-keys' }) %>
 
-    <%- include('partials/navbar') %>
-    <%- include('partials/sidebar') %>
-
-    <div class="content-wrapper">
-        <div class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                        <h1 class="m-0">Manajemen Kunci API</h1>
-                    </div>
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb float-sm-right">
-                            <li class="breadcrumb-item"><a href="/dashboard">Dasbor</a></li>
-                            <li class="breadcrumb-item active">API Keys</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">Kunci API</h1>
+            <p class="page-sub m-0">Akses terprogram tanpa cookie sesi. <%= keys.length %> kunci aktif.</p>
         </div>
-
-        <section class="content">
-            <div class="container-fluid">
-
-                <!-- Stats + Action Row -->
-                <div class="row mb-4 fade-in">
-                    <div class="col-sm-4 col-6">
-                        <div class="info-box">
-                            <span class="info-box-icon bg-primary elevation-1">
-                                <i class="ri-key-line"></i>
-                            </span>
-                            <div class="info-box-content">
-                                <span class="info-box-text">Total Keys</span>
-                                <span class="info-box-number"><%= keys.length %></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-4 col-6">
-                        <div class="info-box">
-                            <span class="info-box-icon bg-success elevation-1">
-                                <i class="ri-shield-check-line"></i>
-                            </span>
-                            <div class="info-box-content">
-                                <span class="info-box-text">Status</span>
-                                <span class="info-box-number">Aktif</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-4 col-12 d-flex align-items-center">
-                        <form action="/api-keys/generate" method="POST" class="w-100">
-                            <button type="submit" class="btn btn-primary btn-block">
-                                <i class="ri-add-line mr-1"></i> Generate Key Baru
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Alerts -->
-                <% if (locals.error) { %>
-                <div class="alert alert-danger alert-dismissible fade show fade-in" role="alert">
-                    <i class="ri-error-warning-line mr-2"></i> <%= error %>
-                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-                </div>
-                <% } %>
-                <% if (locals.success) { %>
-                <div class="alert alert-success alert-dismissible fade show fade-in" role="alert">
-                    <i class="ri-checkbox-circle-line mr-2"></i> <%= success %>
-                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-                </div>
-                <% } %>
-
-                <!-- API Keys Table -->
-                <div class="card card-outline card-primary fade-in">
-                    <div class="card-header">
-                        <h3 class="card-title"><i class="ri-key-line text-primary mr-2"></i>Daftar API Key</h3>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0">
-                                <thead>
-                                    <tr>
-                                        <th width="40">#</th>
-                                        <th>API Key</th>
-                                        <th>Dibuat</th>
-                                        <th class="text-right">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% if (keys && keys.length > 0) { %>
-                                        <% keys.forEach((k, index) => { %>
-                                        <tr>
-                                            <td class="text-muted"><%= index + 1 %></td>
-                                            <td>
-                                                <% if (k.raw) { %>
-                                                <div class="d-flex align-items-center">
-                                                    <code class="text-primary mr-2" style="font-size:0.8rem;"><%= k.raw %></code>
-                                                    <button onclick="copyToClipboard('<%= k.raw %>')" class="btn btn-sm btn-outline-primary py-0 px-2">
-                                                        <i class="ri-file-copy-line"></i>
-                                                    </button>
-                                                </div>
-                                                <% } else { %>
-                                                <span class="text-muted"><i class="ri-lock-line mr-1"></i><em>Encrypted</em></span>
-                                                <% } %>
-                                            </td>
-                                            <td class="text-muted"><%= new Date(k.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
-                                            <td class="text-right">
-                                                <form action="/api-keys/delete/<%= k.id %>" method="POST" data-confirm="Hapus kunci API ini?" style="display:inline;">
-                                                    <button type="submit" class="btn btn-sm btn-danger">
-                                                        <i class="ri-delete-bin-line"></i>
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                        <% }) %>
-                                    <% } else { %>
-                                    <tr>
-                                        <td colspan="4" class="text-center text-muted py-4">
-                                            <i class="ri-key-line d-block" style="font-size:2rem;margin-bottom:8px;"></i>
-                                            Belum ada kunci API. Generate key baru di atas.
-                                        </td>
-                                    </tr>
-                                    <% } %>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Usage Info -->
-                <div class="row fade-in">
-                    <div class="col-md-6">
-                        <div class="card card-dark">
-                            <div class="card-header">
-                                <h3 class="card-title"><i class="ri-code-s-slash-line mr-2"></i>Header Autentikasi</h3>
-                            </div>
-                            <div class="card-body">
-                                <pre class="text-success mb-0" style="font-size:0.82rem;background:#1a1f2e;padding:12px;border-radius:8px;">X-API-KEY: your_key_here</pre>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card card-outline card-info">
-                            <div class="card-header">
-                                <h3 class="card-title"><i class="ri-information-line text-info mr-2"></i>Info Keamanan</h3>
-                            </div>
-                            <div class="card-body">
-                                <p class="text-muted mb-0" style="font-size:0.875rem;">
-                                    Kunci API hanya ditampilkan sekali saat dibuat. Gunakan header 
-                                    <code>X-API-KEY</code> untuk pengiriman pesan via sistem eksternal.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
+        <form action="/api-keys/generate" method="POST">
+            <button type="submit" class="btn btn-primary"><i class="ri-add-line"></i> Buat kunci</button>
+        </form>
     </div>
 
-    <footer class="main-footer">
-        <strong>WhatsApp Webhook</strong> &copy; 2024.
-        <div class="float-right d-none d-sm-inline-block"><b>Version</b> 1.0.0</div>
-    </footer>
-</div>
+    <%- include('partials/flash') %>
 
-<%- include('partials/bottom-nav') %>
+    <div class="grid gap-4 lg:grid-cols-3">
+        <section class="card lg:col-span-2" aria-labelledby="keysTitle">
+            <div class="card-head">
+                <h2 class="card-title" id="keysTitle"><i class="ri-key-2-line"></i> Daftar kunci</h2>
+            </div>
+            <div class="table-wrap">
+                <table class="table">
+                    <thead>
+                        <tr><th class="w-10">#</th><th>Kunci</th><th>Dibuat</th><th class="text-right">Aksi</th></tr>
+                    </thead>
+                    <tbody>
+                    <% if (keys && keys.length > 0) { %>
+                        <% keys.forEach((k, index) => { %>
+                        <tr>
+                            <td class="text-muted"><%= index + 1 %></td>
+                            <td>
+                                <% if (k.raw) { %>
+                                <div class="flex items-center gap-2">
+                                    <code class="code"><%= k.raw %></code>
+                                    <button type="button" data-copy="<%= k.raw %>" class="btn btn-ghost btn-sm btn-icon" aria-label="Salin kunci"><i class="ri-file-copy-line"></i></button>
+                                </div>
+                                <% } else { %>
+                                <span class="inline-flex items-center gap-1 text-muted"><i class="ri-lock-line"></i> Tersembunyi</span>
+                                <% } %>
+                            </td>
+                            <td class="whitespace-nowrap text-muted"><%= new Date(k.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
+                            <td class="text-right">
+                                <form action="/api-keys/delete/<%= k.id %>" method="POST" data-confirm="Hapus kunci API ini? Integrasi yang memakainya akan berhenti." class="inline">
+                                    <button type="submit" class="btn btn-ghost-danger btn-sm btn-icon" aria-label="Hapus kunci"><i class="ri-delete-bin-line"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr><td colspan="4" class="empty"><i class="ri-key-2-line"></i>Belum ada kunci API. Klik “Buat kunci” untuk memulai.</td></tr>
+                    <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
+        <aside class="flex flex-col gap-4">
+            <section class="card">
+                <div class="card-head"><h2 class="card-title"><i class="ri-terminal-box-line"></i> Cara pakai</h2></div>
+                <div class="card-body space-y-3">
+                    <pre class="console">X-API-KEY: kunci_anda</pre>
+                    <p class="m-0 text-sm text-ink-soft">Kirim lewat header <code class="code">X-API-KEY</code> atau query <code class="code">?api_key=</code>.</p>
+                </div>
+            </section>
+            <div class="alert alert-warning">
+                <i class="ri-shield-keyhole-line mt-0.5"></i>
+                <span>Kunci hanya ditampilkan sekali saat dibuat. Simpan di tempat aman.</span>
+            </div>
+        </aside>
+    </div>
+
+<%- include('partials/shell-end') %>
 <script>
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            Swal.fire({
-                icon: 'success',
-                title: 'Disalin!',
-                text: 'Kunci API berhasil disalin.',
-                timer: 1000,
-                showConfirmButton: false,
-            });
-        });
-    }
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-copy]');
+        if (!btn) return;
+        navigator.clipboard.writeText(btn.dataset.copy).then(() => showNotification('Kunci API disalin', 'success'));
+    });
 </script>
-<%- include('partials/simple-scripts') %>
 </body>
 </html>
