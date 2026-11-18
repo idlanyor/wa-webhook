@@ -1,98 +1,31 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masuk • WhatsApp Webhook</title>
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- RemixIcon -->
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
-    <!-- AdminLTE 3 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="/css/custom.css">
+    <%- include('partials/head', { title: 'Masuk', description: 'Masuk ke dasbor WA Webhook IrengCloud untuk mengelola sesi WhatsApp, kunci API, webhook, dan balas otomatis.' }) %>
 </head>
-<body class="hold-transition login-page">
+<body>
+<%- include('partials/auth-start') %>
+            <h1 class="m-0 text-2xl font-bold text-ink">Masuk</h1>
+            <p class="mt-1 mb-6 text-sm text-muted">Kelola gateway WhatsApp Anda.</p>
 
-<div class="login-box">
-    <!-- Logo -->
-    <div class="login-logo">
-        <div class="d-flex align-items-center justify-content-center mb-2">
-            <div class="d-flex align-items-center justify-content-center rounded-circle mr-3"
-                 style="width:52px;height:52px;background:rgba(255,255,255,0.2);">
-                <i class="ri-whatsapp-fill text-white" style="font-size:1.8rem;"></i>
-            </div>
-        </div>
-        <a href="#" style="color:#fff;font-weight:800;font-size:1.6rem;letter-spacing:-0.5px;">WA Webhook</a>
-        <p class="text-white-50 mt-1" style="font-size:0.85rem;">Masuk untuk mengelola bot Anda</p>
-    </div>
+            <%- include('partials/flash') %>
 
-    <!-- Card -->
-    <div class="card">
-        <div class="card-body login-card-body">
-
-            <% if (error) { %>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="ri-error-warning-fill mr-2"></i>
-                <%= error %>
-                <button type="button" class="close" data-dismiss="alert">
-                    <span>&times;</span>
-                </button>
-            </div>
-            <% } %>
-
-            <form action="/login" method="POST">
-                <div class="input-group mb-3">
-                    <input type="email" name="email" class="form-control" placeholder="nama@email.com" required>
-                    <div class="input-group-append">
-                        <div class="input-group-text">
-                            <i class="ri-mail-line"></i>
-                        </div>
+            <form action="/login" method="POST" class="space-y-4">
+                <div>
+                    <label class="label" for="email">Email</label>
+                    <input type="email" id="email" name="email" class="input" placeholder="nama@email.com" autocomplete="email" required autofocus>
+                </div>
+                <div>
+                    <label class="label" for="passwordInput">Kata sandi</label>
+                    <div class="input-wrap">
+                        <input type="password" name="password" id="passwordInput" class="input" autocomplete="current-password" required>
+                        <button type="button" class="btn btn-ghost btn-sm btn-icon h-7 w-7" onclick="togglePassword('passwordInput', this)" aria-label="Tampilkan kata sandi"><i class="ri-eye-line"></i></button>
                     </div>
                 </div>
-                <div class="input-group mb-3">
-                    <input type="password" name="password" id="passwordInput" class="form-control" placeholder="Kata Sandi" required>
-                    <div class="input-group-append">
-                        <button type="button" class="input-group-text btn btn-outline-secondary border-left-0" onclick="togglePassword()" style="cursor:pointer;border-radius:0 4px 4px 0;">
-                            <i class="ri-eye-line" id="toggleIcon"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-success btn-block">
-                            <i class="ri-login-box-line mr-1"></i> Masuk Sekarang
-                        </button>
-                    </div>
-                </div>
+                <button type="submit" class="btn btn-primary btn-block">Masuk</button>
             </form>
 
-            <p class="mb-0 mt-4 text-center" style="font-size:0.875rem;">
-                Belum punya akun? <a href="/register" class="text-success font-weight-bold">Daftar disini</a>
-            </p>
-
-        </div>
-    </div>
-</div>
-
-<script>
-    function togglePassword() {
-        const input = document.getElementById('passwordInput');
-        const icon = document.getElementById('toggleIcon');
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.className = 'ri-eye-off-line';
-        } else {
-            input.type = 'password';
-            icon.className = 'ri-eye-line';
-        }
-    }
-</script>
-
-<!-- jQuery, Bootstrap 4, AdminLTE 3 -->
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+            <p class="mt-6 text-center text-sm text-muted">Belum punya akun? <a href="/register" class="font-semibold">Daftar</a></p>
+<%- include('partials/auth-end') %>
 </body>
 </html>

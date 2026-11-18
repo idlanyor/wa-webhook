@@ -1,233 +1,92 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <%- include('partials/head', { title: 'Manajemen Kontak' }) %>
+    <%- include('partials/head', { title: 'Kontak' }) %>
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
-<div class="wrapper">
+<body>
+<%- include('partials/shell-start', { title: 'Kontak', page: 'contacts' }) %>
 
-    <%- include('partials/navbar') %>
-    <%- include('partials/sidebar') %>
-
-    <div class="content-wrapper">
-        <div class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                        <h1 class="m-0">Manajemen Kontak</h1>
-                    </div>
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb float-sm-right">
-                            <li class="breadcrumb-item"><a href="/dashboard">Dasbor</a></li>
-                            <li class="breadcrumb-item active">Kontak</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">Kontak</h1>
+            <p class="page-sub m-0">Simpan dan beri tag nomor tujuan.</p>
         </div>
+    </div>
 
-        <section class="content">
-            <div class="container-fluid">
+    <%- include('partials/flash') %>
 
-                <!-- Alerts -->
-                <% if (locals.error) { %>
-                <div class="alert alert-danger alert-dismissible fade show fade-in" role="alert">
-                    <i class="ri-error-warning-line mr-2"></i> <%= error %>
-                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+    <div class="grid gap-4 lg:grid-cols-3">
+        <aside class="space-y-4">
+            <form action="/contacts/add" method="POST" class="card">
+                <div class="card-head"><h2 class="card-title"><i class="ri-user-add-line"></i> Kontak baru</h2></div>
+                <div class="card-body space-y-3">
+                    <div><label class="label" for="name">Nama</label><input type="text" id="name" name="name" required class="input" placeholder="Nama"></div>
+                    <div><label class="label" for="phone">Nomor</label><input type="text" id="phone" name="phone" required class="input font-mono" placeholder="6281234567890"></div>
+                    <div><label class="label" for="tags">Tag</label><input type="text" id="tags" name="tags" class="input" placeholder="vip, pelanggan"><p class="hint">Pisahkan dengan koma.</p></div>
                 </div>
-                <% } %>
-                <% if (locals.success) { %>
-                <div class="alert alert-success alert-dismissible fade show fade-in" role="alert">
-                    <i class="ri-checkbox-circle-line mr-2"></i> <%= success %>
-                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                <div class="card-foot"><button type="submit" class="btn btn-primary"><i class="ri-save-line"></i> Simpan</button></div>
+            </form>
+
+            <section class="card">
+                <div class="card-head"><h2 class="card-title"><i class="ri-upload-2-line"></i> Impor</h2></div>
+                <div class="card-body space-y-4">
+                    <form action="/contacts/import" method="POST" enctype="multipart/form-data" class="space-y-2">
+                        <label class="label" for="vcfFile">Berkas VCF</label>
+                        <input type="file" class="input" id="vcfFile" name="vcfFile" accept=".vcf" required>
+                        <button type="submit" class="btn btn-secondary btn-block"><i class="ri-upload-2-line"></i> Impor VCF</button>
+                    </form>
+                    <div class="divider"></div>
+                    <form action="/contacts/import/csv" method="POST" enctype="multipart/form-data" class="space-y-2">
+                        <label class="label" for="csvFile">Berkas CSV <span class="font-medium text-muted">(kolom: Nama, Nomor)</span></label>
+                        <input type="file" class="input" id="csvFile" name="csvFile" accept=".csv" required>
+                        <button type="submit" class="btn btn-secondary btn-block"><i class="ri-upload-2-line"></i> Impor CSV</button>
+                    </form>
                 </div>
-                <% } %>
+            </section>
+        </aside>
 
-                <!-- Action Cards -->
-                <div class="row">
-                    <!-- Add Contact -->
-                    <div class="col-md-4">
-                        <div class="card card-outline card-primary fade-in">
-                            <div class="card-header">
-                                <h3 class="card-title"><i class="ri-user-add-line text-primary mr-2"></i>Tambah Kontak Baru</h3>
-                            </div>
-                            <div class="card-body">
-                                <form action="/contacts/add" method="POST">
-                                    <div class="form-group">
-                                        <label class="font-weight-bold">Nama</label>
-                                        <input type="text" id="name" name="name" required class="form-control" placeholder="Masukkan nama">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="font-weight-bold">Nomor Telepon</label>
-                                        <input type="text" id="phone" name="phone" required class="form-control" placeholder="6281234567890">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="font-weight-bold">Tag <small class="text-muted">(pisahkan dengan koma)</small></label>
-                                        <input type="text" id="tags" name="tags" class="form-control" placeholder="vip, pelanggan">
-                                    </div>
-                                    <button type="submit" class="btn btn-primary btn-block">
-                                        <i class="ri-save-line mr-1"></i> Simpan Kontak
-                                    </button>
+        <section class="card lg:col-span-2" aria-labelledby="contactsTitle">
+            <div class="card-head"><h2 class="card-title" id="contactsTitle"><i class="ri-contacts-book-2-line"></i> Daftar kontak</h2></div>
+            <div class="table-wrap">
+                <table class="table">
+                    <thead><tr><th>Nama</th><th>Nomor</th><th>Tag</th><th class="text-right">Aksi</th></tr></thead>
+                    <tbody>
+                    <% if (contacts.length > 0) { %>
+                        <% contacts.forEach(contact => { %>
+                        <tr>
+                            <td class="font-semibold text-ink"><%= contact.name %></td>
+                            <td><code class="code"><%= contact.phone %></code></td>
+                            <td>
+                                <form action="/contacts/tags/<%= contact.id %>" method="POST" class="flex items-center gap-1">
+                                    <input type="text" name="tags" value="<%= contact.tags || '' %>" class="input h-8 w-36 text-[13px]" placeholder="tag" aria-label="Tag <%= contact.name %>">
+                                    <button type="submit" class="btn btn-ghost btn-sm btn-icon" aria-label="Simpan tag" data-no-loading><i class="ri-save-line"></i></button>
                                 </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Import VCF -->
-                    <div class="col-md-4">
-                        <div class="card card-outline card-success fade-in">
-                            <div class="card-header">
-                                <h3 class="card-title"><i class="ri-upload-2-line text-success mr-2"></i>Impor dari VCF</h3>
-                            </div>
-                            <div class="card-body">
-                                <form action="/contacts/import" method="POST" enctype="multipart/form-data">
-                                    <div class="form-group">
-                                        <label class="font-weight-bold">Berkas VCF</label>
-                                        <div class="custom-file">
-                                            <input type="file" class="custom-file-input" id="vcfFile" name="vcfFile" accept=".vcf" required>
-                                            <label class="custom-file-label" for="vcfFile">Pilih file .vcf</label>
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-success btn-block">
-                                        <i class="ri-upload-2-line mr-1"></i> Impor VCF
-                                    </button>
+                            </td>
+                            <td class="text-right">
+                                <form action="/contacts/delete/<%= contact.id %>" method="POST" data-confirm="Hapus kontak <%= contact.name %>?" class="inline">
+                                    <button type="submit" class="btn btn-ghost-danger btn-sm btn-icon" aria-label="Hapus kontak"><i class="ri-delete-bin-line"></i></button>
                                 </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Import CSV -->
-                    <div class="col-md-4">
-                        <div class="card card-outline card-warning fade-in">
-                            <div class="card-header">
-                                <h3 class="card-title"><i class="ri-file-excel-2-line text-warning mr-2"></i>Impor dari CSV</h3>
-                                <div class="card-tools">
-                                    <small class="text-muted">Kolom: Nama, Nomor</small>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <form action="/contacts/import/csv" method="POST" enctype="multipart/form-data">
-                                    <div class="form-group">
-                                        <label class="font-weight-bold">Berkas CSV</label>
-                                        <div class="custom-file">
-                                            <input type="file" class="custom-file-input" id="csvFile" name="csvFile" accept=".csv" required>
-                                            <label class="custom-file-label" for="csvFile">Pilih file .csv</label>
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-warning btn-block text-white">
-                                        <i class="ri-upload-2-line mr-1"></i> Impor CSV
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Contact List -->
-                <div class="card card-outline card-info fade-in">
-                    <div class="card-header">
-                        <h3 class="card-title"><i class="ri-contacts-book-2-line text-info mr-2"></i>Daftar Kontak</h3>
-                        <div class="card-tools">
-                            <small class="text-muted">Semua kontak yang tersimpan</small>
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Nama</th>
-                                        <th>Nomor Telepon</th>
-                                        <th>Tag</th>
-                                        <th class="text-center">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% if (contacts.length > 0) { %>
-                                        <% contacts.forEach(contact => { %>
-                                        <tr>
-                                            <td class="font-weight-bold"><%= contact.name %></td>
-                                            <td><%= contact.phone %></td>
-                                            <td>
-                                                <% if (contact.tags) { %>
-                                                <% contact.tags.split(',').forEach(tag => { %>
-                                                <span class="badge badge-secondary mr-1"><%= tag.trim() %></span>
-                                                <% }) %>
-                                                <% } else { %>
-                                                <span class="text-muted">-</span>
-                                                <% } %>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex align-items-center justify-content-center flex-wrap" style="gap:6px;">
-                                                    <form action="/contacts/delete/<%= contact.id %>" method="POST"
-                                                          data-confirm="Apakah Anda yakin ingin menghapus kontak ini?" style="display:inline;">
-                                                        <button type="submit" class="btn btn-sm btn-danger">
-                                                            <i class="ri-delete-bin-line"></i>
-                                                        </button>
-                                                    </form>
-                                                    <form action="/contacts/tags/<%= contact.id %>" method="POST" style="display:inline-flex;align-items:center;gap:4px;">
-                                                        <input type="text" name="tags" value="<%= contact.tags || '' %>"
-                                                               class="form-control form-control-sm" placeholder="tag" style="width:90px;">
-                                                        <button type="submit" class="btn btn-sm btn-outline-secondary">
-                                                            <i class="ri-save-line"></i>
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <% }); %>
-                                    <% } else { %>
-                                    <tr>
-                                        <td colspan="4" class="text-center text-muted py-5">
-                                            <i class="ri-contacts-book-line d-block" style="font-size:2.5rem;margin-bottom:8px;"></i>
-                                            Belum ada kontak. Tambahkan kontak untuk memulai!
-                                        </td>
-                                    </tr>
-                                    <% } %>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Pagination -->
-                    <% if (totalPages > 1) { %>
-                    <div class="card-footer clearfix">
-                        <ul class="pagination pagination-sm m-0 float-right">
-                            <% if (currentPage > 1) { %>
-                            <li class="page-item">
-                                <a class="page-link" href="/contacts?page=<%= currentPage - 1 %>">
-                                    <i class="ri-arrow-left-s-line"></i>
-                                </a>
-                            </li>
-                            <% } %>
-                            <% for (let p = 1; p <= totalPages; p++) { %>
-                            <li class="page-item <%= p === currentPage ? 'active' : '' %>">
-                                <a class="page-link" href="/contacts?page=<%= p %>"><%= p %></a>
-                            </li>
-                            <% } %>
-                            <% if (currentPage < totalPages) { %>
-                            <li class="page-item">
-                                <a class="page-link" href="/contacts?page=<%= currentPage + 1 %>">
-                                    <i class="ri-arrow-right-s-line"></i>
-                                </a>
-                            </li>
-                            <% } %>
-                        </ul>
-                    </div>
+                            </td>
+                        </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr><td colspan="4" class="empty"><i class="ri-contacts-book-line"></i>Belum ada kontak.</td></tr>
                     <% } %>
-                </div>
-
+                    </tbody>
+                </table>
             </div>
+            <% if (totalPages > 1) { %>
+            <nav class="card-foot" aria-label="Halaman">
+                <% if (currentPage > 1) { %><a class="btn btn-ghost btn-sm btn-icon" href="/contacts?page=<%= currentPage - 1 %>" aria-label="Sebelumnya"><i class="ri-arrow-left-s-line"></i></a><% } %>
+                <% for (let p = 1; p <= totalPages; p++) { %>
+                <a class="btn btn-sm <%= p === currentPage ? 'btn-primary' : 'btn-ghost' %>" href="/contacts?page=<%= p %>" <%- p === currentPage ? 'aria-current="page"' : '' %>><%= p %></a>
+                <% } %>
+                <% if (currentPage < totalPages) { %><a class="btn btn-ghost btn-sm btn-icon" href="/contacts?page=<%= currentPage + 1 %>" aria-label="Berikutnya"><i class="ri-arrow-right-s-line"></i></a><% } %>
+            </nav>
+            <% } %>
         </section>
     </div>
 
-    <footer class="main-footer">
-        <strong>WhatsApp Webhook</strong> &copy; 2024.
-        <div class="float-right d-none d-sm-inline-block"><b>Version</b> 1.0.0</div>
-    </footer>
-</div>
-
-<%- include('partials/bottom-nav') %>
-<%- include('partials/simple-scripts') %>
+<%- include('partials/shell-end') %>
 </body>
 </html>

@@ -3,191 +3,113 @@
 <head>
     <%- include('partials/head', { title: 'Dokumentasi API' }) %>
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
-<div class="wrapper">
+<body>
+<%- include('partials/shell-start', { title: 'Dokumentasi', page: 'documentation' }) %>
+<%
+    const endpoints = [
+        { method: 'GET',  path: '/status', desc: 'Cek status koneksi dan QR code', auth: 'Cookie/API Key', params: [] },
+        { method: 'POST', path: '/send-message', desc: 'Kirim satu pesan WhatsApp', params: ['<b>to</b> (number)', '<b>message</b> (text)', '<b>reply_to_id</b> (optional)'] },
+        { method: 'POST', path: '/send-document', desc: 'Kirim dokumen atau attachment', params: ['<b>to</b> (number)', '<b>url</b> / <b>base64</b> / <b>document</b> (file)', '<b>fileName</b> (optional)', '<b>mimetype</b> (optional)', '<b>caption</b> (optional)'] },
+        { method: 'POST', path: '/send-interactive', desc: 'Kirim pesan interaktif dengan tombol atau list', params: ['<b>to</b> (number)', '<b>text</b> (message)', '<b>footer</b> (optional)', '<b>interactiveButtons</b> (array)'] }
+    ];
+    const features = [
+        { icon: 'ri-dashboard-line', title: 'Dashboard', text: 'Real-time connection status, QR code generation, and recent messages.' },
+        { icon: 'ri-cursor-line', title: 'Pesan Interaktif', text: 'Kirim pesan dengan tombol (button) dan list untuk meningkatkan interaksi dengan pengguna.' },
+        { icon: 'ri-reply-all-line', title: 'Balas Otomatis', text: 'Bot berbasis kata kunci dengan aktif/nonaktif per aturan dan sakelar global.' },
+        { icon: 'ri-group-line', title: 'Manajemen User', text: 'Kelola pengguna sistem, buat akun baru, dan atur peran (Admin/User).' },
+        { icon: 'ri-key-line', title: 'Kunci API', text: 'Buat/cabut kunci untuk akses terprogram tanpa cookie sesi.' },
+        { icon: 'ri-webhook-line', title: 'Integrasi Webhook', text: 'Terima notifikasi real-time termasuk tombol yang ditekan pengguna untuk tracking interaksi.' }
+    ];
+%>
 
-    <%- include('partials/navbar') %>
-    <%- include('partials/sidebar') %>
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">Dokumentasi API</h1>
+            <p class="page-sub m-0">Kirim pesan WhatsApp dari sistem Anda lewat REST API.</p>
+        </div>
+        <a href="/api-keys" class="btn btn-secondary"><i class="ri-key-2-line"></i> Kunci API</a>
+    </div>
 
-    <div class="content-wrapper">
-        <div class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                        <h1 class="m-0">Dokumentasi API</h1>
+    <div class="grid gap-4 lg:grid-cols-[1fr_280px]">
+        <div class="min-w-0 space-y-4">
+            <section class="card" id="auth" aria-labelledby="authTitle">
+                <div class="card-head"><h2 class="card-title" id="authTitle"><i class="ri-shield-keyhole-line"></i> Autentikasi</h2></div>
+                <div class="card-body grid gap-3 md:grid-cols-2">
+                    <div class="rounded-md border border-line p-3">
+                        <div class="mb-1 text-sm font-bold text-ink">Kunci API <span class="badge badge-brand ml-1">disarankan</span></div>
+                        <p class="m-0 text-sm text-ink-soft">Buat di halaman <a href="/api-keys">Kunci API</a>, kirim lewat header <code class="code">X-API-KEY</code> atau query <code class="code">?api_key=</code>.</p>
                     </div>
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb float-sm-right">
-                            <li class="breadcrumb-item"><a href="/dashboard">Dasbor</a></li>
-                            <li class="breadcrumb-item active">Dokumentasi</li>
-                        </ol>
+                    <div class="rounded-md border border-line p-3">
+                        <div class="mb-1 text-sm font-bold text-ink">Cookie sesi</div>
+                        <p class="m-0 text-sm text-ink-soft">Masuk lewat dasbor, lalu sertakan cookie <code class="code">auth-token</code> di setiap request.</p>
                     </div>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <section class="content">
-            <div class="container-fluid">
-                    <!-- Introduction Card -->
-                    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-800 p-4 md:p-6 mb-8 fade-in break-words">
-                        <div class="flex items-center justify-between mb-4 md:mb-6">
-                            <div class="pr-2">
-                                <h3 class="text-lg md:text-xl font-semibold text-gray-800 dark:text-slate-100">Pendahuluan</h3>
-                                <p class="text-xs md:text-sm text-gray-600 dark:text-slate-400 mt-1">Memulai dengan WhatsApp API</p>
-                            </div>
-                            <div class="w-10 h-10 md:w-14 md:h-14 bg-linear-to-br from-blue-100/10 to-blue-200/20 dark:from-blue-950/40 dark:to-blue-900/30 rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner flex-shrink-0">
-                                <i class="ri-book-2-line text-blue-600 dark:text-blue-400 text-lg md:text-2xl"></i>
-                            </div>
-                        </div>
+            <section class="card" id="endpoints" aria-labelledby="epTitle">
+                <div class="card-head"><h2 class="card-title" id="epTitle"><i class="ri-code-s-slash-line"></i> Endpoint</h2></div>
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead><tr><th class="w-20">Metode</th><th>Endpoint</th><th>Keterangan</th></tr></thead>
+                        <tbody>
+                        <% endpoints.forEach(ep => { %>
+                            <tr>
+                                <td class="align-top"><span class="method method-<%= ep.method.toLowerCase() %>"><%= ep.method %></span></td>
+                                <td class="align-top"><code class="font-mono text-[13px] text-ink"><%= ep.path %></code></td>
+                                <td class="align-top">
+                                    <div class="text-ink"><%= ep.desc %></div>
+                                    <% if (ep.auth) { %><div class="mt-1 text-xs text-muted">Auth: <%= ep.auth %></div><% } %>
+                                    <% if (ep.params.length) { %>
+                                    <ul class="m-0 mt-1.5 flex list-none flex-wrap gap-1 p-0">
+                                        <% ep.params.forEach(p => { %><li class="rounded-sm bg-surface-2 px-1.5 py-0.5 font-mono text-[12px] text-ink-soft"><%- p %></li><% }) %>
+                                    </ul>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-                        <div class="prose max-w-none break-words">
-                            <p class="text-gray-700 dark:text-slate-300 mb-4">Halaman ini menjelaskan cara berinteraksi secara programatis dengan layanan WhatsApp Webhook dan memberikan gambaran fitur yang tersedia di dasbor.</p>
-
-                            <div class="bg-blue-50/50 dark:bg-blue-950/20 rounded-xl p-4 border-l-4 border-blue-500 mb-4">
-                                <h4 class="font-semibold text-blue-800 dark:text-blue-300 mb-2">Metode Autentikasi</h4>
-                                <p class="text-blue-700 dark:text-blue-400 mb-3 text-sm">Semua endpoint API dilindungi. Tersedia <strong class="text-blue-500 dark:text-blue-400">dua</strong> cara untuk autentikasi:</p>
-                                <ol class="list-decimal list-outside ml-5 space-y-2 text-blue-700 dark:text-blue-400 text-sm">
-                                    <li><strong class="text-blue-500 dark:text-blue-400">Cookie Sesi</strong> – Masuk melalui dasbor web, lalu salin cookie <code class="bg-white dark:bg-slate-950 text-blue-500 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30 px-2 py-1 rounded text-xs break-all">auth-token</code> dari browser dan sertakan pada setiap request.</li>
-                                    <li><strong class="text-blue-500 dark:text-blue-400">Kunci API</strong> – Buat kunci di halaman <em>Kunci API</em>. Kirim lewat header <code class="bg-white dark:bg-slate-950 text-blue-500 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30 px-2 py-1 rounded text-xs break-all">X-API-KEY</code> atau parameter query <code class="bg-white dark:bg-slate-950 text-blue-500 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30 px-2 py-1 rounded text-xs break-all">?api_key=</code>.</li>
-                                </ol>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- REST API Endpoints Card -->
-                    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-800 p-4 md:p-6 mb-8 fade-in overflow-hidden">
-                        <div class="flex items-center justify-between mb-4 md:mb-6">
-                            <div class="pr-2">
-                                <h3 class="text-lg md:text-xl font-semibold text-gray-800 dark:text-slate-100">Endpoint REST API</h3>
-                                <p class="text-xs md:text-sm text-gray-600 dark:text-slate-400 mt-1">Endpoint yang tersedia untuk integrasi API</p>
-                            </div>
-                            <div class="w-10 h-10 md:w-14 md:h-14 bg-linear-to-br from-green-100/10 to-green-200/20 dark:from-green-950/40 dark:to-green-900/30 rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner flex-shrink-0">
-                                <i class="ri-code-s-slash-line text-green-600 dark:text-green-400 text-lg md:text-2xl"></i>
-                            </div>
-                        </div>
-
-                        <div class="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-                            <table class="w-full min-w-[500px]">
-                                <thead>
-                                    <tr class="border-b-2 border-gray-200 dark:border-slate-800">
-                                        <th class="text-left py-3 px-4 font-semibold text-gray-800 dark:text-slate-200 text-sm">Metode</th>
-                                        <th class="text-left py-3 px-4 font-semibold text-gray-800 dark:text-slate-200 text-sm">Endpoint</th>
-                                        <th class="text-left py-3 px-4 font-semibold text-gray-800 dark:text-slate-200 text-sm">Deskripsi</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100 dark:divide-slate-800">
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors">
-                                        <td class="py-4 px-4">
-                                            <span class="inline-block px-2 py-1 bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 text-[10px] font-bold rounded-lg">GET</span>
-                                        </td>
-                                        <td class="py-4 px-4">
-                                            <code class="bg-gray-100 dark:bg-slate-950 text-black dark:text-slate-200 border border-gray-250 dark:border-slate-850 px-2 py-1 rounded text-xs font-mono">/status</code>
-                                        </td>
-                                        <td class="py-4 px-4 text-gray-700 dark:text-slate-300">
-                                            <div class="text-xs mb-1">Cek status koneksi dan QR code</div>
-                                            <div class="text-[10px] text-gray-500 dark:text-slate-500 uppercase font-medium">Auth: Cookie/API Key</div>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors">
-                                        <td class="py-4 px-4">
-                                            <span class="inline-block px-2 py-1 bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-400 text-[10px] font-bold rounded-lg">POST</span>
-                                        </td>
-                                        <td class="py-4 px-4">
-                                            <code class="bg-gray-100 dark:bg-slate-950 text-black dark:text-slate-200 border border-gray-250 dark:border-slate-850 px-2 py-1 rounded text-xs font-mono">/send-message</code>
-                                        </td>
-                                        <td class="py-4 px-4 text-gray-700 dark:text-slate-300">
-                                            <div class="text-xs mb-2">Kirim satu pesan WhatsApp</div>
-                                            <div class="text-[10px] text-gray-500 dark:text-slate-500 uppercase font-medium mb-1">Body Parameters:</div>
-                                            <div class="space-y-1">
-                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">to</span> (number)</div>
-                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">message</span> (text)</div>
-                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">reply_to_id</span> (optional)</div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors">
-                                        <td class="py-4 px-4">
-                                            <span class="inline-block px-2 py-1 bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 text-[10px] font-bold rounded-lg">POST</span>
-                                        </td>
-                                        <td class="py-4 px-4">
-                                            <code class="bg-gray-100 dark:bg-slate-950 text-black dark:text-slate-200 border border-gray-250 dark:border-slate-850 px-2 py-1 rounded text-xs font-mono">/send-document</code>
-                                        </td>
-                                        <td class="py-4 px-4 text-gray-700 dark:text-slate-300">
-                                            <div class="text-xs mb-2">Kirim dokumen atau attachment</div>
-                                            <div class="text-[10px] text-gray-500 dark:text-slate-500 uppercase font-medium mb-1">Body Parameters:</div>
-                                            <div class="space-y-1">
-                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">to</span> (number)</div>
-                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">url</span> / <span class="text-blue-600 dark:text-blue-450">base64</span> / <span class="text-blue-600 dark:text-blue-450">document</span> (file)</div>
-                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">fileName</span> (optional)</div>
-                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">mimetype</span> (optional)</div>
-                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">caption</span> (optional)</div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors">
-                                        <td class="py-4 px-4">
-                                            <span class="inline-block px-2 py-1 bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400 text-[10px] font-bold rounded-lg">POST</span>
-                                        </td>
-                                        <td class="py-4 px-4">
-                                            <code class="bg-gray-100 dark:bg-slate-950 text-black dark:text-slate-200 border border-gray-250 dark:border-slate-850 px-2 py-1 rounded text-xs font-mono">/send-interactive</code>
-                                        </td>
-                                        <td class="py-4 px-4 text-gray-700 dark:text-slate-300">
-                                            <div class="text-xs mb-2">Kirim pesan interaktif dengan tombol atau list</div>
-                                            <div class="text-[10px] text-gray-500 dark:text-slate-500 uppercase font-medium mb-1">Body Parameters:</div>
-                                            <div class="space-y-1">
-                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">to</span> (number)</div>
-                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">text</span> (message)</div>
-                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">footer</span> (optional)</div>
-                                                <div class="text-[10px] font-mono bg-gray-50 dark:bg-slate-950/60 border border-gray-100/80 dark:border-slate-850 p-1 rounded"><span class="text-blue-600 dark:text-blue-450">interactiveButtons</span> (array)</div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Code Examples -->
-                        <div class="mt-8 space-y-6">
-                            <div>
-                                <h4 class="text-base md:text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3">Example with API Key:</h4>
-                                <div class="bg-gray-950 text-slate-100 rounded-xl p-4 overflow-x-auto border border-slate-900">
-                                    <pre class="text-xs md:text-sm font-mono whitespace-pre-wrap break-all"><code>$ curl -X POST \
+            <section class="card" id="examples" aria-labelledby="exTitle">
+                <div class="card-head"><h2 class="card-title" id="exTitle"><i class="ri-terminal-box-line"></i> Contoh request</h2></div>
+            <details class="group border-b border-line last:border-b-0" open>
+                <summary class="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-surface-2">
+                    Kirim pesan dengan kunci API<i class="ri-arrow-down-s-line text-muted transition-transform group-open:rotate-180"></i>
+                </summary>
+                <div class="px-4 pb-4"><pre class="console">$ curl -X POST \
   -H "Content-Type: application/json" \
   -H "X-API-KEY: YOUR_API_KEY" \
   -d '{"to":"6281234567890","message":"Hello via API key!"}' \
-  https://gate.ireng.uk/send-message</code></pre>
-                                </div>
-                            </div>
-
-                            <div>
-                                <h4 class="text-base md:text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3">Example with Cookie:</h4>
-                                <div class="bg-gray-950 text-slate-100 rounded-xl p-4 overflow-x-auto border border-slate-900">
-                                    <pre class="text-xs md:text-sm font-mono whitespace-pre-wrap break-all"><code>$ curl -X POST \
+  https://gateway.irengcloud.com/send-message</pre></div>
+            </details>
+            <details class="group border-b border-line last:border-b-0" >
+                <summary class="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-surface-2">
+                    Kirim pesan dengan cookie<i class="ri-arrow-down-s-line text-muted transition-transform group-open:rotate-180"></i>
+                </summary>
+                <div class="px-4 pb-4"><pre class="console">$ curl -X POST \
   -H "Content-Type: application/json" \
   -H "Cookie: auth-token=YOUR_COOKIE_HERE" \
   -d '{"to":"6281234567890","message":"Hello via cookie!"}' \
-  https://gate.ireng.uk/send-message</code></pre>
-                                </div>
-                            </div>
-
-                            <!-- Document Example -->
-                            <div class="border-t border-gray-200 dark:border-slate-800 pt-6 mt-6">
-                                <h4 class="text-base md:text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3">Document Attachment Example:</h4>
-                                <div class="bg-gray-950 text-slate-100 rounded-xl p-4 overflow-x-auto border border-slate-900">
-                                    <pre class="text-xs md:text-sm font-mono whitespace-pre-wrap break-all"><code>$ curl -X POST \
+  https://gateway.irengcloud.com/send-message</pre></div>
+            </details>
+            <details class="group border-b border-line last:border-b-0" >
+                <summary class="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-surface-2">
+                    Kirim dokumen<i class="ri-arrow-down-s-line text-muted transition-transform group-open:rotate-180"></i>
+                </summary>
+                <div class="px-4 pb-4"><pre class="console">$ curl -X POST \
   -H "X-API-KEY: YOUR_API_KEY" \
   -F "to=6281234567890" \
   -F "caption=Dokumen terlampir" \
   -F "document=@/path/file.pdf" \
-  https://gate.ireng.uk/send-document</code></pre>
-                                </div>
-                            </div>
-
-                            <!-- Interactive Button Example -->
-                            <div class="border-t border-gray-200 dark:border-slate-800 pt-6 mt-6">
-                                <h4 class="text-base md:text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3">Interactive Buttons Example:</h4>
-                                <div class="bg-gray-950 text-slate-100 rounded-xl p-4 overflow-x-auto border border-slate-900">
-                                    <pre class="text-xs md:text-sm font-mono whitespace-pre-wrap break-all"><code>$ curl -X POST \
+  https://gateway.irengcloud.com/send-document</pre></div>
+            </details>
+            <details class="group border-b border-line last:border-b-0" >
+                <summary class="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-surface-2">
+                    Pesan dengan tombol<i class="ri-arrow-down-s-line text-muted transition-transform group-open:rotate-180"></i>
+                </summary>
+                <div class="px-4 pb-4"><pre class="console">$ curl -X POST \
   -H "Content-Type: application/json" \
   -H "X-API-KEY: YOUR_API_KEY" \
   -d '{
@@ -200,15 +122,13 @@
       {"name":"quick_reply","buttonParamsJson":"{\"display_text\":\"Nanti\",\"id\":\"btn_later\"}"}
     ]
   }' \
-  https://gate.ireng.uk/send-interactive</code></pre>
-                                </div>
-                            </div>
-
-                            <!-- Interactive List Example -->
-                            <div class="border-t border-gray-200 dark:border-slate-800 pt-6 mt-6">
-                                <h4 class="text-base md:text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3">Interactive List Example:</h4>
-                                <div class="bg-gray-950 text-slate-100 rounded-xl p-4 overflow-x-auto border border-slate-900">
-                                    <pre class="text-xs md:text-sm font-mono whitespace-pre-wrap break-all"><code>$ curl -X POST \
+  https://gateway.irengcloud.com/send-interactive</pre></div>
+            </details>
+            <details class="group border-b border-line last:border-b-0" >
+                <summary class="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-surface-2">
+                    Pesan dengan list<i class="ri-arrow-down-s-line text-muted transition-transform group-open:rotate-180"></i>
+                </summary>
+                <div class="px-4 pb-4"><pre class="console">$ curl -X POST \
   -H "Content-Type: application/json" \
   -H "X-API-KEY: YOUR_API_KEY" \
   -d '{
@@ -221,121 +141,33 @@
       "buttonParamsJson":"{\"title\":\"Pilih Menu\",\"sections\":[{\"title\":\"Layanan\",\"rows\":[{\"header\":\"Cek Pesanan\",\"title\":\"Cek Pesanan\",\"description\":\"Lihat status pesanan\",\"id\":\"help_order\"},{\"header\":\"Info Produk\",\"title\":\"Info Produk\",\"description\":\"Tanya tentang produk\",\"id\":\"help_product\"}]}]}"
     }]
   }' \
-  https://gate.ireng.uk/send-interactive</code></pre>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+  https://gateway.irengcloud.com/send-interactive</pre></div>
+            </details>
+            </section>
+        </div>
 
-                    <!-- Dashboard Features Card -->
-                    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-800 p-4 md:p-6 mb-8 fade-in overflow-hidden break-words">
-                        <div class="flex items-center justify-between mb-4 md:mb-6">
-                            <div class="pr-2">
-                                <h3 class="text-lg md:text-xl font-semibold text-gray-800 dark:text-slate-100">Dashboard Features</h3>
-                                <p class="text-xs md:text-sm text-gray-600 dark:text-slate-400 mt-1">Available features in the web dashboard</p>
-                            </div>
-                            <div class="w-10 h-10 md:w-14 md:h-14 bg-linear-to-br from-purple-100/10 to-purple-200/20 dark:from-purple-950/40 dark:to-purple-900/30 rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner flex-shrink-0">
-                                <i class="ri-dashboard-3-line text-purple-600 dark:text-purple-400 text-lg md:text-2xl"></i>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="p-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-900/30">
-                                <div class="flex items-center space-x-3 mb-2">
-                                    <i class="ri-dashboard-line text-blue-600 dark:text-blue-400 text-xl"></i>
-                                    <h4 class="font-semibold text-blue-600 dark:text-blue-400 text-sm md:text-base">Dashboard</h4>
-                                </div>
-                                <p class="text-blue-700 dark:text-blue-300 text-xs md:text-sm leading-relaxed">Real-time connection status, QR code generation, and recent messages.</p>
-                            </div>
-
-                            <div class="p-4 bg-green-50/50 dark:bg-green-950/20 rounded-xl border border-green-200 dark:border-green-900/30">
-                                <div class="flex items-center space-x-3 mb-2">
-                                    <i class="ri-touchpin-line text-green-600 dark:text-green-400 text-xl"></i>
-                                    <h4 class="font-semibold text-green-600 dark:text-green-400 text-sm md:text-base">Pesan Interaktif</h4>
-                                </div>
-                                <p class="text-green-700 dark:text-green-300 text-xs md:text-sm leading-relaxed">Kirim pesan dengan tombol (button) dan list untuk meningkatkan interaksi dengan pengguna.</p>
-                            </div>
-
-                            <div class="p-4 bg-orange-50/50 dark:bg-orange-950/20 rounded-xl border border-orange-200 dark:border-orange-900/30">
-                                <div class="flex items-center space-x-3 mb-2">
-                                    <i class="ri-reply-all-line text-orange-600 dark:text-orange-400 text-xl"></i>
-                                    <h4 class="font-semibold text-orange-600 dark:text-orange-400 text-sm md:text-base">Balas Otomatis</h4>
-                                </div>
-                                <p class="text-orange-700 dark:text-orange-300 text-xs md:text-sm leading-relaxed">Bot berbasis kata kunci dengan aktif/nonaktif per aturan dan sakelar global.</p>
-                            </div>
-
-                            <div class="p-4 bg-purple-50/50 dark:bg-purple-950/20 rounded-xl border border-purple-200 dark:border-purple-900/30">
-                                <div class="flex items-center space-x-3 mb-2">
-                                    <i class="ri-group-line text-purple-600 dark:text-purple-400 text-xl"></i>
-                                    <h4 class="font-semibold text-purple-600 dark:text-purple-400 text-sm md:text-base">Manajemen User</h4>
-                                </div>
-                                <p class="text-purple-700 dark:text-purple-300 text-xs md:text-sm leading-relaxed">Kelola pengguna sistem, buat akun baru, dan atur peran (Admin/User).</p>
-                            </div>
-
-                            <div class="p-4 bg-indigo-50/50 dark:bg-indigo-950/20 rounded-xl border border-indigo-200 dark:border-indigo-900/30">
-                                <div class="flex items-center space-x-3 mb-2">
-                                    <i class="ri-key-line text-indigo-600 dark:text-indigo-400 text-xl"></i>
-                                    <h4 class="font-semibold text-indigo-600 dark:text-indigo-400 text-sm md:text-base">Kunci API</h4>
-                                </div>
-                                <p class="text-indigo-700 dark:text-indigo-300 text-xs md:text-sm leading-relaxed">Buat/cabut kunci untuk akses terprogram tanpa cookie sesi.</p>
-                            </div>
-
-                            <div class="p-4 bg-pink-50/50 dark:bg-pink-950/20 rounded-xl border border-pink-200 dark:border-pink-900/30">
-                                <div class="flex items-center space-x-3 mb-2">
-                                    <i class="ri-webhook-line text-pink-600 dark:text-pink-400 text-xl"></i>
-                                    <h4 class="font-semibold text-pink-600 dark:text-pink-400 text-sm md:text-base">Integrasi Webhook</h4>
-                                </div>
-                                <p class="text-pink-700 dark:text-pink-300 text-xs md:text-sm leading-relaxed"> Terima notifikasi real-time termasuk tombol yang ditekan pengguna untuk tracking interaksi.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Changelog & Resources Card -->
-                    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-800 p-4 md:p-6 fade-in overflow-hidden break-words">
-                        <div class="flex items-center justify-between mb-4 md:mb-6">
-                            <div class="pr-2">
-                                <h3 class="text-lg md:text-xl font-semibold text-gray-800 dark:text-slate-100">Catatan Perubahan & Sumber</h3>
-                                <p class="text-xs md:text-sm text-gray-600 dark:text-slate-400 mt-1">Dokumentasi tambahan dan pembaruan</p>
-                            </div>
-                            <div class="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 shadow-inner flex-shrink-0">
-                                <i class="ri-file-text-line text-gray-600 dark:text-slate-400 text-lg md:text-2xl"></i>
-                            </div>
-                        </div>
-
-                        <div class="rounded-xl p-4 md:p-6 border border-gray-200 dark:border-slate-800">
-                            <p class="text-gray-700 dark:text-slate-350 mb-4 text-sm leading-relaxed">Untuk penjelasan lebih dalam, lihat dokumen Markdown yang disertakan dalam proyek:</p>
-
-                            <div class="space-y-3">
-                                <div class="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950">
-                                    <i class="ri-file-text-line text-blue-500 text-lg"></i>
-                                    <code class="flex-1 text-xs font-mono px-2 py-1 rounded truncate text-slate-800 dark:text-slate-200">README.md</code>
-                                </div>
-                                <div class="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950">
-                                    <i class="ri-book-open-line text-green-500 text-lg"></i>
-                                    <code class="flex-1 text-xs font-mono px-2 py-1 rounded truncate text-slate-800 dark:text-slate-200">Documentation.md</code>
-                                </div>
-                            </div>
-
-                            <div class="mt-6 p-4 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-lg">
-                                <div class="flex items-center space-x-2 mb-2">
-                                    <i class="ri-information-line text-blue-600"></i>
-                                    <span class="font-medium text-blue-800 dark:text-blue-300 text-sm">Catatan:</span>
-                                </div>
-                                <p class="text-blue-700 dark:text-blue-400 text-xs md:text-sm leading-relaxed">Proyek ini terus berkembang—periksa berkas-berkas ini dan halaman ini untuk pembaruan.</p>
-                            </div>
-                        </div>
-                    </div>
-            </div>
-        </section>
+        <aside class="space-y-4 lg:sticky lg:top-18 lg:self-start">
+            <nav class="card p-2 text-sm" aria-label="Isi halaman">
+                <a href="#auth" class="block rounded-md px-2 py-1.5 font-semibold text-ink-soft no-underline hover:bg-surface-2">Autentikasi</a>
+                <a href="#endpoints" class="block rounded-md px-2 py-1.5 font-semibold text-ink-soft no-underline hover:bg-surface-2">Endpoint</a>
+                <a href="#examples" class="block rounded-md px-2 py-1.5 font-semibold text-ink-soft no-underline hover:bg-surface-2">Contoh request</a>
+                <a href="#features" class="block rounded-md px-2 py-1.5 font-semibold text-ink-soft no-underline hover:bg-surface-2">Fitur dasbor</a>
+            </nav>
+            <section class="card" id="features" aria-labelledby="featTitle">
+                <div class="card-head"><h2 class="card-title" id="featTitle"><i class="ri-apps-2-line"></i> Fitur dasbor</h2></div>
+                <ul class="m-0 list-none divide-y divide-line p-0">
+                    <% features.forEach(f => { %>
+                    <li class="flex gap-2 px-4 py-2.5">
+                        <i class="<%= f.icon %> mt-0.5 text-brand-text"></i>
+                        <div><div class="text-sm font-semibold text-ink"><%= f.title %></div><div class="text-xs text-muted"><%= f.text %></div></div>
+                    </li>
+                    <% }) %>
+                </ul>
+            </section>
+            <p class="m-0 px-1 text-xs text-muted">Detail lebih lengkap ada di <code class="code">README.md</code> dan <code class="code">Documentation.md</code> di repositori.</p>
+        </aside>
     </div>
 
-    <footer class="main-footer">
-        <strong>WhatsApp Webhook</strong> &copy; 2024.
-        <div class="float-right d-none d-sm-inline-block"><b>Version</b> 1.0.0</div>
-    </footer>
-</div>
-
-<%- include('partials/bottom-nav') %>
-<%- include('partials/simple-scripts') %>
+<%- include('partials/shell-end') %>
 </body>
 </html>

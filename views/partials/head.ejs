@@ -1,19 +1,41 @@
+<%
+    const siteName = 'WA Webhook · IrengCloud';
+    const pageTitle = locals.metaTitle || ((typeof title !== 'undefined' && title) ? `${title} • ${siteName}` : siteName);
+    const description = locals.description || 'WhatsApp API gateway dari IrengCloud: kirim pesan, media, dan pesan interaktif lewat REST API, terima event real-time lewat webhook.';
+    const base = locals.baseUrl || '';
+    const canonical = base + (locals.canonicalPath || locals.currentPath || '/');
+    const v = locals.assetVersion ? `?v=${locals.assetVersion}` : '';
+    const indexable = !!locals.indexable;
+%>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><%= typeof title !== 'undefined' ? title + ' • ' : '' %>WhatsApp Webhook</title>
-<!-- Google Font -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<!-- RemixIcon -->
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= description %>">
+<meta name="robots" content="<%= indexable ? 'index, follow, max-image-preview:large' : 'noindex, nofollow' %>">
+<% if (indexable) { %>
+<link rel="canonical" href="<%= canonical %>">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="IrengCloud">
+<meta property="og:locale" content="id_ID">
+<meta property="og:title" content="<%= pageTitle %>">
+<meta property="og:description" content="<%= description %>">
+<meta property="og:url" content="<%= canonical %>">
+<meta property="og:image" content="<%= base %>/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="WA Webhook oleh IrengCloud — WhatsApp API gateway">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= pageTitle %>">
+<meta name="twitter:description" content="<%= description %>">
+<meta name="twitter:image" content="<%= base %>/img/og.png">
+<% } %>
+<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/img/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)">
+<%- include('theme-head') %>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
-<!-- AdminLTE 3 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
-<!-- Custom CSS -->
-<link rel="stylesheet" href="/css/custom.css">
-<!-- Socket.IO -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
-<!-- QRCode.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
-    integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA=="
-    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="/css/app.css<%= v %>">
+<% if (!locals.noSwal) { %><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js" defer></script><% } %>

@@ -1,134 +1,51 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar • WhatsApp Webhook</title>
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- RemixIcon -->
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
-    <!-- AdminLTE 3 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="/css/custom.css">
+    <%- include('partials/head', { title: 'Daftar' }) %>
 </head>
-<body class="hold-transition login-page">
+<body>
+<%- include('partials/auth-start') %>
+            <h1 class="m-0 text-2xl font-bold text-ink">Buat akun</h1>
+            <p class="mt-1 mb-6 text-sm text-muted">Mulai kelola gateway WhatsApp Anda.</p>
 
-<div class="login-box">
-    <!-- Logo -->
-    <div class="login-logo">
-        <div class="d-flex align-items-center justify-content-center mb-2">
-            <div class="d-flex align-items-center justify-content-center rounded-circle"
-                 style="width:52px;height:52px;background:rgba(255,255,255,0.2);">
-                <i class="ri-user-add-fill text-white" style="font-size:1.8rem;"></i>
-            </div>
-        </div>
-        <a href="#" style="color:#fff;font-weight:800;font-size:1.6rem;letter-spacing:-0.5px;">Buat Akun</a>
-        <p class="text-white-50 mt-1" style="font-size:0.85rem;">Mulai kelola bot WhatsApp Anda</p>
-    </div>
+            <%- include('partials/flash') %>
 
-    <!-- Card -->
-    <div class="card">
-        <div class="card-body login-card-body">
-
-            <% if (error) { %>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="ri-error-warning-fill mr-2"></i>
-                <%= error %>
-                <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-            </div>
-            <% } %>
-
-            <% if (success) { %>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="ri-checkbox-circle-fill mr-2"></i>
-                <%= success %>
-                <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-            </div>
-            <% } %>
-
-            <form action="/register" method="POST">
-                <div class="input-group mb-3">
-                    <input type="text" name="name" class="form-control" placeholder="Nama Lengkap" required>
-                    <div class="input-group-append">
-                        <div class="input-group-text"><i class="ri-user-line"></i></div>
+            <form action="/register" method="POST" class="space-y-4">
+                <div>
+                    <label class="label" for="name">Nama lengkap</label>
+                    <input type="text" id="name" name="name" class="input" autocomplete="name" required>
+                </div>
+                <div>
+                    <label class="label" for="email">Email</label>
+                    <input type="email" id="email" name="email" class="input" placeholder="nama@email.com" autocomplete="email" required>
+                </div>
+                <div>
+                    <label class="label" for="password">Kata sandi</label>
+                    <div class="input-wrap">
+                        <input type="password" name="password" id="password" class="input" autocomplete="new-password" required>
+                        <button type="button" class="btn btn-ghost btn-sm btn-icon h-7 w-7" onclick="togglePassword('password', this)" aria-label="Tampilkan kata sandi"><i class="ri-eye-line"></i></button>
                     </div>
                 </div>
-
-                <div class="input-group mb-3">
-                    <input type="email" name="email" class="form-control" placeholder="nama@email.com" required>
-                    <div class="input-group-append">
-                        <div class="input-group-text"><i class="ri-mail-line"></i></div>
+                <div>
+                    <label class="label" for="confirmPassword">Ulangi kata sandi</label>
+                    <div class="input-wrap">
+                        <input type="password" name="confirmPassword" id="confirmPassword" class="input" autocomplete="new-password" required>
+                        <button type="button" class="btn btn-ghost btn-sm btn-icon h-7 w-7" onclick="togglePassword('confirmPassword', this)" aria-label="Tampilkan kata sandi"><i class="ri-eye-line"></i></button>
                     </div>
                 </div>
-
-                <div class="input-group mb-3">
-                    <input type="password" name="password" id="password" class="form-control" placeholder="Kata Sandi" required>
-                    <div class="input-group-append">
-                        <button type="button" class="input-group-text btn btn-outline-secondary border-left-0" onclick="togglePassword('password', 'toggleIcon')" style="cursor:pointer;border-radius:0 4px 4px 0;">
-                            <i class="ri-eye-line" id="toggleIcon"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="input-group mb-4">
-                    <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" placeholder="Konfirmasi Kata Sandi" required>
-                    <div class="input-group-append">
-                        <button type="button" class="input-group-text btn btn-outline-secondary border-left-0" onclick="togglePassword('confirmPassword', 'toggleIconConfirm')" style="cursor:pointer;border-radius:0 4px 4px 0;">
-                            <i class="ri-eye-line" id="toggleIconConfirm"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-success btn-block">
-                            <i class="ri-user-add-line mr-1"></i> Daftar Sekarang
-                        </button>
-                    </div>
-                </div>
+                <button type="submit" class="btn btn-primary btn-block">Daftar</button>
             </form>
 
-            <p class="mb-0 mt-4 text-center" style="font-size:0.875rem;">
-                Sudah punya akun? <a href="/login" class="text-success font-weight-bold">Masuk disini</a>
-            </p>
-
-        </div>
-    </div>
-</div>
-
+            <p class="mt-6 text-center text-sm text-muted">Sudah punya akun? <a href="/login" class="font-semibold">Masuk</a></p>
+<%- include('partials/auth-end') %>
 <script>
     const password = document.getElementById('password');
     const confirmPassword = document.getElementById('confirmPassword');
-
     function validatePassword() {
-        if (password.value !== confirmPassword.value) {
-            confirmPassword.setCustomValidity("Kata sandi tidak cocok");
-        } else {
-            confirmPassword.setCustomValidity("");
-        }
+        confirmPassword.setCustomValidity(password.value !== confirmPassword.value ? 'Kata sandi tidak cocok' : '');
     }
-
-    password.onchange = validatePassword;
-    confirmPassword.onkeyup = validatePassword;
-
-    function togglePassword(inputId, iconId) {
-        const input = document.getElementById(inputId);
-        const icon = document.getElementById(iconId);
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.className = 'ri-eye-off-line';
-        } else {
-            input.type = 'password';
-            icon.className = 'ri-eye-line';
-        }
-    }
+    password.addEventListener('change', validatePassword);
+    confirmPassword.addEventListener('input', validatePassword);
 </script>
-
-<!-- jQuery, Bootstrap 4, AdminLTE 3 -->
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 </body>
 </html>

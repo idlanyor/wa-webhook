@@ -259,9 +259,11 @@ class WhatsAppService {
                 session.state = 'connected';
                 session.qr = null;
                 session.user = creds ? { id: creds.meJid, name: creds.pushName } : null;
+                session.connectedAt = Date.now();
                 this.io.to(userId).emit('connection_status', {
                     status: 'connected',
-                    user: session.user
+                    user: session.user,
+                    connectedAt: session.connectedAt
                 });
                 info(`WhatsApp connected for user: ${userId}`);
                 if (this.webhookService && this.appSettings.webhook_toggle_connection !== 'false') {
@@ -276,6 +278,7 @@ class WhatsAppService {
                 session.isConnected = false;
                 session.state = 'disconnected';
                 session.qr = null;
+                session.connectedAt = null;
                 this.io.to(userId).emit('connection_status', { status: 'disconnected' });
                 if (this.webhookService && this.appSettings.webhook_toggle_connection !== 'false') {
                     this.webhookService.send('connection_status', { userId, status: 'disconnected' });
@@ -1103,7 +1106,10 @@ class WhatsAppService {
             status: session.state,
             connected: session.isConnected,
             qr: session.qr,
-            user: session.user
+            user: session.user,
+            connectedAt: session.isConnected ? (session.connectedAt || null) : null,
+            // Relative value so clients are immune to clock skew
+            uptimeMs: session.isConnected && session.connectedAt ? Date.now() - session.connectedAt : null
         };
     }
 

@@ -32,6 +32,8 @@ import { getMany } from './src/services/SettingsService.js';
 // Import routes
 import authRoutes from './src/routes/auth.js';
 import appRoutes from './src/routes/app.js';
+import seoRoutes from './src/routes/seo.js';
+import { seoMiddleware, staticCacheHeaders } from './src/middleware/seo.js';
 import whatsappRoutes from './src/routes/whatsapp.js';
 import contactRoutes from './src/routes/contacts.js';
 import autoReplyRoutes from './src/routes/autoReply.js';
@@ -105,8 +107,9 @@ class Application {
         this.app.use(compression());
 
         // Middleware
-        const publicDir = expressStatic(join(__dirname, 'public'));
+        const publicDir = expressStatic(join(__dirname, 'public'), { setHeaders: staticCacheHeaders });
         this.app.use(publicDir);
+        this.app.use(seoMiddleware(join(__dirname, 'public')));
         this.app.use(cors());
         
         // Custom JSON parser with better error handling
@@ -214,6 +217,9 @@ class Application {
      * Setup application routes
      */
     setupRoutes() {
+        // robots.txt / sitemap.xml
+        this.app.use('/', seoRoutes);
+
         // Authentication routes
         this.app.use('/', authRoutes);
         

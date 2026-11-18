@@ -1,0 +1,294 @@
+<%
+    const base = locals.baseUrl || '';
+    const host = base || 'https://gateway.irengcloud.com';
+    const faqs = [
+        { q: 'Apakah ini WhatsApp Business API resmi?',
+          a: 'Bukan. WA Webhook menautkan nomor WhatsApp Anda sebagai perangkat tertaut (multi-device), sama seperti WhatsApp Web. Pastikan penggunaan Anda sesuai Ketentuan Layanan WhatsApp.' },
+        { q: 'Bagaimana cara autentikasi ke API?',
+          a: 'Buat kunci API di dasbor, lalu kirim lewat header X-API-KEY atau parameter query ?api_key=. Request dari dasbor memakai cookie sesi.' },
+        { q: 'Bagaimana cara memverifikasi webhook?',
+          a: 'Isi Webhook Secret di Pengaturan. Setiap request membawa header X-Signature berisi HMAC SHA256 (hex) dari body request dengan secret tersebut.' },
+        { q: 'Apa yang terjadi kalau server webhook saya sedang mati?',
+          a: 'Event dikirim ulang hingga 3 kali dengan jeda 1, 2, lalu 4 detik sebelum dilewati.' },
+        { q: 'Bisa dipakai bersama tim?',
+          a: 'Bisa. Dasbor mendukung banyak pengguna dengan peran Admin dan User. Admin mengelola pengguna, pengaturan webhook, dan semua kunci API.' }
+    ];
+    const features = [
+        { icon: 'ri-send-plane-2-line', title: 'REST API lengkap', text: 'Kirim teks, gambar, video, audio, dokumen, dan stiker. Edit, tarik, sematkan, atau beri reaksi pada pesan.' },
+        { icon: 'ri-cursor-line', title: 'Pesan interaktif', text: 'Tombol balasan cepat, list menu, tombol CTA, dan polling, cukup dengan satu request.' },
+        { icon: 'ri-webhook-line', title: 'Webhook real-time', text: 'Event message.in, message.out, dan connection_status dikirim ke server Anda, ditandatangani HMAC.' },
+        { icon: 'ri-reply-all-line', title: 'Balas otomatis', text: 'Aturan kata kunci yang bisa dinyalakan per aturan, plus sakelar global untuk seluruh bot.' },
+        { icon: 'ri-calendar-schedule-line', title: 'Pesan terjadwal', text: 'Jadwalkan pengiriman dan pantau statusnya: pending, terkirim, gagal, atau dibatalkan.' },
+        { icon: 'ri-group-line', title: 'Grup dan tim', text: 'Buat grup, kelola peserta dan tautan undangan. Dasbor multi-pengguna dengan peran Admin dan User.' }
+    ];
+    const types = ['Teks', 'Gambar', 'Video', 'Audio', 'Dokumen', 'Stiker', 'Polling', 'Reaksi', 'Tombol', 'List', 'CTA', 'Grup'];
+    const jsonLd = [
+        {
+            '@context': 'https://schema.org',
+            '@type': 'SoftwareApplication',
+            name: 'WA Webhook',
+            applicationCategory: 'DeveloperApplication',
+            operatingSystem: 'Web',
+            description: 'WhatsApp API gateway dari IrengCloud: kirim pesan lewat REST API dan terima event real-time lewat webhook.',
+            url: base + '/',
+            image: base + '/img/og.png',
+            publisher: { '@type': 'Organization', name: 'IrengCloud' }
+        },
+        {
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: faqs.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } }))
+        }
+    ];
+%>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('partials/head', {
+        metaTitle: 'WA Webhook — WhatsApp API Gateway & Webhook | IrengCloud',
+        description: 'Hubungkan WhatsApp ke sistem Anda. Kirim teks, media, tombol, list, dan polling lewat REST API, lalu terima pesan masuk real-time lewat webhook ber-HMAC. Oleh IrengCloud.',
+        canonicalPath: '/',
+        noSwal: true
+    }) %>
+    <script type="application/ld+json"><%- JSON.stringify(jsonLd).replace(/</g, '\\u003c') %></script>
+</head>
+<body>
+<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2">Lewati ke konten</a>
+
+<header class="sticky top-0 z-30 border-b border-line bg-bg/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 lg:px-6">
+        <a href="/" aria-label="IrengCloud WA Webhook — beranda" class="flex shrink-0 items-center gap-2 no-underline">
+            <img src="/img/irengcloud.svg" alt="IrengCloud" class="logo-light h-6 w-auto" width="112" height="24">
+            <img src="/img/irengcloud-light.svg" alt="IrengCloud" class="logo-dark h-6 w-auto" width="112" height="24">
+            <span class="hidden border-l border-line pl-2 text-[13px] font-semibold text-muted sm:inline">WA Webhook</span>
+        </a>
+        <nav class="hidden items-center gap-5 text-sm font-semibold md:flex" aria-label="Bagian halaman">
+            <a href="#fitur" class="text-ink-soft no-underline hover:text-ink">Fitur</a>
+            <a href="#cara-kerja" class="text-ink-soft no-underline hover:text-ink">Cara kerja</a>
+            <a href="#webhook" class="text-ink-soft no-underline hover:text-ink">Webhook</a>
+            <a href="#faq" class="text-ink-soft no-underline hover:text-ink">FAQ</a>
+        </nav>
+        <div class="ml-auto flex items-center gap-2">
+            <div class="hidden sm:block"><%- include('partials/theme-switch') %></div>
+            <% if (locals.user) { %>
+                <a href="/dashboard" class="btn btn-primary btn-sm">Buka dasbor <i class="ri-arrow-right-line"></i></a>
+            <% } else { %>
+                <a href="/login" class="btn btn-ghost btn-sm">Masuk</a>
+                <a href="/register" class="btn btn-primary btn-sm">Buat akun</a>
+            <% } %>
+        </div>
+    </div>
+</header>
+
+<main id="main">
+    <!-- Hero -->
+    <section class="mx-auto grid max-w-6xl items-center gap-10 px-4 pt-14 pb-16 lg:grid-cols-[1.05fr_1fr] lg:px-6 lg:pt-20 lg:pb-24" aria-labelledby="heroTitle">
+        <div>
+            <span class="badge badge-brand mb-4"><i class="ri-whatsapp-line"></i> WhatsApp API gateway</span>
+            <h1 id="heroTitle" class="m-0 font-display text-[34px] leading-[1.15] font-bold tracking-tight text-ink sm:text-5xl sm:leading-[1.1]">
+                Hubungkan WhatsApp ke sistem Anda lewat satu API.
+            </h1>
+            <p class="mt-5 mb-0 max-w-xl text-lg leading-relaxed text-ink-soft">
+                Kirim pesan, media, dan pesan interaktif dengan REST API. Terima setiap pesan masuk secara real-time di webhook Anda, lengkap dengan tanda tangan HMAC.
+            </p>
+            <div class="mt-8 flex flex-wrap gap-3">
+                <% if (locals.user) { %>
+                <a href="/dashboard" class="btn btn-primary h-11 px-5 text-[15px]">Buka dasbor <i class="ri-arrow-right-line"></i></a>
+                <% } else { %>
+                <a href="/register" class="btn btn-primary h-11 px-5 text-[15px]">Buat akun <i class="ri-arrow-right-line"></i></a>
+                <a href="/login" class="btn btn-secondary h-11 px-5 text-[15px]">Masuk ke dasbor</a>
+                <% } %>
+            </div>
+            <ul class="mt-8 mb-0 flex list-none flex-wrap gap-x-6 gap-y-2 p-0 text-sm text-ink-soft">
+                <li class="flex items-center gap-1.5"><i class="ri-qr-code-line text-brand-text"></i> Tautkan lewat QR atau kode pairing</li>
+                <li class="flex items-center gap-1.5"><i class="ri-shield-check-line text-brand-text"></i> Webhook ber-HMAC SHA256</li>
+                <li class="flex items-center gap-1.5"><i class="ri-repeat-line text-brand-text"></i> Retry otomatis 3x</li>
+            </ul>
+        </div>
+
+        <!-- Code window -->
+        <div class="min-w-0 overflow-hidden rounded-lg border border-line bg-sidebar shadow-lg" aria-label="Contoh kode">
+            <div class="flex items-center gap-4 border-b border-slate-800 px-4" role="tablist">
+                <button type="button" class="tab pt-3 text-slate-400 aria-selected:text-slate-50" role="tab" data-tab="code-curl" aria-selected="true">cURL</button>
+                <button type="button" class="tab pt-3 text-slate-400 aria-selected:text-slate-50" role="tab" data-tab="code-node" aria-selected="false">Node.js</button>
+                <button type="button" class="tab pt-3 text-slate-400 aria-selected:text-slate-50" role="tab" data-tab="code-python" aria-selected="false">Python</button>
+                <button type="button" class="ml-auto cursor-pointer border-0 bg-transparent p-1 text-slate-400 hover:text-slate-50" data-copy-target="code-active" aria-label="Salin kode"><i class="ri-file-copy-line"></i></button>
+            </div>
+<pre id="code-curl" role="tabpanel" class="code-panel m-0 overflow-x-auto px-4 py-4 font-mono text-[13px] leading-6 text-console"><span class="text-slate-500">$</span> curl -X POST <%= host %>/send-message \
+  -H <span class="text-emerald-300">"Content-Type: application/json"</span> \
+  -H <span class="text-emerald-300">"X-API-KEY: $WA_API_KEY"</span> \
+  -d <span class="text-emerald-300">'{"to":"6281234567890","message":"Halo dari API 👋"}'</span></pre>
+<pre id="code-node" role="tabpanel" hidden class="code-panel m-0 overflow-x-auto px-4 py-4 font-mono text-[13px] leading-6 text-console"><span class="text-violet-300">await</span> fetch(<span class="text-emerald-300">'<%= host %>/send-message'</span>, {
+  method: <span class="text-emerald-300">'POST'</span>,
+  headers: {
+    <span class="text-emerald-300">'Content-Type'</span>: <span class="text-emerald-300">'application/json'</span>,
+    <span class="text-emerald-300">'X-API-KEY'</span>: process.env.WA_API_KEY
+  },
+  body: JSON.stringify({ to: <span class="text-emerald-300">'6281234567890'</span>, message: <span class="text-emerald-300">'Halo dari API 👋'</span> })
+});</pre>
+<pre id="code-python" role="tabpanel" hidden class="code-panel m-0 overflow-x-auto px-4 py-4 font-mono text-[13px] leading-6 text-console"><span class="text-violet-300">import</span> os, requests
+
+requests.post(
+    <span class="text-emerald-300">"<%= host %>/send-message"</span>,
+    headers={<span class="text-emerald-300">"X-API-KEY"</span>: os.environ[<span class="text-emerald-300">"WA_API_KEY"</span>]},
+    json={<span class="text-emerald-300">"to"</span>: <span class="text-emerald-300">"6281234567890"</span>, <span class="text-emerald-300">"message"</span>: <span class="text-emerald-300">"Halo dari API 👋"</span>},
+)</pre>
+            <div class="border-t border-slate-800 px-4 py-3">
+                <div class="mb-1 flex items-center gap-2 text-xs font-semibold text-slate-400"><span class="dot connected"></span> Webhook diterima · <code class="font-mono">POST /webhook</code></div>
+<pre class="m-0 overflow-x-auto font-mono text-[12px] leading-5 text-console">{ <span class="text-violet-300">"event"</span>: <span class="text-emerald-300">"message.in"</span>,
+  <span class="text-violet-300">"data"</span>: { <span class="text-violet-300">"sender"</span>: <span class="text-emerald-300">"6281234567890"</span>, <span class="text-violet-300">"text"</span>: <span class="text-emerald-300">"Terima kasih!"</span>, … } }</pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Message types -->
+    <section class="border-y border-line bg-surface" aria-label="Jenis pesan yang didukung">
+        <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-5 lg:px-6">
+            <span class="mr-2 text-sm font-semibold text-muted">Kirim apa saja:</span>
+            <% types.forEach(t => { %><span class="badge badge-neutral px-2 py-1 text-[13px]"><%= t %></span><% }) %>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section id="fitur" class="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 lg:px-6" aria-labelledby="featTitle">
+        <div class="max-w-2xl">
+            <p class="eyebrow m-0">Fitur</p>
+            <h2 id="featTitle" class="mt-2 mb-3 font-display text-3xl leading-tight font-bold text-ink">Semua yang dibutuhkan integrasi WhatsApp</h2>
+            <p class="m-0 text-ink-soft">Dari kirim pesan sederhana sampai bot dengan menu interaktif, dikelola dari satu dasbor.</p>
+        </div>
+        <div class="mt-10 grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+            <% features.forEach(f => { %>
+            <article class="bg-surface p-6">
+                <span class="avatar mb-4 h-10 w-10 text-lg"><i class="<%= f.icon %>"></i></span>
+                <h3 class="m-0 text-base font-bold text-ink"><%= f.title %></h3>
+                <p class="mt-2 mb-0 text-sm leading-relaxed text-ink-soft"><%= f.text %></p>
+            </article>
+            <% }) %>
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section id="cara-kerja" class="scroll-mt-20 border-y border-line bg-surface" aria-labelledby="howTitle">
+        <div class="mx-auto max-w-6xl px-4 py-20 lg:px-6">
+            <p class="eyebrow m-0">Cara kerja</p>
+            <h2 id="howTitle" class="mt-2 mb-10 font-display text-3xl leading-tight font-bold text-ink">Siap dipakai dalam tiga langkah</h2>
+            <ol class="m-0 grid list-none gap-8 p-0 md:grid-cols-3">
+                <li>
+                    <span class="font-mono text-sm font-bold text-brand-text">01</span>
+                    <h3 class="mt-2 mb-2 text-lg font-bold text-ink">Buat akun</h3>
+                    <p class="m-0 text-sm leading-relaxed text-ink-soft">Daftar, lalu buat kunci API dari halaman Kunci API untuk tiap sistem yang akan terhubung.</p>
+                </li>
+                <li>
+                    <span class="font-mono text-sm font-bold text-brand-text">02</span>
+                    <h3 class="mt-2 mb-2 text-lg font-bold text-ink">Tautkan WhatsApp</h3>
+                    <p class="m-0 text-sm leading-relaxed text-ink-soft">Pindai kode QR dari dasbor, atau masukkan kode pairing 8 digit di ponsel lewat menu Perangkat Tertaut.</p>
+                </li>
+                <li>
+                    <span class="font-mono text-sm font-bold text-brand-text">03</span>
+                    <h3 class="mt-2 mb-2 text-lg font-bold text-ink">Kirim dan terima</h3>
+                    <p class="m-0 text-sm leading-relaxed text-ink-soft">Panggil endpoint REST untuk mengirim, dan arahkan webhook ke server Anda untuk menerima pesan masuk.</p>
+                </li>
+            </ol>
+        </div>
+    </section>
+
+    <!-- Webhook -->
+    <section id="webhook" class="mx-auto grid max-w-6xl scroll-mt-20 items-start gap-10 px-4 py-20 lg:grid-cols-2 lg:px-6" aria-labelledby="hookTitle">
+        <div>
+            <p class="eyebrow m-0">Webhook</p>
+            <h2 id="hookTitle" class="mt-2 mb-3 font-display text-3xl leading-tight font-bold text-ink">Setiap pesan masuk, langsung ke server Anda</h2>
+            <p class="m-0 text-ink-soft">Pilih event yang ingin diterima dari halaman Pengaturan. Payload berbentuk JSON yang sama untuk semua event.</p>
+            <dl class="mt-8 mb-0 divide-y divide-line rounded-lg border border-line bg-surface">
+                <div class="flex gap-4 px-4 py-3"><dt class="w-40 shrink-0"><code class="code">message.in</code></dt><dd class="m-0 text-sm text-ink-soft">Pesan masuk, termasuk tombol yang ditekan pengguna</dd></div>
+                <div class="flex gap-4 px-4 py-3"><dt class="w-40 shrink-0"><code class="code">message.out</code></dt><dd class="m-0 text-sm text-ink-soft">Pesan yang dikirim lewat API</dd></div>
+                <div class="flex gap-4 px-4 py-3"><dt class="w-40 shrink-0"><code class="code">connection_status</code></dt><dd class="m-0 text-sm text-ink-soft">Terhubung, terputus, atau QR baru siap dipindai</dd></div>
+            </dl>
+            <p class="mt-6 mb-0 flex items-start gap-2 text-sm text-ink-soft"><i class="ri-shield-keyhole-line mt-0.5 text-brand-text"></i>
+                <span>Header <code class="code">X-Signature</code> berisi HMAC SHA256 dari body. Gagal terkirim? Dicoba ulang 3 kali (1, 2, 4 detik).</span></p>
+        </div>
+        <div class="min-w-0 space-y-4">
+            <div class="overflow-hidden rounded-lg border border-line bg-sidebar">
+                <div class="border-b border-slate-800 px-4 py-2 text-xs font-semibold text-slate-400">Payload <code class="font-mono">message.in</code></div>
+<pre class="m-0 overflow-x-auto px-4 py-4 font-mono text-[13px] leading-6 text-console">{
+  <span class="text-violet-300">"event"</span>: <span class="text-emerald-300">"message.in"</span>,
+  <span class="text-violet-300">"data"</span>: {
+    <span class="text-violet-300">"id"</span>: <span class="text-emerald-300">"3EB0C431…"</span>,
+    <span class="text-violet-300">"chatJid"</span>: <span class="text-emerald-300">"6281234567890@s.whatsapp.net"</span>,
+    <span class="text-violet-300">"sender"</span>: <span class="text-emerald-300">"6281234567890"</span>,
+    <span class="text-violet-300">"text"</span>: <span class="text-emerald-300">"Pesanan saya sudah dikirim?"</span>,
+    <span class="text-violet-300">"messageType"</span>: <span class="text-emerald-300">"text"</span>,
+    <span class="text-violet-300">"attachment"</span>: <span class="text-sky-300">null</span>,
+    <span class="text-violet-300">"timestamp"</span>: <span class="text-sky-300">1763452800</span>
+  },
+  <span class="text-violet-300">"timestamp"</span>: <span class="text-sky-300">1763452800412</span>
+}</pre>
+            </div>
+            <div class="overflow-hidden rounded-lg border border-line bg-sidebar">
+                <div class="border-b border-slate-800 px-4 py-2 text-xs font-semibold text-slate-400">Verifikasi tanda tangan (Node.js)</div>
+<pre class="m-0 overflow-x-auto px-4 py-4 font-mono text-[13px] leading-6 text-console"><span class="text-violet-300">const</span> expected = crypto.createHmac(<span class="text-emerald-300">'sha256'</span>, SECRET)
+  .update(rawBody).digest(<span class="text-emerald-300">'hex'</span>);
+<span class="text-violet-300">const</span> valid = crypto.timingSafeEqual(
+  Buffer.from(expected), Buffer.from(req.get(<span class="text-emerald-300">'X-Signature'</span>) || <span class="text-emerald-300">''</span>));</pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="scroll-mt-20 border-t border-line bg-surface" aria-labelledby="faqTitle">
+        <div class="mx-auto grid max-w-6xl gap-10 px-4 py-20 lg:grid-cols-[1fr_2fr] lg:px-6">
+            <div>
+                <p class="eyebrow m-0">FAQ</p>
+                <h2 id="faqTitle" class="mt-2 mb-0 font-display text-3xl leading-tight font-bold text-ink">Pertanyaan umum</h2>
+            </div>
+            <div class="divide-y divide-line rounded-lg border border-line">
+                <% faqs.forEach((f, i) => { %>
+                <details class="group" <%= i === 0 ? 'open' : '' %>>
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-[15px] font-semibold text-ink hover:bg-surface-2">
+                        <h3 class="m-0 text-[15px] font-semibold"><%= f.q %></h3>
+                        <i class="ri-add-line shrink-0 text-muted transition-transform group-open:rotate-45"></i>
+                    </summary>
+                    <p class="m-0 px-5 pb-5 text-sm leading-relaxed text-ink-soft"><%= f.a %></p>
+                </details>
+                <% }) %>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="bg-sidebar" aria-labelledby="ctaTitle">
+        <div class="mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 py-16 md:flex-row md:items-center md:justify-between lg:px-6">
+            <div>
+                <h2 id="ctaTitle" class="m-0 font-display text-2xl leading-tight font-bold text-slate-50 sm:text-3xl">Siap menghubungkan WhatsApp?</h2>
+                <p class="mt-2 mb-0 text-slate-300">Buat akun, tautkan nomor, dan kirim pesan pertama Anda lewat API.</p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <% if (locals.user) { %>
+                <a href="/dashboard" class="btn btn-primary h-11 px-5 text-[15px]">Buka dasbor <i class="ri-arrow-right-line"></i></a>
+                <% } else { %>
+                <a href="/register" class="btn btn-primary h-11 px-5 text-[15px]">Buat akun <i class="ri-arrow-right-line"></i></a>
+                <a href="/login" class="btn h-11 bg-slate-800 px-5 text-[15px] text-slate-100 hover:bg-slate-700">Masuk</a>
+                <% } %>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="border-t border-line">
+    <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between lg:px-6">
+        <div class="flex items-center gap-3">
+            <img src="/img/irengcloud.svg" alt="IrengCloud" class="logo-light h-5 w-auto" width="93" height="20" loading="lazy">
+            <img src="/img/irengcloud-light.svg" alt="IrengCloud" class="logo-dark h-5 w-auto" width="93" height="20" loading="lazy">
+            <span>© <%= new Date().getFullYear() %> IrengCloud · WA Webhook</span>
+        </div>
+        <nav class="flex items-center gap-4" aria-label="Tautan footer">
+            <a href="#fitur" class="text-muted no-underline hover:text-ink">Fitur</a>
+            <a href="#faq" class="text-muted no-underline hover:text-ink">FAQ</a>
+            <a href="/login" class="text-muted no-underline hover:text-ink">Masuk</a>
+            <div class="sm:hidden"><%- include('partials/theme-switch') %></div>
+        </nav>
+    </div>
+</footer>
+
+<script src="/js/ui.js<%= locals.assetVersion ? `?v=${locals.assetVersion}` : '' %>" defer></script>
+</body>
+</html>

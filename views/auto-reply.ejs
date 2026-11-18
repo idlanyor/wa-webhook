@@ -3,200 +3,76 @@
 <head>
     <%- include('partials/head', { title: 'Balas Otomatis' }) %>
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
-<div class="wrapper">
+<body>
+<%- include('partials/shell-start', { title: 'Balas Otomatis', page: 'auto-reply' }) %>
+<% const botOn = settings.auto_reply_enabled === 'true'; %>
 
-    <%- include('partials/navbar') %>
-    <%- include('partials/sidebar') %>
-
-    <div class="content-wrapper">
-        <div class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                        <h1 class="m-0">Bot Balas Otomatis</h1>
-                    </div>
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb float-sm-right">
-                            <li class="breadcrumb-item"><a href="/dashboard">Dasbor</a></li>
-                            <li class="breadcrumb-item active">Balas Otomatis</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">Balas Otomatis</h1>
+            <p class="page-sub m-0">Balas pesan berdasarkan kata kunci.</p>
         </div>
-
-        <section class="content">
-            <div class="container-fluid">
-
-                <!-- Alerts -->
-                <% if (locals.error) { %>
-                <div class="alert alert-danger alert-dismissible fade show fade-in" role="alert">
-                    <i class="ri-error-warning-line mr-2"></i> <%= error %>
-                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-                </div>
-                <% } %>
-                <% if (locals.success) { %>
-                <div class="alert alert-success alert-dismissible fade show fade-in" role="alert">
-                    <i class="ri-checkbox-circle-line mr-2"></i> <%= success %>
-                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-                </div>
-                <% } %>
-
-                <div class="row">
-                    <!-- Bot Status Toggle -->
-                    <div class="col-lg-4 col-md-5">
-                        <div class="card card-outline card-warning fade-in">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    <i class="ri-robot-2-line text-warning mr-2"></i>
-                                    Status Bot
-                                </h3>
-                                <div class="card-tools">
-                                    <small class="text-muted">Kontrol utama bot</small>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <form action="/auto-reply/settings" method="POST" id="settingsForm">
-                                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded mb-3">
-                                        <span class="font-weight-bold">Aktifkan Seluruh Bot</span>
-                                        <div class="custom-control custom-switch">
-                                            <input type="checkbox" class="custom-control-input" id="auto_reply_enabled"
-                                                   name="auto_reply_enabled"
-                                                   <%= settings.auto_reply_enabled === 'true' ? 'checked' : '' %>
-                                                   onchange="document.getElementById('settingsForm').submit()">
-                                            <label class="custom-control-label" for="auto_reply_enabled"></label>
-                                        </div>
-                                    </div>
-                                    <p class="text-muted text-center" style="font-size:0.82rem;">
-                                        Bot akan <strong><%= settings.auto_reply_enabled === 'true' ? 'aktif' : 'nonaktif' %></strong> secara global.
-                                    </p>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Add New Rule -->
-                    <div class="col-lg-8 col-md-7">
-                        <div class="card card-outline card-primary fade-in">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    <i class="ri-add-box-line text-primary mr-2"></i>
-                                    Tambah Aturan Baru
-                                </h3>
-                                <div class="card-tools">
-                                    <small class="text-muted">Definisikan kata kunci dan balasannya</small>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <form action="/auto-reply/add" method="POST">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="font-weight-bold">Kata Kunci</label>
-                                                <div class="input-group">
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text"><i class="ri-key-2-line"></i></span>
-                                                    </div>
-                                                    <input type="text" name="keyword" class="form-control" placeholder="contoh: info" required>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="font-weight-bold">Pesan Balasan</label>
-                                                <div class="input-group">
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text"><i class="ri-chat-1-line"></i></span>
-                                                    </div>
-                                                    <input type="text" name="reply" class="form-control" placeholder="Tulis pesan balasan..." required>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="text-right">
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="ri-save-line mr-1"></i> Simpan Aturan
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Rules List -->
-                <div class="card card-outline card-success fade-in">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="ri-list-settings-line text-success mr-2"></i>
-                            Daftar Aturan Balasan
-                        </h3>
-                        <div class="card-tools">
-                            <small class="text-muted">Kelola aturan yang sudah Anda buat</small>
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Status</th>
-                                        <th>Kata Kunci</th>
-                                        <th>Pesan Balasan</th>
-                                        <th class="text-center">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% if (replies && replies.length > 0) { %>
-                                        <% replies.forEach(rule => { %>
-                                        <tr>
-                                            <td>
-                                                <a href="/auto-reply/toggle/<%= rule.id %>"
-                                                   class="badge <%= rule.enabled ? 'badge-success' : 'badge-secondary' %> p-2"
-                                                   style="border-radius:20px;font-size:0.7rem;text-decoration:none;">
-                                                    <%= rule.enabled ? 'AKTIF' : 'NONAKTIF' %>
-                                                </a>
-                                            </td>
-                                            <td><code class="text-primary"><%= rule.keyword %></code></td>
-                                            <td class="text-muted" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= rule.reply %></td>
-                                            <td class="text-center">
-                                                <form action="/auto-reply/delete/<%= rule.id %>" method="POST"
-                                                      data-confirm="Apakah Anda yakin ingin menghapus aturan ini?"
-                                                      style="display:inline;">
-                                                    <button type="submit" class="btn btn-sm btn-danger">
-                                                        <i class="ri-delete-bin-line"></i>
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                        <% }); %>
-                                    <% } else { %>
-                                    <tr>
-                                        <td colspan="4" class="text-center text-muted py-5">
-                                            <i class="ri-chat-delete-line d-block" style="font-size:2.5rem;margin-bottom:8px;"></i>
-                                            Belum ada aturan balas otomatis.<br>
-                                            <small>Mulai dengan menambahkan aturan baru di atas.</small>
-                                        </td>
-                                    </tr>
-                                    <% } %>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
+        <form action="/auto-reply/settings" method="POST" id="settingsForm" class="flex items-center gap-3 rounded-md border border-line bg-surface px-3 py-2">
+            <span class="text-sm font-semibold text-ink">Bot</span>
+            <span class="badge <%= botOn ? 'badge-success' : 'badge-neutral' %>"><%= botOn ? 'Aktif' : 'Nonaktif' %></span>
+            <label class="switch" aria-label="Aktifkan bot balas otomatis">
+                <input type="checkbox" name="auto_reply_enabled" <%= botOn ? 'checked' : '' %> onchange="this.form.submit()">
+                <span></span>
+            </label>
+        </form>
     </div>
 
-    <footer class="main-footer">
-        <strong>WhatsApp Webhook</strong> &copy; 2024.
-        <div class="float-right d-none d-sm-inline-block"><b>Version</b> 1.0.0</div>
-    </footer>
-</div>
+    <%- include('partials/flash') %>
 
-<%- include('partials/bottom-nav') %>
-<%- include('partials/simple-scripts') %>
+    <section class="card mb-4" aria-labelledby="newRuleTitle">
+        <div class="card-head"><h2 class="card-title" id="newRuleTitle"><i class="ri-add-box-line"></i> Aturan baru</h2></div>
+        <form action="/auto-reply/add" method="POST" class="card-body grid gap-3 md:grid-cols-[1fr_2fr_auto] md:items-end">
+            <div>
+                <label class="label" for="keyword">Kata kunci</label>
+                <input type="text" id="keyword" name="keyword" class="input font-mono" placeholder="info" required>
+            </div>
+            <div>
+                <label class="label" for="reply">Pesan balasan</label>
+                <input type="text" id="reply" name="reply" class="input" placeholder="Tulis pesan balasan…" required>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="ri-save-line"></i> Simpan</button>
+        </form>
+    </section>
+
+    <section class="card" aria-labelledby="rulesTitle">
+        <div class="card-head">
+            <h2 class="card-title" id="rulesTitle"><i class="ri-list-settings-line"></i> Aturan</h2>
+            <span class="text-xs text-muted"><%= replies.length %> aturan · klik status untuk mengubah</span>
+        </div>
+        <div class="table-wrap">
+            <table class="table">
+                <thead><tr><th class="w-28">Status</th><th>Kata kunci</th><th>Balasan</th><th class="text-right">Aksi</th></tr></thead>
+                <tbody>
+                <% if (replies && replies.length > 0) { %>
+                    <% replies.forEach(rule => { %>
+                    <tr>
+                        <td>
+                            <a href="/auto-reply/toggle/<%= rule.id %>" class="badge no-underline <%= rule.enabled ? 'badge-success' : 'badge-neutral' %>" title="Ubah status">
+                                <span class="dot <%= rule.enabled ? 'connected' : 'bg-line-strong' %>"></span><%= rule.enabled ? 'Aktif' : 'Nonaktif' %>
+                            </a>
+                        </td>
+                        <td><code class="code"><%= rule.keyword %></code></td>
+                        <td class="max-w-md truncate text-ink-soft" title="<%= rule.reply %>"><%= rule.reply %></td>
+                        <td class="text-right">
+                            <form action="/auto-reply/delete/<%= rule.id %>" method="POST" data-confirm="Hapus aturan “<%= rule.keyword %>”?" class="inline">
+                                <button type="submit" class="btn btn-ghost-danger btn-sm btn-icon" aria-label="Hapus aturan"><i class="ri-delete-bin-line"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    <% }); %>
+                <% } else { %>
+                    <tr><td colspan="4" class="empty"><i class="ri-chat-off-line"></i>Belum ada aturan. Tambahkan aturan pertama di atas.</td></tr>
+                <% } %>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+<%- include('partials/shell-end') %>
 </body>
 </html>

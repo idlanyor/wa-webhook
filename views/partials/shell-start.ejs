@@ -1,0 +1,63 @@
+<%
+    const isAdmin = locals.user && locals.user.role === 'admin';
+    const nav = [
+        { id: 'dashboard', label: 'Dasbor', short: 'Dasbor', path: '/dashboard', icon: 'ri-dashboard-line' },
+        { id: 'auto-reply', label: 'Balas Otomatis', short: 'Balas', path: '/auto-reply', icon: 'ri-reply-all-line' },
+        { id: 'scheduled-messages', label: 'Pesan Terjadwal', short: 'Jadwal', path: '/scheduled-messages', icon: 'ri-calendar-schedule-line' },
+        { sep: true },
+        { id: 'api-keys', label: 'Kunci API', short: 'API', path: '/api-keys', icon: 'ri-key-2-line' },
+        { id: 'documentation', label: 'Dokumentasi', short: 'Docs', path: '/documentation', icon: 'ri-book-open-line' },
+        { sep: true, adminOnly: true },
+        { id: 'users', label: 'Users', short: 'Users', path: '/users', icon: 'ri-group-line', adminOnly: true },
+        { id: 'settings', label: 'Pengaturan', short: 'Setelan', path: '/settings', icon: 'ri-settings-3-line', adminOnly: true }
+    ].filter(i => !i.adminOnly || isAdmin);
+    const current = locals.page || '';
+    const initial = ((locals.user && locals.user.name) || 'U').substring(0, 1).toUpperCase();
+%>
+<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2">Lewati ke konten</a>
+
+<!-- Icon rail (desktop) -->
+<aside class="rail" aria-label="Navigasi utama">
+    <a href="/dashboard" class="rail-mark" aria-label="IrengCloud WA Webhook">
+        <img src="/img/irengcloud-mark-light.svg" alt="">
+    </a>
+    <% nav.forEach(item => { if (item.sep) { %>
+        <span class="rail-sep" aria-hidden="true"></span>
+    <% } else { %>
+        <a href="<%= item.path %>" class="rail-link" <%- current === item.id ? 'aria-current="page"' : '' %> aria-label="<%= item.label %>">
+            <i class="<%= item.icon %>"></i>
+            <span class="rail-tip"><%= item.label %></span>
+        </a>
+    <% } }) %>
+</aside>
+
+<div class="lg:pl-14">
+    <!-- Top bar -->
+    <header class="topbar">
+        <a href="/dashboard" class="lg:hidden" aria-label="IrengCloud">
+            <img src="/img/irengcloud.svg" alt="IrengCloud" class="logo-light h-5 w-auto">
+            <img src="/img/irengcloud-light.svg" alt="IrengCloud" class="logo-dark h-5 w-auto">
+        </a>
+        <nav class="hidden items-center gap-2 text-sm lg:flex" aria-label="Breadcrumb">
+            <span class="font-semibold text-muted">WA Webhook</span>
+            <i class="ri-arrow-right-s-line text-muted"></i>
+            <span class="font-bold text-ink"><%= locals.title || 'Dasbor' %></span>
+        </nav>
+        <div class="ml-auto flex items-center gap-2">
+            <%- include('theme-switch') %>
+            <% if (locals.user) { %>
+            <div class="hidden text-right leading-tight sm:block">
+                <div class="text-[13px] font-bold text-ink"><%= user.name || 'User' %></div>
+                <div class="text-xs text-muted"><%= user.email %></div>
+            </div>
+            <span class="avatar" aria-hidden="true"><%= initial %></span>
+            <% } %>
+            <form action="/logout-user" method="POST" data-confirm="Keluar dari dasbor?">
+                <button type="submit" class="btn btn-ghost btn-sm" aria-label="Keluar">
+                    <i class="ri-logout-box-r-line"></i><span class="hidden sm:inline">Keluar</span>
+                </button>
+            </form>
+        </div>
+    </header>
+
+    <main id="main" class="main">

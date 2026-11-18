@@ -1,0 +1,23 @@
+    </main>
+</div>
+
+<!-- Bottom nav (mobile) -->
+<%
+    const isAdminB = locals.user && locals.user.role === 'admin';
+    const mobileItems = [
+        { id: 'dashboard', short: 'Dasbor', path: '/dashboard', icon: 'ri-dashboard-line' },
+        { id: 'auto-reply', short: 'Balas', path: '/auto-reply', icon: 'ri-reply-all-line' },
+        { id: 'scheduled-messages', short: 'Jadwal', path: '/scheduled-messages', icon: 'ri-calendar-schedule-line' },
+        { id: 'api-keys', short: 'API', path: '/api-keys', icon: 'ri-key-2-line' },
+        isAdminB ? { id: 'settings', short: 'Setelan', path: '/settings', icon: 'ri-settings-3-line' }
+                 : { id: 'documentation', short: 'Docs', path: '/documentation', icon: 'ri-book-open-line' }
+    ];
+%>
+<nav class="bottom-nav" aria-label="Navigasi utama">
+    <% mobileItems.forEach(item => { %>
+    <a href="<%= item.path %>" <%- locals.page === item.id ? 'aria-current="page"' : '' %>>
+        <i class="<%= item.icon %>"></i><span><%= item.short %></span>
+    </a>
+    <% }) %>
+</nav>
+<script src="/js/ui.js<%= locals.assetVersion ? `?v=${locals.assetVersion}` : "" %>" defer></script>

@@ -175,7 +175,7 @@ Endpoint ini juga menerima `multipart/form-data` dengan field file `document` at
 
   Untuk upload file:
   ```bash
-  curl -X POST https://gate.ireng.uk/send-document \
+  curl -X POST https://gateway.irengcloud.com/send-document \
     -H "X-API-KEY: <kunci_api_anda>" \
     -F "to=6281234567890" \
     -F "caption=Dokumen terlampir" \
@@ -220,7 +220,7 @@ Mengirim gambar ke satu nomor tujuan. Mendukung URL, base64, atau multipart uplo
 
   Untuk upload file:
   ```bash
-  curl -X POST https://gate.ireng.uk/send-image \
+  curl -X POST https://gateway.irengcloud.com/send-image \
     -H "X-API-KEY: <kunci_api_anda>" \
     -F "to=6281234567890" \
     -F "caption=Foto produk" \
@@ -255,7 +255,7 @@ Mengirim video ke satu nomor tujuan. Mendukung URL, base64, atau multipart uploa
 
   Untuk upload file:
   ```bash
-  curl -X POST https://gate.ireng.uk/send-video \
+  curl -X POST https://gateway.irengcloud.com/send-video \
     -H "X-API-KEY: <kunci_api_anda>" \
     -F "to=6281234567890" \
     -F "caption=Video demo" \
@@ -290,7 +290,7 @@ Mengirim file audio atau voice note. Set `is_voice_note: true` untuk mengirim se
 
   Untuk upload file:
   ```bash
-  curl -X POST https://gate.ireng.uk/send-audio \
+  curl -X POST https://gateway.irengcloud.com/send-audio \
     -H "X-API-KEY: <kunci_api_anda>" \
     -F "to=6281234567890" \
     -F "is_voice_note=true" \
@@ -324,7 +324,7 @@ Mengirim sticker (format WebP). Mendukung URL, base64, atau multipart upload.
 
   Untuk upload file:
   ```bash
-  curl -X POST https://gate.ireng.uk/send-sticker \
+  curl -X POST https://gateway.irengcloud.com/send-sticker \
     -H "X-API-KEY: <kunci_api_anda>" \
     -F "to=6281234567890" \
     -F "sticker=@/path/sticker.webp"
