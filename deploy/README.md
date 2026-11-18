@@ -4,16 +4,16 @@
 
 This project expects the Node.js app to run on `127.0.0.1:8181`.
 
-The provided nginx site config for `gate.ireng.uk` is at:
+The provided nginx site config for `gateway.irengcloud.com` is at:
 
-- `deploy/nginx/gate.ireng.uk.conf`
+- `deploy/nginx/gateway.irengcloud.com.conf`
 
 Install it on the server with:
 
 ```bash
 sudo mkdir -p /etc/nginx/ssl /var/www/certbot
-sudo cp deploy/nginx/gate.ireng.uk.conf /etc/nginx/sites-available/gate.ireng.uk.conf
-sudo ln -s /etc/nginx/sites-available/gate.ireng.uk.conf /etc/nginx/sites-enabled/gate.ireng.uk.conf
+sudo cp deploy/nginx/gateway.irengcloud.com.conf /etc/nginx/sites-available/gateway.irengcloud.com.conf
+sudo ln -s /etc/nginx/sites-available/gateway.irengcloud.com.conf /etc/nginx/sites-enabled/gateway.irengcloud.com.conf
 sudo nginx -t
 sudo systemctl reload nginx
 ```
@@ -41,15 +41,15 @@ sudo systemctl status wa-webhook
 
 The nginx config expects:
 
-- `/etc/nginx/ssl/gate.ireng.uk.crt`
-- `/etc/nginx/ssl/gate.ireng.uk.key`
+- `/etc/nginx/ssl/gateway.irengcloud.com.crt`
+- `/etc/nginx/ssl/gateway.irengcloud.com.key`
 
 For a quick self-signed certificate:
 
 ```bash
 sudo openssl req -x509 -nodes -newkey rsa:2048 \
-  -keyout /etc/nginx/ssl/gate.ireng.uk.key \
-  -out /etc/nginx/ssl/gate.ireng.uk.crt \
+  -keyout /etc/nginx/ssl/gateway.irengcloud.com.key \
+  -out /etc/nginx/ssl/gateway.irengcloud.com.crt \
   -days 365 \
-  -subj "/CN=gate.ireng.uk"
+  -subj "/CN=gateway.irengcloud.com"
 ```
